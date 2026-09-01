@@ -1,0 +1,6 @@
+{
+  "name": "ReflectAI - Private Journal & Reflection Companion",
+  "description": "A secure, user-isolated journaling and multi-turn AI reflection workspace powered by Firebase Auth, Cloud Firestore, and Gemini Flash.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
