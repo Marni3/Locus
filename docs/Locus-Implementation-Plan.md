@@ -472,6 +472,13 @@ A rigorous, systematic audit verifying full adherence to Locus Software Standard
   - Audit prompt injection defense: verify that untrusted user transcripts are wrapped in delimiter blocks (`<<<USER_INPUT>>>`) and isolated from system directives.
 - **Threat Zone 3 (Tool & API Execution)**:
   - Audit Webhook SSRF validation: verify DNS resolution blocks private/internal IPs (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`, `169.254.169.254`), enforces HTTPS, and forbids HTTP redirects.
+
+#### 8. Conversational Egress Resilience & Inline Message Resend (Locus Software Standard 4)
+- **Zero Data Loss Guarantee**: If an outbound reflection turn fails (network drop, API quota limit, 500 error):
+  - Catch the failure at the message dispatcher layer without resetting state or clearing the user's message input buffer.
+  - Mark the specific user message turn with `status: 'failed'`.
+  - Render a calm inline banner and single-accent `[ 🔄 Resend ]` action directly below the failed message.
+  - User can click `[ 🔄 Resend ]` to immediately re-dispatch the exact message turn without having to re-type their thoughts.
 - **Threat Zone 4 (Memory & State)**:
   - Audit Firestore security rules: verify absolute user isolation (`request.auth.uid == userId`) and zero cross-tenant access.
   - Audit Demo Sandbox: verify `isDemo: true` records can be wiped in a single transaction without orphaned documents.
