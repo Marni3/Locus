@@ -37,11 +37,21 @@ All notable changes, architectural decisions, schema modifications, and design s
 - Pruned redundant and misaligned generic skills: `code-quality`, `ui-design`, `feature-planning`, `schema-change`, `security`, `api-design`, `architecture-design`, `component-boundaries`, `debugging`, `documentation`, `performance`, and loose staging files (`SKILL (5).md`, `SKILL (6).md`, `SKILL (7).md`).
 - Retired `.agents/skills/locus-design-guidelines/` in favor of `DESIGN.md`.
 
+- **Phase 0 Execution — Core Architecture Alignment & Automated Verification**:
+  - Installed and configured `@playwright/test` with headless Chromium in `playwright.config.ts`.
+  - Added `npm run test:e2e` script to `package.json` and authored `tests/e2e/smoke.spec.ts`.
+  - Re-architected [src/types.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/types.ts) to establish the Core Object Model (`Entry`, `Message`, `Theme`, `ThemeObservation`, `EntryLocation`).
+  - Extracted [src/services/gemini.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/gemini.ts) isolating the Gemini client and resilient model fallback ladder (`generateContentWithFallback`).
+  - Updated [src/lib/firebase.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/firebase.ts) with Core Object Model collections and enhanced recursive `stripUndefined` payload hygiene.
+  - Hardened [firestore.rules](file:///c:/Users/reyna/OneDrive/Documents/Locus/firestore.rules) to enforce owner-bound isolation across all user collections (`/users/{userId}/{document=**}`).
+  - Refactored `src/App.tsx` and `src/components/SessionWorkspace.tsx` to align with the new `Entry` and `Message` contracts.
+
 ### Verified
+- `npm run test:e2e` (Playwright automated smoke test): Passed cleanly in 7.0s.
+- `npm run lint` (`tsc --noEmit`): Passed with 0 errors.
+- `npm run build`: Production bundle (`dist/client` + `dist/server.cjs`) built cleanly in 9.59s.
 - `node .agents/skills/impeccable/scripts/doctor.mjs`: Zero configuration drift reported.
 - `node .agents/skills/impeccable/scripts/context.mjs`: Resolved `PRODUCT.md` and `DESIGN.md` cleanly.
-- `npm run lint` (`tsc --noEmit`): Passed with 0 errors.
-- Pushed commit `2ecf7cc` to `origin main`.
 
 ---
 

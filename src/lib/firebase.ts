@@ -17,11 +17,12 @@ import {
   deleteDoc, 
   query, 
   orderBy, 
+  where,
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { Interaction, NotebookItem, UserSettings } from '../types';
+import { Entry, Message, Theme, ThemeObservation, UserSettings, NotebookItem } from '../types';
 
 // Initialize Firebase App
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -43,7 +44,8 @@ export const signOutUser = async () => {
 };
 
 /**
- * Utility: Strips any undefined fields recursively to prevent Firestore write crashes.
+ * Utility: Recursively strips any undefined fields to prevent Firestore write crashes.
+ * Adheres strictly to Locus Software Standard 6.
  */
 export function stripUndefined<T>(obj: T): T {
   if (obj === null || obj === undefined) {
@@ -54,52 +56,134 @@ export function stripUndefined<T>(obj: T): T {
   }));
 }
 
-/* ================= INTERACTIONS ================= */
-export const saveInteractionToFirestore = async (userId: string, interaction: Interaction): Promise<void> => {
-  if (!userId || !interaction.id) {
-    throw new Error("Invalid userId or interaction ID for persistence");
+/* ================= ENTRIES (Core Object Model) ================= */
+
+export const saveEntryToFirestore = async (userId: string, entry: Entry): Promise<void> => {
+  if (!userId || !entry.id) {
+    throw new Error("Invalid userId or entry ID for persistence");
   }
   const cleanData = stripUndefined({
-    ...interaction,
+    ...entry,
     userId,
     updatedAt: new Date().toISOString()
   });
 
-  const docRef = doc(db, 'users', userId, 'interactions', interaction.id);
+  const docRef = doc(db, 'users', userId, 'entries', entry.id);
   await setDoc(docRef, cleanData, { merge: true });
 };
 
-export const fetchUserInteractions = async (userId: string): Promise<Interaction[]> => {
+export const fetchUserEntries = async (userId: string): Promise<Entry[]> => {
   if (!userId) return [];
   try {
     const q = query(
-      collection(db, 'users', userId, 'interactions'),
+      collection(db, 'users', userId, 'entries'),
       orderBy('updatedAt', 'desc')
     );
     const snapshot = await getDocs(q);
-    const interactions: Interaction[] = [];
+    const entries: Entry[] = [];
     snapshot.forEach((docSnapshot) => {
-      interactions.push(docSnapshot.data() as Interaction);
+      entries.push(docSnapshot.data() as Entry);
     });
-    return interactions;
+    return entries;
   } catch (error) {
-    console.error('Error fetching interactions:', error);
-    // Fallback: fetch without ordering if index is building
-    const qSimple = collection(db, 'users', userId, 'interactions');
+    console.error('Error fetching entries with ordering, falling back to simple query:', error);
+    const qSimple = collection(db, 'users', userId, 'entries');
     const snapshot = await getDocs(qSimple);
-    const list: Interaction[] = [];
-    snapshot.forEach((d) => list.push(d.data() as Interaction));
+    const list: Entry[] = [];
+    snapshot.forEach((d) => list.push(d.data() as Entry));
     return list.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
   }
 };
 
-export const deleteInteractionFromFirestore = async (userId: string, interactionId: string): Promise<void> => {
-  if (!userId || !interactionId) return;
-  const docRef = doc(db, 'users', userId, 'interactions', interactionId);
+export const deleteEntryFromFirestore = async (userId: string, entryId: string): Promise<void> => {
+  if (!userId || !entryId) return;
+  const docRef = doc(db, 'users', userId, 'entries', entryId);
   await deleteDoc(docRef);
 };
 
-/* ================= NOTEBOOK ITEMS ================= */
+// Aliases for progressive backwards compatibility during migration
+export const saveInteractionToFirestore = saveEntryToFirestore;
+export const fetchUserInteractions = async (userId: string): Promise<Entry[]> => {
+  const entries = await fetchUserEntries(userId);
+  if (entries.length > 0) return entries;
+  
+  // Backwards compatibility: read legacy /interactions if entries is empty
+  try {
+    const qLegacy = collection(db, 'users', userId, 'interactions');
+    const snap = await getDocs(qLegacy);
+    const legacyList: Entry[] = [];
+    snap.forEach(d => legacyList.push(d.data() as Entry));
+    return legacyList;
+  } catch {
+    return [];
+  }
+};
+export const deleteInteractionFromFirestore = deleteEntryFromFirestore;
+
+/* ================= THEMES & OBSERVATIONS ================= */
+
+export const saveThemeToFirestore = async (userId: string, theme: Theme): Promise<void> => {
+  if (!userId || !theme.id) return;
+  const cleanData = stripUndefined({
+    ...theme,
+    userId,
+    updatedAt: new Date().toISOString()
+  });
+  const docRef = doc(db, 'users', userId, 'themes', theme.id);
+  await setDoc(docRef, cleanData, { merge: true });
+};
+
+export const fetchUserThemes = async (userId: string): Promise<Theme[]> => {
+  if (!userId) return [];
+  try {
+    const q = query(collection(db, 'users', userId, 'themes'), orderBy('updatedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    const themes: Theme[] = [];
+    snapshot.forEach(d => themes.push(d.data() as Theme));
+    return themes;
+  } catch (error) {
+    const qSimple = collection(db, 'users', userId, 'themes');
+    const snapshot = await getDocs(qSimple);
+    const list: Theme[] = [];
+    snapshot.forEach(d => list.push(d.data() as Theme));
+    return list.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+  }
+};
+
+export const saveObservationToFirestore = async (userId: string, observation: ThemeObservation): Promise<void> => {
+  if (!userId || !observation.id) return;
+  const cleanData = stripUndefined({
+    ...observation,
+    userId
+  });
+  const docRef = doc(db, 'users', userId, 'observations', observation.id);
+  await setDoc(docRef, cleanData, { merge: true });
+};
+
+export const fetchThemeObservations = async (userId: string, themeId?: string): Promise<ThemeObservation[]> => {
+  if (!userId) return [];
+  try {
+    let q = themeId 
+      ? query(collection(db, 'users', userId, 'observations'), where('themeId', '==', themeId), orderBy('timestamp', 'asc'))
+      : query(collection(db, 'users', userId, 'observations'), orderBy('timestamp', 'desc'));
+    const snapshot = await getDocs(q);
+    const observations: ThemeObservation[] = [];
+    snapshot.forEach(d => observations.push(d.data() as ThemeObservation));
+    return observations;
+  } catch (error) {
+    const qSimple = collection(db, 'users', userId, 'observations');
+    const snapshot = await getDocs(qSimple);
+    let list: ThemeObservation[] = [];
+    snapshot.forEach(d => list.push(d.data() as ThemeObservation));
+    if (themeId) {
+      list = list.filter(o => o.themeId === themeId);
+    }
+    return list.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }
+};
+
+/* ================= NOTEBOOK ITEMS (Deferred) ================= */
+
 export const saveNotebookItemToFirestore = async (userId: string, item: NotebookItem): Promise<void> => {
   if (!userId || !item.id) return;
   const cleanData = stripUndefined({
@@ -125,7 +209,6 @@ export const fetchUserNotebookItems = async (userId: string): Promise<NotebookIt
     });
     return list;
   } catch (error) {
-    console.error('Error fetching notebook items:', error);
     const qSimple = collection(db, 'users', userId, 'notebook');
     const snapshot = await getDocs(qSimple);
     const list: NotebookItem[] = [];
@@ -141,6 +224,7 @@ export const deleteNotebookItemFromFirestore = async (userId: string, itemId: st
 };
 
 /* ================= USER SETTINGS ================= */
+
 export const DEFAULT_SETTINGS: UserSettings = {
   customInstructions: '',
   personaTone: 'Warm',
@@ -148,6 +232,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   categories: ['Personal', 'Work', 'Ideas', 'Gratitude', 'Goals', 'Wellbeing'],
   autoGenerateContextHint: true,
   defaultFolderPattern: 'source_title',
+  isDemoMode: false,
 };
 
 export const saveUserSettingsToFirestore = async (userId: string, settings: UserSettings): Promise<void> => {
@@ -170,4 +255,3 @@ export const fetchUserSettings = async (userId: string): Promise<UserSettings> =
   }
   return DEFAULT_SETTINGS;
 };
-

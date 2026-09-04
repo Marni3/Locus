@@ -127,11 +127,14 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     const userPrompt = inputText.trim();
     setInputText('');
 
+    const nowIso = new Date().toISOString();
     const newTurn: InteractionTurn = {
       id: 'turn-' + Date.now(),
+      entryId: interaction.id,
       role: 'user',
       content: userPrompt,
-      createdAt: new Date().toISOString(),
+      timestamp: nowIso,
+      createdAt: nowIso,
     };
 
     const updatedTurns = [...(interaction.turns || []), newTurn];
@@ -183,11 +186,14 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
       const data = await response.json();
       const modelContent = data.response;
 
+      const modelTimestamp = new Date().toISOString();
       const modelTurn: InteractionTurn = {
         id: 'turn-' + (Date.now() + 1),
+        entryId: interaction.id,
         role: 'model',
         content: modelContent,
-        createdAt: new Date().toISOString(),
+        timestamp: modelTimestamp,
+        createdAt: modelTimestamp,
       };
 
       const finalInteraction: Interaction = {

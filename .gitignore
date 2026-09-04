@@ -8,3 +8,5 @@ coverage/
 !.env.example
 .impeccable/*.local.json
 .impeccable/*.cache.json
+test-results/
+playwright-report/

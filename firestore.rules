@@ -1,19 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // User-isolated interactions and journal entries
-    match /users/{userId}/interactions/{interactionId} {
+    // Strict Owner-Bound User Isolation
+    // Only the authenticated owner can read or write their personal reflection documents
+    match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // User-isolated notebook entries
-    match /users/{userId}/notebook/{itemId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // User-isolated settings & profile preferences
-    match /users/{userId}/settings/{settingId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Default Deny All Other Collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
