@@ -2,12 +2,12 @@ import { GoogleGenAI } from '@google/genai';
 
 // 1. Resilient Model Fallback Ladder (Locus Software Standard 2)
 export const MODEL_FALLBACK_LADDER = [
+  'gemini-2.5-flash',
   'gemini-3.6-flash',
-  'gemini-3.7-flash',
   'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
   'gemini-flash-latest',
-  'gemini-2.5-flash-lite'
+  'gemini-3.5-flash-lite'
 ];
 
 export interface FallbackOptions {
@@ -17,16 +17,18 @@ export interface FallbackOptions {
 }
 
 let aiClient: GoogleGenAI | null = null;
+let lastApiKey: string | undefined;
 
 /**
- * Lazy initialization of GoogleGenAI SDK to prevent startup crashes if key is pending.
+ * Lazy initialization of GoogleGenAI SDK. Reinitializes if GEMINI_API_KEY changes.
  */
 export function getAIClient(): GoogleGenAI {
-  if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!aiClient || lastApiKey !== apiKey) {
     if (!apiKey) {
       console.warn('Warning: GEMINI_API_KEY environment variable is not configured.');
     }
+    lastApiKey = apiKey;
     aiClient = new GoogleGenAI({ apiKey: apiKey || '' });
   }
   return aiClient;
@@ -69,7 +71,12 @@ export async function generateContentWithFallback(
     }
   }
 
-  throw new Error(
-    `All Gemini models in fallback ladder failed. Last error: ${lastError?.message || 'Unknown error'}`
-  );
+  const errorMessage = String(lastError?.message || '');
+  const isQuota = lastError?.status === 429 || errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('credits');
+
+  if (isQuota) {
+    throw new Error('The reflection companion is temporarily unavailable due to API quota limits. Your entry is safely preserved locally.');
+  }
+
+  throw new Error('Unable to reach reflection companion right now. Your entry is safely preserved locally.');
 }

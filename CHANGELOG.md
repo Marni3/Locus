@@ -31,6 +31,11 @@ All notable changes, architectural decisions, schema modifications, and design s
   - Expanded Phase 4 with formal requirements for **Manual Human Evaluation of all Internal Prompts** (evaluation rubric for tone, privacy, zero leaks, and schema adherence) and **Deep Security Audit** (systematic 5 Threat Zones review and `npm audit` verification).
   - Added Phase 0 triage detailing exact keep, rework, and rebuild decisions across all ported files.
   - Outlined Playwright automated verification harness for local headless testing and screenshot capture.
+- **Gemini Fallback Ladder & Error Sanitization**:
+  - Prioritized active verified model `gemini-2.5-flash` at index 0 in [src/services/gemini.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/gemini.ts).
+  - Replaced retired `gemini-2.5-flash-lite` with `gemini-3.5-flash-lite`.
+  - Added dynamic API key re-initialization in `getAIClient()` to pick up `.env` changes.
+  - Sanitized fallback ladder error outputs to prevent technical plumbing/vendor leaks into user-facing UI toasts.
 - **Rule & Reference Updates**:
   - Updated [.agents/rules/design-guidelines.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/rules/design-guidelines.md) to anchor on `DESIGN.md` as the normative authority.
   - Updated [AGENTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/AGENTS.md) with Impeccable registration and the Core Object Model (`Entry`, `Message`, `Theme`, `ThemeObservation`).
