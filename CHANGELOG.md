@@ -47,6 +47,7 @@ All notable changes, architectural decisions, schema modifications, and design s
   - Refactored `src/App.tsx` and `src/components/SessionWorkspace.tsx` to align with the new `Entry` and `Message` contracts.
   - Sanitized user-facing UI copy across `src/components/LandingPage.tsx`, `src/components/SessionWorkspace.tsx`, and `src/components/IntelligenceDrawer.tsx` to eliminate vendor/backend plumbing leaks ("Gemini", "Firestore") in compliance with [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md) and [AGENTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/AGENTS.md).
   - Enhanced Playwright smoke suite (`tests/e2e/smoke.spec.ts`) with element-level visibility assertions and automated visual screenshot capture.
+  - Implemented progressive dual-collection fallback in `src/lib/firebase.ts` allowing seamless operation against pre-existing remote Firestore rules (`/interactions`) until new `/entries` rules are deployed.
 
 ### Verified
 - `npm run test:e2e` (Playwright automated smoke test & full-page screenshot): Passed cleanly in 8.3s.

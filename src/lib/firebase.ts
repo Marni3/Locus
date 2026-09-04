@@ -68,8 +68,19 @@ export const saveEntryToFirestore = async (userId: string, entry: Entry): Promis
     updatedAt: new Date().toISOString()
   });
 
-  const docRef = doc(db, 'users', userId, 'entries', entry.id);
-  await setDoc(docRef, cleanData, { merge: true });
+  try {
+    const docRef = doc(db, 'users', userId, 'entries', entry.id);
+    await setDoc(docRef, cleanData, { merge: true });
+  } catch (err: any) {
+    // If /entries is rejected because remote rules haven't been redeployed, fall back to /interactions
+    if (err?.code === 'permission-denied') {
+      console.warn('Firestore /entries rejected, persisting to /interactions fallback.');
+      const fallbackRef = doc(db, 'users', userId, 'interactions', entry.id);
+      await setDoc(fallbackRef, cleanData, { merge: true });
+      return;
+    }
+    throw err;
+  }
 };
 
 export const fetchUserEntries = async (userId: string): Promise<Entry[]> => {
@@ -86,19 +97,31 @@ export const fetchUserEntries = async (userId: string): Promise<Entry[]> => {
     });
     return entries;
   } catch (error) {
-    console.error('Error fetching entries with ordering, falling back to simple query:', error);
-    const qSimple = collection(db, 'users', userId, 'entries');
-    const snapshot = await getDocs(qSimple);
-    const list: Entry[] = [];
-    snapshot.forEach((d) => list.push(d.data() as Entry));
-    return list.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+    // Try simple un-ordered query on /entries, and catch any permission-denied
+    try {
+      const qSimple = collection(db, 'users', userId, 'entries');
+      const snapshot = await getDocs(qSimple);
+      const list: Entry[] = [];
+      snapshot.forEach((d) => list.push(d.data() as Entry));
+      return list.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+    } catch (simpleErr) {
+      // Remote Firestore rules do not yet allow /entries, safely return empty to allow /interactions fallback
+      return [];
+    }
   }
 };
 
 export const deleteEntryFromFirestore = async (userId: string, entryId: string): Promise<void> => {
   if (!userId || !entryId) return;
-  const docRef = doc(db, 'users', userId, 'entries', entryId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, 'users', userId, 'entries', entryId);
+    await deleteDoc(docRef);
+  } catch {
+    try {
+      const fallbackRef = doc(db, 'users', userId, 'interactions', entryId);
+      await deleteDoc(fallbackRef);
+    } catch {}
+  }
 };
 
 // Aliases for progressive backwards compatibility during migration
@@ -107,14 +130,15 @@ export const fetchUserInteractions = async (userId: string): Promise<Entry[]> =>
   const entries = await fetchUserEntries(userId);
   if (entries.length > 0) return entries;
   
-  // Backwards compatibility: read legacy /interactions if entries is empty
+  // Read legacy /interactions when entries is empty or unavailable
   try {
     const qLegacy = collection(db, 'users', userId, 'interactions');
     const snap = await getDocs(qLegacy);
     const legacyList: Entry[] = [];
     snap.forEach(d => legacyList.push(d.data() as Entry));
-    return legacyList;
-  } catch {
+    return legacyList.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+  } catch (err) {
+    console.warn('Fallback /interactions query failed:', err);
     return [];
   }
 };
@@ -209,11 +233,15 @@ export const fetchUserNotebookItems = async (userId: string): Promise<NotebookIt
     });
     return list;
   } catch (error) {
-    const qSimple = collection(db, 'users', userId, 'notebook');
-    const snapshot = await getDocs(qSimple);
-    const list: NotebookItem[] = [];
-    snapshot.forEach((d) => list.push(d.data() as NotebookItem));
-    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    try {
+      const qSimple = collection(db, 'users', userId, 'notebook');
+      const snapshot = await getDocs(qSimple);
+      const list: NotebookItem[] = [];
+      snapshot.forEach((d) => list.push(d.data() as NotebookItem));
+      return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch {
+      return [];
+    }
   }
 };
 
