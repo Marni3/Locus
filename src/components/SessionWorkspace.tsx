@@ -20,7 +20,12 @@ import {
   Pin,
   Clock,
   CheckCircle2,
-  StickyNote
+  StickyNote,
+  MapPin,
+  Navigation,
+  Search,
+  X,
+  Loader2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Interaction, InteractionTurn, ReflectionMode } from '../types';
@@ -81,9 +86,32 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   const [mood, setMood] = useState(interaction.mood || '');
   const [mode, setMode] = useState<ReflectionMode>(interaction.mode || 'reflect');
   const [copiedTurnId, setCopiedTurnId] = useState<string | null>(null);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
+  const [isResolvingLocation, setIsResolvingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const locationPopoverRef = useRef<HTMLDivElement>(null);
+
+  // Close location popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        locationPopoverRef.current &&
+        !locationPopoverRef.current.contains(event.target as Node)
+      ) {
+        setIsLocationOpen(false);
+      }
+    };
+    if (isLocationOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLocationOpen]);
 
   // Inactivity Countdown Timer
   useEffect(() => {
@@ -146,6 +174,94 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
       ...interaction,
       mode: newMode,
     });
+  };
+
+  const handleUseGps = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsResolvingLocation(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch('/api/location/resolve-gps', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              storeCoordinates: false,
+            }),
+          });
+          if (!res.ok) {
+            throw new Error('Failed to resolve coordinates');
+          }
+          const data = await res.json();
+          if (data.location) {
+            onUpdateInteraction({
+              ...interaction,
+              locationContext: data.location,
+            });
+            setIsLocationOpen(false);
+          }
+        } catch (err: any) {
+          setLocationError(err.message || 'Could not resolve GPS location.');
+        } finally {
+          setIsResolvingLocation(false);
+        }
+      },
+      (geoErr) => {
+        setIsResolvingLocation(false);
+        if (geoErr.code === geoErr.PERMISSION_DENIED) {
+          setLocationError('Permission denied. You can search or type a place name below.');
+        } else {
+          setLocationError('Unable to retrieve your location.');
+        }
+      },
+      { timeout: 10000 }
+    );
+  };
+
+  const handleResolveLocationQuery = async () => {
+    if (!locationQuery.trim()) return;
+    setIsResolvingLocation(true);
+    setLocationError(null);
+    try {
+      const res = await fetch('/api/location/resolve-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: locationQuery.trim(),
+          storeCoordinates: false,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to resolve location query');
+      }
+      const data = await res.json();
+      if (data.location) {
+        onUpdateInteraction({
+          ...interaction,
+          locationContext: data.location,
+        });
+        setLocationQuery('');
+        setIsLocationOpen(false);
+      }
+    } catch (err: any) {
+      setLocationError(err.message || 'Could not set location.');
+    } finally {
+      setIsResolvingLocation(false);
+    }
+  };
+
+  const handleRemoveLocation = () => {
+    onUpdateInteraction({
+      ...interaction,
+      locationContext: null,
+    });
+    setIsLocationOpen(false);
   };
 
   // Submit new reflection turn to server
@@ -362,6 +478,121 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                   <option key={m} value={m}>{m}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Location Context Pill & Popover */}
+            <div className="relative">
+              <button
+                id="workspace-location-btn"
+                type="button"
+                onClick={() => setIsLocationOpen(!isLocationOpen)}
+                className={`inline-flex items-center gap-1 border rounded-md px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ${
+                  interaction.locationContext?.name
+                    ? 'bg-[#DCEEE3] text-[#3B7A57] border-[#BCE1CC] hover:bg-[#CFE8D7]'
+                    : 'bg-[#F9F7F2] hover:bg-stone-100 text-stone-600 border-stone-200'
+                }`}
+                title={interaction.locationContext?.name ? `Location: ${interaction.locationContext.name}` : 'Attach location context'}
+              >
+                <MapPin className={`w-3 h-3 ${interaction.locationContext?.name ? 'text-[#3B7A57]' : 'text-stone-400'}`} />
+                <span className="max-w-[130px] sm:max-w-[170px] truncate">
+                  {interaction.locationContext?.name || 'Add Location'}
+                </span>
+              </button>
+
+              {isLocationOpen && (
+                <div
+                  ref={locationPopoverRef}
+                  id="workspace-location-popover"
+                  className="absolute left-0 mt-1.5 w-72 bg-white rounded-xl shadow-lg border border-stone-200 p-3.5 z-50 text-xs space-y-3 animate-fade-in"
+                >
+                  <div className="flex items-center justify-between pb-1.5 border-b border-stone-100">
+                    <div>
+                      <h4 className="font-semibold text-stone-800 text-xs">Location Context</h4>
+                      <p className="text-[10px] text-stone-400">Attach where you are thinking from</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsLocationOpen(false)}
+                      className="text-stone-400 hover:text-stone-600 p-0.5 rounded cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {locationError && (
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-[11px]">
+                      {locationError}
+                    </div>
+                  )}
+
+                  {/* GPS Option */}
+                  <button
+                    id="workspace-use-gps-btn"
+                    type="button"
+                    onClick={handleUseGps}
+                    disabled={isResolvingLocation}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isResolvingLocation ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#3B7A57]" />
+                    ) : (
+                      <Navigation className="w-3.5 h-3.5 text-[#3B7A57]" />
+                    )}
+                    <span>Use Current GPS</span>
+                  </button>
+
+                  <div className="flex items-center gap-2 text-[10px] text-stone-400 uppercase tracking-wider">
+                    <span className="flex-1 h-px bg-stone-200"></span>
+                    <span>Or Search / Type</span>
+                    <span className="flex-1 h-px bg-stone-200"></span>
+                  </div>
+
+                  {/* Search / Custom place */}
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <input
+                        id="workspace-location-query-input"
+                        type="text"
+                        value={locationQuery}
+                        onChange={(e) => setLocationQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleResolveLocationQuery();
+                          }
+                        }}
+                        placeholder="e.g. The Mill Coffee SF, Home Office..."
+                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B7A57]"
+                      />
+                      <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2 top-2" />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      {interaction.locationContext ? (
+                        <button
+                          type="button"
+                          id="workspace-remove-location-btn"
+                          onClick={handleRemoveLocation}
+                          className="text-[11px] text-rose-600 hover:underline cursor-pointer"
+                        >
+                          Clear location
+                        </button>
+                      ) : (
+                        <span />
+                      )}
+                      <button
+                        id="workspace-set-location-btn"
+                        type="button"
+                        onClick={handleResolveLocationQuery}
+                        disabled={!locationQuery.trim() || isResolvingLocation}
+                        className="px-3 py-1 bg-[#3B7A57] hover:bg-[#2E6145] text-white rounded-md text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Set Place
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Save Status Indicator */}

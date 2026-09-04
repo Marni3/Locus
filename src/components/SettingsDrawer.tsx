@@ -9,7 +9,11 @@ import {
   Check, 
   Plus, 
   Trash2, 
-  Download
+  Download,
+  Bell,
+  Shield,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { UserSettings, PersonaTone, ReflectionMode, Interaction, NotebookItem } from '../types';
 
@@ -47,9 +51,35 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   allNotebookItems,
   onShowToast,
 }) => {
-  const [activeTab, setActiveTab] = useState<'persona' | 'tags' | 'notebook' | 'data'>('persona');
+  const [activeTab, setActiveTab] = useState<'persona' | 'tags' | 'notebook' | 'data' | 'integrations'>('persona');
   const [formState, setFormState] = useState<UserSettings>(settings);
   const [newTagInput, setNewTagInput] = useState('');
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
+  const [webhookValidationStatus, setWebhookValidationStatus] = useState<{ isValid: boolean; error?: string } | null>(null);
+
+  const handleTestWebhook = async () => {
+    if (!formState.webhookUrl?.trim()) return;
+    setIsTestingWebhook(true);
+    try {
+      const res = await fetch('/api/notifications/test-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl: formState.webhookUrl.trim() }),
+      });
+      const data = await res.json();
+      setWebhookValidationStatus({
+        isValid: Boolean(data.isValid),
+        error: data.error,
+      });
+    } catch (err: any) {
+      setWebhookValidationStatus({
+        isValid: false,
+        error: err.message || 'Validation request failed',
+      });
+    } finally {
+      setIsTestingWebhook(false);
+    }
+  };
 
   React.useEffect(() => {
     setFormState(settings);
@@ -177,6 +207,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             </button>
 
             <button
+              id="settings-tab-data"
               onClick={() => setActiveTab('data')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'data'
@@ -186,6 +217,19 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Model &amp; Data</span>
+            </button>
+
+            <button
+              id="settings-tab-integrations"
+              onClick={() => setActiveTab('integrations')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
+                activeTab === 'integrations'
+                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+              }`}
+            >
+              <Bell className="w-3.5 h-3.5" />
+              <span>Integrations &amp; Alerts</span>
             </button>
           </div>
 
@@ -373,6 +417,114 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         <span>Export Archive</span>
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'integrations' && (
+              <div className="space-y-6">
+                {/* Outbound Privacy Notice */}
+                <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-950">
+                    <Shield className="w-4 h-4 text-emerald-800" />
+                    <span>Outbound Privacy Sanitizer Active</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+                    Any prompt or reflection sent to external synthesis engines or webhooks is automatically scrubbed of phone numbers, emails, and street addresses before egress. Your original reflections remain intact and unredacted in your private journal.
+                  </p>
+                </div>
+
+                {/* Morning Digest Email */}
+                <div>
+                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                    Morning Reflection Digest
+                  </label>
+                  <p className="text-[11px] text-stone-500 mb-3">
+                    Receive a gentle morning summary of recent realizations and open inquiries.
+                  </p>
+                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-2">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        id="settings-email-notifications-toggle"
+                        type="checkbox"
+                        checked={Boolean(formState.emailNotifications)}
+                        onChange={(e) => setFormState({ ...formState, emailNotifications: e.target.checked })}
+                        className="mt-0.5 rounded border-stone-300 text-emerald-800 focus:ring-emerald-700"
+                      />
+                      <div>
+                        <span className="text-xs font-semibold text-stone-800">Email Digest</span>
+                        <p className="text-[11px] text-stone-500 mt-0.5">
+                          Dispatches daily at 7:00 AM. In development mode, digests log safely to server console.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Webhook Dispatcher */}
+                <div>
+                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                    Zapier / Custom Webhook
+                  </label>
+                  <p className="text-[11px] text-stone-500 mb-3">
+                    Forward concluded reflection digests to your personal automation endpoint with strict SSRF protection.
+                  </p>
+                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-800 mb-1">
+                        Endpoint URL (HTTPS Required)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          id="settings-webhook-url-input"
+                          type="url"
+                          value={formState.webhookUrl || ''}
+                          onChange={(e) => {
+                            setFormState({ ...formState, webhookUrl: e.target.value });
+                            setWebhookValidationStatus(null);
+                          }}
+                          placeholder="https://hooks.zapier.com/hooks/catch/..."
+                          className="flex-1 px-3 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                        />
+                        <button
+                          id="settings-test-webhook-btn"
+                          type="button"
+                          onClick={handleTestWebhook}
+                          disabled={isTestingWebhook || !formState.webhookUrl?.trim()}
+                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                        >
+                          {isTestingWebhook ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-800" />
+                          ) : (
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" />
+                          )}
+                          <span>Test SSRF</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {webhookValidationStatus && (
+                      <div
+                        id="settings-webhook-status-badge"
+                        className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                          webhookValidationStatus.isValid
+                            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                            : 'bg-rose-50 border border-rose-200 text-rose-900'
+                        }`}
+                      >
+                        {webhookValidationStatus.isValid ? (
+                          <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
+                        )}
+                        <span>
+                          {webhookValidationStatus.isValid
+                            ? 'Webhook URL is valid, safe, and passed SSRF validation.'
+                            : `Blocked: ${webhookValidationStatus.error || 'Invalid or prohibited webhook destination.'}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

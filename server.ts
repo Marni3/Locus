@@ -17,6 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 import { generateContentWithFallback, getAIClient, MODEL_FALLBACK_LADDER } from './src/services/gemini';
 import { concludeAndSynthesizeEntry } from './src/services/synthesis';
 import { fetchUserEntries, saveEntryToFirestore } from './src/lib/firebase';
+import { unpackThemeFurther } from './src/integrations/unpack';
+import { resolveGpsCoordinates, resolvePlaceQuery } from './src/integrations/geocoding';
+import { validateWebhookUrl } from './src/integrations/notifications';
 
 // 3. API Routes
 
@@ -330,6 +333,121 @@ app.patch('/api/entries/:id/messages/:messageId', async (req: Request, res: Resp
     console.error('Error in PATCH /api/entries/:id/messages/:messageId:', error);
     return res.status(500).json({
       error: error.message || 'Internal server error updating message.'
+    });
+  }
+});
+
+/**
+ * POST /api/themes/:id/unpack
+ * Unpacks a Theme with >= 2 observations into an evolutionary thesis, narrative, and exploration paths
+ */
+app.post('/api/themes/:id/unpack', async (req: Request, res: Response) => {
+  try {
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const theme = body.theme;
+    const observations = Array.isArray(body.observations) ? body.observations : [];
+
+    if (!theme) {
+      return res.status(400).json({ error: 'Theme object is required.' });
+    }
+
+    if (observations.length < 2) {
+      return res.status(400).json({
+        error: `Theme requires at least 2 observations to unpack evolutionary patterns (found ${observations.length}).`
+      });
+    }
+
+    const result = await unpackThemeFurther(theme, observations);
+    return res.json({
+      success: true,
+      unpackResult: result,
+    });
+  } catch (error: any) {
+    console.error('Error in /api/themes/:id/unpack:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error unpacking theme.'
+    });
+  }
+});
+
+/**
+ * POST /api/location/resolve-gps
+ * Reverse geocodes device GPS coordinates into a place name with coordinate minimization
+ */
+app.post('/api/location/resolve-gps', async (req: Request, res: Response) => {
+  try {
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const lat = typeof body.latitude === 'number' ? body.latitude : NaN;
+    const lng = typeof body.longitude === 'number' ? body.longitude : NaN;
+    const storeCoordinates = Boolean(body.storeCoordinates);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: 'Valid latitude and longitude numbers are required.' });
+    }
+
+    const result = await resolveGpsCoordinates(lat, lng, storeCoordinates);
+    return res.json({
+      success: true,
+      location: result,
+    });
+  } catch (error: any) {
+    console.error('Error in /api/location/resolve-gps:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error resolving coordinates.'
+    });
+  }
+});
+
+/**
+ * POST /api/location/resolve-query
+ * Forward geocodes text query to standardized place, or falls back to custom place tag
+ */
+app.post('/api/location/resolve-query', async (req: Request, res: Response) => {
+  try {
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const query = typeof body.query === 'string' ? body.query : '';
+    const storeCoordinates = Boolean(body.storeCoordinates);
+
+    if (!query.trim()) {
+      return res.status(400).json({ error: 'Location query string is required.' });
+    }
+
+    const result = await resolvePlaceQuery(query, storeCoordinates);
+    return res.json({
+      success: true,
+      location: result,
+    });
+  } catch (error: any) {
+    console.error('Error in /api/location/resolve-query:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error resolving place query.'
+    });
+  }
+});
+
+/**
+ * POST /api/notifications/test-webhook
+ * Tests a webhook URL with SSRF validation at save time
+ */
+app.post('/api/notifications/test-webhook', async (req: Request, res: Response) => {
+  try {
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const webhookUrl = typeof body.webhookUrl === 'string' ? body.webhookUrl : '';
+
+    if (!webhookUrl.trim()) {
+      return res.status(400).json({ error: 'Webhook URL is required.' });
+    }
+
+    const validation = await validateWebhookUrl(webhookUrl);
+    return res.json({
+      success: validation.isValid,
+      isValid: validation.isValid,
+      error: validation.error,
+    });
+  } catch (error: any) {
+    console.error('Error in /api/notifications/test-webhook:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error validating webhook URL.'
     });
   }
 });

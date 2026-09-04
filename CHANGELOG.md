@@ -81,6 +81,42 @@ All notable changes, architectural decisions, schema modifications, and design s
     - `npx playwright test tests/e2e/smoke.spec.ts`: 1 passed in 10.2s.
     - `npm run build`: Production client bundle and server bundle built cleanly.
 
+- **Phase 2 Execution — Integration Layer & Privacy Hardening (TDD)**:
+  - **Outbound PII Sanitizer (`src/integrations/sanitizer/`)**:
+    - Built outbound regex sanitization engine redacting phone numbers (international, formatted, standard), emails, and physical street addresses (`[PHONE REDACTED]`, `[EMAIL REDACTED]`, `[ADDRESS REDACTED]`).
+    - Enforced architectural boundary: sanitization is outbound-only at egress points (Gemini prompts, embeddings, webhooks). Raw reflections in Firestore remain unredacted for user view.
+    - Wired `sanitizeForOutbound` into `generateEntrySummary`, `generateSummaryEmbedding`, `buildSynthesisPrompt`, and `buildUnpackPrompt`.
+    - Unit tested in `tests/unit/sanitizer.test.ts` (17 tests) and `tests/unit/egress-pii-gate.test.ts` (2 tests) verifying near-PII preservation, idempotency, and in-memory raw integrity.
+  - **Unpack Further Engine (`src/integrations/unpack/`)**:
+    - Built longitudinal unpack engine requiring $\ge 2$ Theme observations.
+    - Formulates working essay title, 1-sentence evolutionary thesis, contextual narrative paragraph explaining thinking shifts across time, and 2-3 divergent exploration paths with creative writing prompts (per user design refinement).
+    - Hardened with resilient heuristic fallback matching Locus Zero-Crash hygiene if live API quota is exhausted (429).
+    - Unit tested in `tests/unit/unpack-prompt.test.ts` (4 tests) and `tests/unit/unpack-service.test.ts` (2 tests).
+  - **Notification Dispatcher & Dual-Pass SSRF Validator (`src/integrations/notifications/`)**:
+    - Implemented dual-pass SSRF validation (save-time and send-time) blocking private CIDRs (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`, `169.254.169.254` cloud metadata, IPv6 loopbacks) and DNS rebinding attacks.
+    - Configured morning digest compiler, rate limiting (max 5 dispatches/hour), non-blocking 3s timeout with 1 retry, and development console email mock dispatch.
+    - Unit tested in `tests/unit/ssrf-validator.test.ts` (9 tests) and `tests/unit/notification-dispatcher.test.ts` (4 tests).
+  - **Unified Location Context (`src/integrations/geocoding/`)**:
+    - Implemented text-only geocoding with zero map tile or SDK rendering.
+    - Reverse geocoding resolves GPS coordinates to place names with coordinate minimization (lat/long discarded unless opt-in).
+    - Forward geocoding resolves text queries (`"The Mill Coffee SF"`) to standardized places, with graceful fallback to custom place tags on `ZERO_RESULTS`.
+    - Unit tested in `tests/unit/geocoding.test.ts` (5 tests).
+  - **Server Endpoints Mounted (`server.ts`)**:
+    - `POST /api/themes/:id/unpack`
+    - `POST /api/location/resolve-gps`
+    - `POST /api/location/resolve-query`
+    - `POST /api/notifications/test-webhook`
+  - **Frontend UI & Integration Wiring**:
+    - [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx): Added Location Context Pill & Popover (`[ 📍 Balanga, Bataan ▾ ]` or `[ 📍 Add Location ▾ ]`) with live GPS auto-resolve, text search query input, and quick place removal.
+    - [src/components/SettingsDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SettingsDrawer.tsx): Added "Integrations & Alerts" tab exposing Webhook URL input with live SSRF test button and status badge, Morning Digest email toggle, and Outbound Privacy notice.
+  - **Tier 3 E2E Integration Suite (`tests/e2e/integrations.spec.ts`)**:
+    - 12 comprehensive Playwright E2E tests validating unpack engine constraints, location query & GPS coordinate minimization, and webhook SSRF blocking.
+  - **Full Automated Verification**:
+    - `npm run lint`: Passed with 0 errors.
+    - `npm run test:unit`: 57/57 tests passing in 1.84s across 10 test files.
+    - `npx playwright test`: 15/15 tests passing in 17.2s across 3 test suites (`smoke.spec.ts`, `core-loop.spec.ts`, `integrations.spec.ts`).
+    - `npm run build`: Production bundle (`dist/client` + `dist/server.cjs`) built cleanly in 8.53s.
+
 ---
 
 ## [2026-09-01]

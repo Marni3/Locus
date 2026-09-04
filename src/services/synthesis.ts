@@ -2,6 +2,7 @@ import { generateContentWithFallback, getAIClient } from './gemini';
 import { Entry, Message, Theme, ThemeObservation, EntryLocation } from '../types';
 import { db, stripUndefined, fetchUserThemes } from '../lib/firebase';
 import { writeBatch, doc } from 'firebase/firestore';
+import { sanitizeForOutbound } from '../integrations/sanitizer';
 
 export interface ResolutionResult {
   matchedThemes: Array<{
@@ -28,12 +29,13 @@ export interface SynthesisPromptParams {
  */
 export function buildSynthesisPrompt(params: SynthesisPromptParams): string {
   const { summary, locationContext, pinnedMessages = [], candidateThemes = [] } = params;
+  const sanitizedSummary = sanitizeForOutbound(summary);
 
   let prompt = `You are the longitudinal reflective intelligence for Locus (ReflectAI).
 Your objective is to analyze the essence of a concluded reflection entry and determine whether it connects to existing intellectual, emotional, or creative Themes, or represents a new emerging Theme.
 
 <<<ENTRY_SUMMARY>>>
-${summary}
+${sanitizedSummary}
 <<<END_ENTRY_SUMMARY>>>
 `;
 
@@ -44,9 +46,11 @@ ${summary}
   if (pinnedMessages.length > 0) {
     prompt += `\n<<<PINNED_MESSAGES>>>\n`;
     pinnedMessages.forEach((msg, idx) => {
-      prompt += `[Pinned ${idx + 1}] "${msg.content}"\n`;
-      if (msg.note) {
-        prompt += `Note: ${msg.note}\n`;
+      const sanitizedContent = sanitizeForOutbound(msg.content);
+      const sanitizedNote = msg.note ? sanitizeForOutbound(msg.note) : undefined;
+      prompt += `[Pinned ${idx + 1}] "${sanitizedContent}"\n`;
+      if (sanitizedNote) {
+        prompt += `Note: ${sanitizedNote}\n`;
       }
     });
     prompt += `<<<END_PINNED_MESSAGES>>>\n`;
@@ -115,9 +119,10 @@ export async function generateEntrySummary(entry: Entry): Promise<string> {
     return 'Empty reflection session with no conversational turns.';
   }
 
-  const transcript = turns
+  const rawTranscript = turns
     .map((t) => `${t.role === 'user' ? 'User' : 'Reflection Partner'}: ${t.content}`)
     .join('\n\n');
+  const transcript = sanitizeForOutbound(rawTranscript);
 
   try {
     const prompt = `Synthesize this reflection session into a calm, concise 2-3 sentence executive essence.
@@ -150,13 +155,14 @@ export const EMBEDDING_FALLBACK_LADDER = [
  */
 export async function generateSummaryEmbedding(text: string): Promise<number[]> {
   const ai = getAIClient();
+  const sanitizedText = sanitizeForOutbound(text);
   let lastError: any = null;
 
   for (const model of EMBEDDING_FALLBACK_LADDER) {
     try {
       const response: any = await ai.models.embedContent({
         model,
-        contents: text,
+        contents: sanitizedText,
       });
 
       if (Array.isArray(response.embeddings) && response.embeddings[0]?.values) {
