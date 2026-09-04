@@ -58,6 +58,29 @@ All notable changes, architectural decisions, schema modifications, and design s
 - `node .agents/skills/impeccable/scripts/doctor.mjs`: Zero configuration drift reported.
 - `node .agents/skills/impeccable/scripts/context.mjs`: Resolved `PRODUCT.md` and `DESIGN.md` cleanly.
 
+- **Phase 1 Execution — Core Loop & Synchronous Synthesis Pipeline (TDD)**:
+  - **Tier 1 Pure Unit Tests (Vitest)**:
+    - [tests/unit/auto-conclude.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/auto-conclude.test.ts): 7 tests verifying 2-hour inactivity lifecycle, boundary conditions, and human-readable remaining time formatting.
+    - [tests/unit/synthesis-prompt.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/synthesis-prompt.test.ts): 4 tests verifying OWASP prompt injection security delimiters, markdown code fence stripping, and corrupt response recovery.
+  - **Tier 2 Service Mock-Boundary Tests (Vitest)**:
+    - [tests/unit/synthesis-service.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/synthesis-service.test.ts): 3 tests verifying Theme observation delta linking, new theme creation, and embedding error fail-open resilience without external API token consumption.
+    - Configured `vitest` test runner (`npm run test:unit`) passing all 14 unit tests in 1.11s.
+  - **Tier 3 Playwright Route Tests**:
+    - [tests/e2e/core-loop.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/core-loop.spec.ts): 2 route tests validating `POST /api/entries/:id/conclude` and `PATCH /api/entries/:id/messages/:messageId`.
+  - **Core Services & Server Endpoints**:
+    - Created [src/services/concludeEngine.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/concludeEngine.ts) (`isEntryEligibleForAutoConclude`, `getRemainingActiveMs`, `formatRemainingTime`).
+    - Created [src/services/synthesis.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/synthesis.ts) implementing the full synchronous synthesis pipeline (summary generation, embedding vector search candidate matching, theme resolution, and Firestore batch persistence) with 429 quota/network fail-open handling.
+    - Extended [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts) mounting `POST /api/entries/:id/conclude` and `PATCH /api/entries/:id/messages/:messageId`.
+  - **Frontend UI & Design System Alignment**:
+    - Updated [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx) with auto-conclude countdown timer badge, `#3B7A57` accent-sage manual `[Conclude Entry]` button, turn pin toggle, inline reflection notes with editor/viewer, concluded entry read-only state banner with "Start New Reflection", and typography division (Source Serif 4 for authentic user thoughts, Inter for AI companion).
+    - Updated [src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx) wiring `handleConcludeEntry` and 30-second interval checking `isEntryEligibleForAutoConclude()`.
+  - **Full Suite Verification**:
+    - `npm run lint`: 0 TypeScript errors.
+    - `npm run test:unit`: 14/14 tests passed in 1.11s.
+    - `npx playwright test tests/e2e/core-loop.spec.ts`: 2 passed in 8.8s.
+    - `npx playwright test tests/e2e/smoke.spec.ts`: 1 passed in 10.2s.
+    - `npm run build`: Production client bundle and server bundle built cleanly.
+
 ---
 
 ## [2026-09-01]

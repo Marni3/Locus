@@ -15,6 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // 2. Resilient Model Fallback Ladder & Gemini Client
 import { generateContentWithFallback, getAIClient, MODEL_FALLBACK_LADDER } from './src/services/gemini';
+import { concludeAndSynthesizeEntry } from './src/services/synthesis';
+import { fetchUserEntries, saveEntryToFirestore } from './src/lib/firebase';
 
 // 3. API Routes
 
@@ -251,6 +253,83 @@ Format with elegant, inspiring Markdown with clean headings and bullet points.`;
     console.error('Error in /api/gemini/synthesis:', error);
     return res.status(500).json({
       error: error.message || 'Internal server error generating pattern synthesis.'
+    });
+  }
+});
+
+/**
+ * POST /api/entries/:id/conclude
+ * Concludes an active reflection entry and triggers synchronous synthesis pipeline
+ */
+app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
+  try {
+    const entryId = req.params.id;
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const entry = body.entry;
+
+    if (!entry) {
+      return res.status(400).json({ error: 'Missing entry payload in request body' });
+    }
+
+    entry.id = entryId;
+    const result = await concludeAndSynthesizeEntry(entry);
+    return res.json({ success: true, result });
+  } catch (error: any) {
+    console.error('Error in /api/entries/:id/conclude:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error concluding entry.'
+    });
+  }
+});
+
+/**
+ * PATCH /api/entries/:id/messages/:messageId
+ * Toggles message pinning and updates user notes
+ */
+app.patch('/api/entries/:id/messages/:messageId', async (req: Request, res: Response) => {
+  try {
+    const { id: entryId, messageId } = req.params;
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const { userId, isPinned, note } = body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing required userId' });
+    }
+
+    // Persist to Firestore if entry exists
+    try {
+      const entries = await fetchUserEntries(userId);
+      const existingEntry = entries.find((e) => e.id === entryId);
+
+      if (existingEntry && Array.isArray(existingEntry.turns)) {
+        const turnIndex = existingEntry.turns.findIndex((t) => t.id === messageId);
+        if (turnIndex !== -1) {
+          if (typeof isPinned === 'boolean') {
+            existingEntry.turns[turnIndex].isPinned = isPinned;
+          }
+          if (typeof note === 'string') {
+            existingEntry.turns[turnIndex].note = note;
+          }
+          await saveEntryToFirestore(userId, existingEntry);
+        }
+      }
+    } catch (fsErr) {
+      console.warn('Firestore update in message patch failed (fallback mode active):', fsErr);
+    }
+
+    return res.json({
+      success: true,
+      updated: {
+        id: messageId,
+        entryId,
+        isPinned: typeof isPinned === 'boolean' ? isPinned : undefined,
+        note: typeof note === 'string' ? note : undefined,
+      }
+    });
+  } catch (error: any) {
+    console.error('Error in PATCH /api/entries/:id/messages/:messageId:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error updating message.'
     });
   }
 });

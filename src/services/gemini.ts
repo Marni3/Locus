@@ -12,7 +12,7 @@ export const MODEL_FALLBACK_LADDER = [
 export interface FallbackOptions {
   systemInstruction?: string;
   temperature?: number;
-  contents: any[];
+  contents: string | any[];
 }
 
 let aiClient: GoogleGenAI | null = null;
@@ -41,11 +41,15 @@ export async function generateContentWithFallback(
   const ai = getAIClient();
   let lastError: any = null;
 
+  const normalizedContents = Array.isArray(options.contents) 
+    ? options.contents 
+    : [options.contents];
+
   for (const modelName of MODEL_FALLBACK_LADDER) {
     try {
       const response = await ai.models.generateContent({
         model: modelName,
-        contents: options.contents,
+        contents: normalizedContents,
         config: {
           systemInstruction: options.systemInstruction,
           temperature: options.temperature ?? 0.7,

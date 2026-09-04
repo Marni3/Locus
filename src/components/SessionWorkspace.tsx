@@ -16,14 +16,21 @@ import {
   Smile,
   MoreVertical,
   Plus,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Pin,
+  Clock,
+  CheckCircle2,
+  StickyNote
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Interaction, InteractionTurn, ReflectionMode } from '../types';
+import { getRemainingActiveMs, formatRemainingTime } from '../services/concludeEngine';
 
 interface SessionWorkspaceProps {
   interaction: Interaction;
   onUpdateInteraction: (updated: Interaction) => void;
+  onConcludeEntry?: (entry: Interaction) => Promise<void>;
+  onNewSession?: () => void;
   onOpenSummary: () => void;
   onOpenSaveNotebook: (excerpt: string) => void;
   isSaving: boolean;
@@ -49,6 +56,8 @@ const PRESET_MOODS = ['Calm', 'Reflective', 'Motivated', 'Overwhelmed', 'Gratefu
 export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   interaction,
   onUpdateInteraction,
+  onConcludeEntry,
+  onNewSession,
   onOpenSummary,
   onOpenSaveNotebook,
   isSaving,
@@ -63,6 +72,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 }) => {
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isConcluding, setIsConcluding] = useState(false);
+  const [remainingTimeText, setRemainingTimeText] = useState<string>('');
+  const [editingNoteTurnId, setEditingNoteTurnId] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState<string>('');
   const [title, setTitle] = useState(interaction.title);
   const [category, setCategory] = useState(interaction.category);
   const [mood, setMood] = useState(interaction.mood || '');
@@ -71,6 +84,21 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Inactivity Countdown Timer
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (interaction.status === 'active') {
+        const remainingMs = getRemainingActiveMs(interaction);
+        setRemainingTimeText(formatRemainingTime(remainingMs));
+      } else {
+        setRemainingTimeText('Concluded');
+      }
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 15000);
+    return () => clearInterval(interval);
+  }, [interaction]);
 
   // Sync state when active interaction changes
   useEffect(() => {
@@ -224,10 +252,58 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     setTimeout(() => setCopiedTurnId(null), 2000);
   };
 
+  const handleTogglePin = async (turnId: string, currentPinned?: boolean) => {
+    const newPinned = !currentPinned;
+    const updatedTurns = turns.map((t) =>
+      t.id === turnId ? { ...t, isPinned: newPinned } : t
+    );
+    const updatedInteraction: Interaction = {
+      ...interaction,
+      turns: updatedTurns,
+      updatedAt: new Date().toISOString(),
+    };
+    onUpdateInteraction(updatedInteraction);
+
+    try {
+      await fetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: newPinned, userId: interaction.userId }),
+      });
+    } catch (err) {
+      console.error('Failed to toggle pin:', err);
+    }
+  };
+
+  const handleSaveNote = async (turnId: string, noteText: string) => {
+    const trimmed = noteText.trim();
+    const updatedTurns = turns.map((t) =>
+      t.id === turnId ? { ...t, note: trimmed || undefined } : t
+    );
+    const updatedInteraction: Interaction = {
+      ...interaction,
+      turns: updatedTurns,
+      updatedAt: new Date().toISOString(),
+    };
+    onUpdateInteraction(updatedInteraction);
+    setEditingNoteTurnId(null);
+    setNoteDraft('');
+
+    try {
+      await fetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: trimmed, userId: interaction.userId }),
+      });
+    } catch (err) {
+      console.error('Failed to save note:', err);
+    }
+  };
+
   const turns = interaction.turns || [];
 
   return (
-    <main className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-[#FDFBF7] overflow-hidden">
+    <main className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-[#FAF9F6] overflow-hidden">
       {/* Workspace Header */}
       <div className="px-4 sm:px-6 py-3.5 bg-white border-b border-stone-200 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex-1 min-w-0 space-y-1">
@@ -316,6 +392,63 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
         {/* Right Header Quick Actions */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Inactivity Countdown Timer */}
+          <div
+            id="workspace-countdown-badge"
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border font-medium transition-colors ${
+              interaction.status === 'concluded'
+                ? 'bg-stone-100 text-stone-600 border-stone-200'
+                : 'bg-emerald-50 text-emerald-900 border-emerald-200'
+            }`}
+            title={interaction.status === 'concluded' ? 'Entry is concluded' : 'Auto-concludes after 2 hours of inactivity'}
+          >
+            <Clock className="w-3.5 h-3.5 text-emerald-800" />
+            <span>{remainingTimeText || 'Active'}</span>
+          </div>
+
+          {/* Conclude Entry Action */}
+          {interaction.status !== 'concluded' ? (
+            <button
+              id="workspace-conclude-btn"
+              onClick={async () => {
+                if (isConcluding || !onConcludeEntry) return;
+                setIsConcluding(true);
+                try {
+                  await onConcludeEntry(interaction);
+                } finally {
+                  setIsConcluding(false);
+                }
+              }}
+              disabled={isConcluding}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+              title="Conclude this entry and synthesize insights into persistent Themes"
+            >
+              {isConcluding ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Synthesizing...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Conclude Entry</span>
+                </>
+              )}
+            </button>
+          ) : (
+            onNewSession && (
+              <button
+                id="workspace-new-entry-btn"
+                onClick={onNewSession}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs transition-all cursor-pointer"
+                title="Start a new reflection entry"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>New Reflection</span>
+              </button>
+            )
+          )}
+
           <button
             id="workspace-summary-drawer-btn"
             onClick={onOpenSummary}
@@ -420,20 +553,63 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                             <span>ReflectAI Companion</span>
                           </div>
                         )}
+                        {turn.isPinned && (
+                          <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900">
+                            <Pin className="w-2.5 h-2.5 fill-current" />
+                            <span>Pinned</span>
+                          </span>
+                        )}
                       </div>
 
-                      <span className={`text-[10px] ${isUser ? 'text-stone-400' : 'text-stone-400'}`}>
-                        {new Date(turn.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] ${isUser ? 'text-stone-400' : 'text-stone-400'}`}>
+                          {new Date(turn.createdAt || turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+
+                        {/* Turn Pin Toggle */}
+                        <button
+                          onClick={() => handleTogglePin(turn.id, turn.isPinned)}
+                          className={`p-1 rounded transition-colors cursor-pointer ${
+                            turn.isPinned
+                              ? 'text-amber-500 bg-amber-900/30'
+                              : isUser
+                              ? 'text-stone-500 hover:text-stone-300'
+                              : 'text-stone-400 hover:text-stone-600'
+                          }`}
+                          title={turn.isPinned ? 'Unpin message' : 'Pin message'}
+                          aria-label={turn.isPinned ? 'Unpin message' : 'Pin message'}
+                        >
+                          <Pin className={`w-3 h-3 ${turn.isPinned ? 'fill-current' : ''}`} />
+                        </button>
+
+                        {/* Turn Note Toggle */}
+                        <button
+                          onClick={() => {
+                            setEditingNoteTurnId(editingNoteTurnId === turn.id ? null : turn.id);
+                            setNoteDraft(turn.note || '');
+                          }}
+                          className={`p-1 rounded transition-colors cursor-pointer ${
+                            turn.note
+                              ? 'text-emerald-400'
+                              : isUser
+                              ? 'text-stone-500 hover:text-stone-300'
+                              : 'text-stone-400 hover:text-stone-600'
+                          }`}
+                          title={turn.note ? 'Edit note' : 'Add personal note'}
+                          aria-label={turn.note ? 'Edit note' : 'Add personal note'}
+                        >
+                          <StickyNote className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Turn Content */}
+                    {/* Turn Content (Typography division: Serif for user thoughts, Sans for companion) */}
                     {isUser ? (
-                      <p className="text-sm font-sans whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm font-serif whitespace-pre-wrap leading-relaxed">
                         {turn.content}
                       </p>
                     ) : (
-                      <div className="text-sm font-serif leading-relaxed text-stone-800 space-y-2">
+                      <div className="text-sm font-sans leading-relaxed text-stone-800 space-y-2">
                         <ReactMarkdown
                           components={{
                             h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-stone-900 mt-2 mb-1">{children}</h3>,
@@ -476,6 +652,54 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                         </button>
                       </div>
                     )}
+
+                    {/* Attached Note Display */}
+                    {turn.note && editingNoteTurnId !== turn.id && (
+                      <div className="mt-3 p-2.5 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-stone-800 flex items-start gap-2 shadow-2xs">
+                        <StickyNote className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-[10px] text-amber-900 uppercase tracking-wide block">Note</span>
+                          <p className="mt-0.5 whitespace-pre-wrap font-sans text-stone-700">{turn.note}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setEditingNoteTurnId(turn.id);
+                            setNoteDraft(turn.note || '');
+                          }}
+                          className="text-[10px] font-medium text-amber-800 hover:underline cursor-pointer ml-2"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Inline Note Editor */}
+                    {editingNoteTurnId === turn.id && (
+                      <div className="mt-3 p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2 text-xs">
+                        <span className="font-semibold text-stone-700 block">Personal Note</span>
+                        <textarea
+                          value={noteDraft}
+                          onChange={(e) => setNoteDraft(e.target.value)}
+                          placeholder="Type a reflection note on this message..."
+                          rows={2}
+                          className="w-full bg-white p-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-emerald-700 font-sans resize-none text-stone-800"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => { setEditingNoteTurnId(null); setNoteDraft(''); }}
+                            className="px-2.5 py-1 text-xs text-stone-600 hover:text-stone-800 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveNote(turn.id, noteDraft)}
+                            className="px-3 py-1 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg shadow-2xs cursor-pointer"
+                          >
+                            Save Note
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -502,51 +726,79 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
         )}
       </div>
 
-      {/* Bottom Composer Bar */}
-      <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
-        <div className={`mx-auto space-y-2 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
-          <div className="relative bg-[#FDFBF7] rounded-2xl border border-stone-200 focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/20 transition-all p-3 shadow-2xs">
-            <textarea
-              ref={textareaRef}
-              id="workspace-prompt-textarea"
-              rows={3}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Reflect on your thoughts, ask for clarity, or brainstorm next steps..."
-              className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none resize-none font-sans leading-relaxed"
-              disabled={isGenerating}
-            />
-
-            <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-              <span className="text-[11px] text-stone-400 hidden sm:inline">
-                Shift + Enter for new line
-              </span>
-
-              <div className="flex items-center gap-2 ml-auto">
+      {/* Bottom Composer Bar or Concluded State Banner */}
+      {interaction.status === 'concluded' ? (
+        <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
+          <div className={`mx-auto transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
+            <div className="bg-[#FAF9F6] border border-stone-200 rounded-2xl p-5 text-center space-y-3 shadow-2xs">
+              <div className="flex items-center justify-center gap-2 text-emerald-800 font-semibold text-sm">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>This reflection entry is concluded &amp; synthesized</span>
+              </div>
+              <p className="text-xs text-stone-600 max-w-lg mx-auto font-sans leading-relaxed">
+                {interaction.summary
+                  ? `Summary: "${interaction.summary}"`
+                  : 'Themes and cross-session observations have been linked. Concluded entries are preserved as immutable records.'}
+              </p>
+              {onNewSession && (
                 <button
-                  id="workspace-send-button"
-                  onClick={handleSendMessage}
-                  disabled={!inputText.trim() || isGenerating}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
+                  id="workspace-start-new-reflection-btn"
+                  onClick={onNewSession}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-xl shadow-2xs transition-all cursor-pointer"
                 >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Reflecting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Send</span>
-                      <Send className="w-3.5 h-3.5" />
-                    </>
-                  )}
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Start New Reflection</span>
                 </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
+          <div className={`mx-auto space-y-2 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
+            <div className="relative bg-[#FDFBF7] rounded-2xl border border-stone-200 focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/20 transition-all p-3 shadow-2xs">
+              <textarea
+                ref={textareaRef}
+                id="workspace-prompt-textarea"
+                rows={3}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Reflect on your thoughts, ask for clarity, or brainstorm next steps..."
+                className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none resize-none font-sans leading-relaxed"
+                disabled={isGenerating}
+              />
+
+              <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+                <span className="text-[11px] text-stone-400 hidden sm:inline">
+                  Shift + Enter for new line
+                </span>
+
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    id="workspace-send-button"
+                    onClick={handleSendMessage}
+                    disabled={!inputText.trim() || isGenerating}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Reflecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send</span>
+                        <Send className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </main>
   );
 };

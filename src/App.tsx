@@ -23,6 +23,7 @@ import { SaveToNotebookModal } from './components/SaveToNotebookModal';
 import { SettingsDrawer } from './components/SettingsDrawer';
 import { IntelligenceDrawer } from './components/IntelligenceDrawer';
 import { Toast } from './components/Toast';
+import { isEntryEligibleForAutoConclude } from './services/concludeEngine';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -265,6 +266,34 @@ export default function App() {
     handleUpdateInteraction(updated);
   };
 
+  // Conclude entry and trigger synchronous synthesis pipeline
+  const handleConcludeEntry = async (entry: Interaction) => {
+    if (!currentUser?.uid) return;
+    try {
+      const res = await fetch(`/api/entries/${entry.id}/conclude`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.uid }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Failed to conclude entry (${res.status})`);
+      }
+      const data = await res.json();
+      const updated: Interaction = {
+        ...entry,
+        status: 'concluded',
+        concludedAt: new Date().toISOString(),
+        summary: data.summary || entry.summary,
+      };
+      handleUpdateInteraction(updated);
+      showToast('Reflection concluded. Themes & observations synthesized.', 'success');
+    } catch (err: any) {
+      console.error('Error concluding entry:', err);
+      showToast(err.message || 'Could not conclude entry', 'error');
+    }
+  };
+
   // Notebook Handlers
   const handleSaveNotebookItem = async (newItem: NotebookItem) => {
     if (!currentUser?.uid) return;
@@ -413,6 +442,19 @@ export default function App() {
   // Active interaction finder
   const activeInteraction = interactions.find((i) => i.id === activeSessionId) || null;
 
+  // Periodic check for auto-conclude on inactive entries (2-hour threshold)
+  useEffect(() => {
+    if (!activeInteraction || activeInteraction.status === 'concluded') return;
+
+    const interval = setInterval(() => {
+      if (isEntryEligibleForAutoConclude(activeInteraction)) {
+        handleConcludeEntry(activeInteraction);
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [activeInteraction, currentUser?.uid]);
+
   // Filtered interactions by search term
   const displayedInteractions = interactions.filter((item) => {
     if (!searchTerm.trim()) return true;
@@ -490,6 +532,8 @@ export default function App() {
             <SessionWorkspace
               interaction={activeInteraction}
               onUpdateInteraction={handleUpdateInteraction}
+              onConcludeEntry={handleConcludeEntry}
+              onNewSession={() => createNewSession()}
               onOpenSummary={() => {
                 setDrawerType('session_summary');
                 setIsDrawerOpen(true);
