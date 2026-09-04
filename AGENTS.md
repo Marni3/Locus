@@ -51,6 +51,28 @@ Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially att
 
 ---
 
+## 🎨 Impeccable Design System & Authority
+
+Frontend design is governed by **[PRODUCT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/PRODUCT.md)**, **[DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md)**, and the **[`impeccable`](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/impeccable/SKILL.md)** skill:
+
+1. **Brand Personality**: **Calm**, **Personal**, **Trustworthy**. ReflectAI is a private space for thinking, not an enterprise dashboard or gamified tracker.
+2. **Visual Tokens**:
+   - `bg-canvas`: `#FAF9F6` (Main background)
+   - `bg-surface`: `#FFFFFF` (Cards, panels, modals)
+   - `accent-sage`: `#3B7A57` (**Single action accent** — primary buttons, active chips)
+   - `accent-sage-tint`: `#DCEEE3` (Soft active chip backgrounds)
+   - `text-primary`: `#232323` (Body & headers)
+   - `text-muted`: `#6B6B6B` (Timestamps, hints)
+   - `border-hairline`: `#E6E3DC` (Dividers, borders)
+3. **Rule of One Accent**: The accent color appears **only** on elements the user can act on or has selected.
+4. **Typography Division**:
+   - **Serif** (Source Serif 4): User's own words, journal entries, reflection quotes.
+   - **Sans** (Inter): UI chrome, navigation, buttons, AI responses, metadata.
+5. **No Plumbing / Backend Leaks in UI**: Never expose "Firestore", "Gemini", or vendor names in copy.
+6. **Screen Wireframe Architecture**: Detailed layout specifications for Reflections Home, Active Workspace, Themes Split/Graph, and Settings are defined in [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md).
+
+---
+
 ## 🏛️ Core Object Model & Architecture
 
 Consult [Locus-Core-Object-Model.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Core-Object-Model.md) and [Locus-Integrations-and-Build-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Integrations-and-Build-Plan.md) for the active domain architecture:
@@ -67,76 +89,12 @@ Consult [Locus-Core-Object-Model.md](file:///c:/Users/reyna/OneDrive/Documents/L
 
 ---
 
-## 🎨 UI/UX Design System Guidelines
-
-Adhere strictly to [Locus Design Guidelines](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/rules/design-guidelines.md) and the [`locus-design-guidelines`](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-design-guidelines/SKILL.md) skill:
-
-1. **Brand Personality**: **Calm**, **Personal**, **Trustworthy**. ReflectAI is a private space for thinking, not an enterprise dashboard or gamified tracker.
-2. **Visual Tokens**:
-   - `bg-canvas`: `#FAF9F6` (Main background)
-   - `bg-surface`: `#FFFFFF` (Cards, panels, modals)
-   - `accent-sage`: `#3B7A57` (**Single action accent** — primary buttons, active chips)
-   - `accent-sage-tint`: `#DCEEE3` (Soft active chip backgrounds)
-   - `text-primary`: `#232323` (Body & headers)
-   - `text-muted`: `#6B6B6B` (Timestamps, hints)
-   - `border-hairline`: `#E6E3DC` (Dividers, borders)
-3. **Rule of One Accent**: The accent color appears **only** on elements the user can act on or has selected.
-4. **Typography**:
-   - **Serif** (e.g. Source Serif): User's own words, journal entries, quotes.
-   - **Sans** (e.g. Inter): UI chrome, navigation, buttons, AI responses, metadata.
-5. **No Plumbing / Backend Leaks in UI**: Never expose "Firestore", "Gemini", or database/vendor names in user-facing copy. Use plain, active language: "Saved" (not "Persisted to Firestore"), "Send" (not "Send to Gemini").
-6. **One Taxonomy**: Sidebar filter categories are the single source of truth.
-
----
-
-## 🛠️ Tech Stack & Directory Layout
-
-- **Frontend**: **React 19**, **TypeScript**, **TailwindCSS v4**, **Lucide React**, **Motion** (Framer Motion).
-- **Backend / API**: **Express 4** (`server.ts`), **`@google/genai`** (Gemini SDK), Vite dev server integration.
-- **Database & Auth**: **Firebase 12** (Firestore, Firebase Authentication).
-
-```
-Locus/
-├── .agents/
-│   ├── rules/                              # Workspace rules applied automatically
-│   │   ├── software-standards.md           # Core production & security directives
-│   │   └── design-guidelines.md            # Visual tokens & UI/UX principles
-│   └── skills/                             # Progressive disclosure workspace skills
-│       ├── locus-software-standards/       # Primary development & security skill
-│       ├── locus-design-guidelines/        # UI/UX design & anti-leakage skill
-│       ├── third-party-integration-standards/ # src/integrations/ wrapper pattern
-│       ├── firestore-vector-search/        # Vector embeddings & KNN query rules
-│       ├── feature-architecture-spec/      # 7-point design spec authoring
-│       ├── code-quality-standards/         # Strict typing & mock testing standards
-│       ├── pii-sanitizer-implementation/   # Outbound-only regex PII scrubbing
-│       ├── notification-dispatcher-integration/ # SSRF-hardened webhooks + email
-│       └── geocoding-integration/          # Opt-in Maps Geocoding & coordinate minimization
-├── docs/
-│   ├── Locus-Core-Object-Model.md          # Core entities (Entry, Message, Theme, Observation)
-│   ├── Locus-Implementation-Plan.md        # 5-phase execution plan & test checkpoints
-│   ├── Locus-Integrations-and-Build-Plan.md# Features, security constraints & build order
-│   ├── standards/                          # Project standards documentation
-│   ├── design/                             # Design guidelines and redesign specs
-│   └── specs/                              # Feature architecture specs (durable record)
-├── src/
-│   ├── components/                         # React 19 UI components
-│   ├── integrations/                       # Isolated 3rd-party wrappers (client/types/errors/mocks)
-│   ├── lib/                                # Firebase and shared helpers
-│   ├── types.ts                            # Core shared application types
-│   ├── App.tsx                             # Root React component
-│   └── index.css                           # Design token definitions
-├── server.ts                               # Unified Express + Vite server entrypoint
-└── firestore.rules                         # Owner-bound security rules
-```
-
----
-
 ## ⚡ Active Workspace Skills Quick Reference
 
 | Skill | Trigger / When to Apply | Path |
 |---|---|---|
 | **`locus-software-standards`** | **Primary baseline for 90%+ of all development tasks** (threat modeling, resilience, error handling, persistence). | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-software-standards/SKILL.md) |
-| **`locus-design-guidelines`** | Writing or modifying any React UI component, modal, drawer, or copy. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-design-guidelines/SKILL.md) |
+| **`impeccable`** | **Primary design authority** for UI development, shaping wireframes, audits, and aesthetic craft. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/impeccable/SKILL.md) |
 | **`third-party-integration-standards`** | Adding or touching external APIs via `src/integrations/<service>/`. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/third-party-integration-standards/SKILL.md) |
 | **`firestore-vector-search`** | Storing embeddings, composite vector indexing, `findNearest` cosine queries, Themes. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/firestore-vector-search/SKILL.md) |
 | **`feature-architecture-spec`** | Non-trivial feature design before writing code (`docs/specs/<feature>.md`). | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/feature-architecture-spec/SKILL.md) |

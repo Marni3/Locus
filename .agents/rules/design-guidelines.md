@@ -1,45 +1,31 @@
-# Locus (ReflectAI) Design Guidelines
+# Locus Design Guidelines (Impeccable System Authority)
 
-## 1. Brand Personality
-ReflectAI is a private space for thinking, not a productivity dashboard.
-- **Calm**: Low visual noise, generous whitespace, no urgency-driven badges or gamified streak pressure.
-- **Personal**: Feels like a physical journal, not enterprise software.
-- **Trustworthy**: Private thoughts stay private. Never make the interface look like a corporate logger.
+> [!IMPORTANT]
+> The normative visual design specification for Locus / ReflectAI is formalized in **[DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md)** and governed by the **[`impeccable`](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/impeccable/SKILL.md)** skill. All frontend code must adhere strictly to these tokens and patterns.
 
-## 2. Visual Tokens
-| Role | Token | Hex (approx.) | Usage |
-|---|---|---|---|
-| Background | `bg-canvas` | `#FAF9F6` | App background |
-| Surface | `bg-surface` | `#FFFFFF` | Cards, panels, modals |
-| Accent | `accent-sage` | `#3B7A57` | Primary buttons, active states, selected chips — **only** these |
-| Accent-soft | `accent-sage-tint` | `#DCEEE3` | Backgrounds for selected/active chips, subtle highlights |
-| Ink | `text-primary` | `#232323` | Body and headline text |
-| Muted | `text-muted` | `#6B6B6B` | Metadata, timestamps, hints |
-| Border | `border-hairline` | `#E6E3DC` | Dividers, card outlines |
-| Dark surface | `bg-inverse` | `#1C1C1C` | Single high-emphasis element per screen (e.g. quote), not chrome |
+## 1. Brand Personality & Mental Model
+- **Calm**: Low visual noise, quiet chrome, unhurried whitespace. Never add dashboard metrics, gamified streaks, or urgency badges.
+- **Personal**: Physical journal warmth. Editorial typography.
+- **Trustworthy**: Honest privacy boundaries. Absolute data isolation (`request.auth.uid == userId`).
 
-**Rule of One**: The accent color appears only on things the user can act on or has selected. If two elements on screen are both accent-colored, one is wrong.
+## 2. Core Tokens & The Rule of One Accent
+- Canvas: `bg-canvas` (`#FAF9F6`)
+- Surface: `bg-surface` (`#FFFFFF`)
+- Single Accent: `accent-sage` (`#3B7A57`) — **reserved exclusively for primary actions and active selection**.
+- Selected Tint: `accent-sage-tint` (`#DCEEE3`) — soft background for selected chips.
+- Primary Ink: `text-primary` (`#232323`)
+- Muted Ink: `text-muted` (`#6B6B6B`)
+- Dividers: `border-hairline` (`#E6E3DC`)
 
-## 3. Typography
-- **Serif (Source Serif 4 / Lyon / similar)**: Entry titles, quotes, saved excerpts — *the user's voice*.
-- **Sans (Inter / similar)**: Navigation, buttons, labels, AI responses, metadata — *the interface voice*.
-- Line length: Keep body text under 80 characters per line. No all-caps labels.
+## 3. Typography Division of Labor
+- **Source Serif 4**: User's voice (journal reflections, titles, quotes, notes).
+- **Inter**: Interface voice (buttons, navigation, AI responses, metadata).
 
-## 4. Anti-Leakage & Plumbing Defense
-- **Zero backend/vendor names in the UI**: Never display "Firestore", "Gemini", "Google Cloud", or database terms.
-- Use plain language:
-  - "Past Entries" (not "Past Entries • Firestore")
-  - "Saved" (not "Persisted to Firestore")
-  - "Send" (not "Send to Gemini")
-  - "AI model" (not raw model IDs in user-facing labels)
+## 4. Anti-Leakage Rules
+Never allow backend or vendor names in user-facing copy:
+- Use "Past Entries" (not "Past Entries • Firestore").
+- Use "All changes saved" / "Saved" (not "Persisted to Firestore").
+- Use "Send" (not "Send to Gemini").
 
-## 5. Layout & Navigation Principles
-1. **One taxonomy per concept**: Sidebar filter categories are the single source of truth.
-2. **One primary action per screen**: Visually distinct via the accent color.
-3. **Progressive disclosure**: Controls used occasionally (pickers, advanced options) start collapsed.
-4. **Active voice with matching verbs**: A "Save" button produces a "Saved" toast.
-
-## 6. Quality Floor
-- Responsive down to mobile width.
-- Visible keyboard focus states on all interactive elements.
-- Accessible color contrast on `bg-canvas`.
+## 5. Active Screen Wireframe Architecture
+Detailed wireframes for Reflections Home, Workspace, Themes Split/Graph, and Settings are defined in [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md).
