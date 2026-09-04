@@ -111,11 +111,19 @@ All notable changes, architectural decisions, schema modifications, and design s
     - [src/components/SettingsDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SettingsDrawer.tsx): Added "Integrations & Alerts" tab exposing Webhook URL input with live SSRF test button and status badge, Morning Digest email toggle, and Outbound Privacy notice.
   - **Tier 3 E2E Integration Suite (`tests/e2e/integrations.spec.ts`)**:
     - 12 comprehensive Playwright E2E tests validating unpack engine constraints, location query & GPS coordinate minimization, and webhook SSRF blocking.
+  - **Resend Synthesis Notification Dispatch**:
+    - Built `dispatchSynthesisNotificationEmail` in `src/integrations/notifications/email.ts` sending formatted executive synthesis summaries and Theme links upon entry conclusion.
+    - Added support for `RESEND_API_KEY` and configurable `RESEND_FROM_EMAIL` (defaulting to `Locus <onboarding@resend.dev>` for zero-friction sandbox testing).
+    - Wired entry conclude handler in `server.ts` and `src/App.tsx` to automatically trigger non-blocking Resend dispatch when user email and notifications are enabled.
+    - Documented environment variables in `.env.example`.
+  - **Implementation Plan Refinements**:
+    - Added Daily Journaling Prompt Banner and calm qualitative multi-tagging (`entry.tags: string[]`) to Phase 3 in `docs/Locus-Implementation-Plan.md`.
+    - Added Email Notification System Expansion (weekly digest aggregation, configurable day/time cadence) to Phase 4.
   - **Full Automated Verification**:
     - `npm run lint`: Passed with 0 errors.
-    - `npm run test:unit`: 57/57 tests passing in 1.84s across 10 test files.
-    - `npx playwright test`: 15/15 tests passing in 17.2s across 3 test suites (`smoke.spec.ts`, `core-loop.spec.ts`, `integrations.spec.ts`).
-    - `npm run build`: Production bundle (`dist/client` + `dist/server.cjs`) built cleanly in 8.53s.
+    - `npm run test:unit`: 58/58 tests passing in 1.64s across 10 test files.
+    - `npx playwright test`: 15/15 tests passing in 18.1s across 3 test suites.
+    - `npm run build`: Production bundle (`dist/client` + `dist/server.cjs`) built cleanly in 8.78s.
 
 ---
 

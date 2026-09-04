@@ -273,7 +273,12 @@ export default function App() {
       const res = await fetch(`/api/entries/${entry.id}/conclude`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.uid }),
+        body: JSON.stringify({
+          entry,
+          userId: currentUser.uid,
+          userEmail: currentUser.email || undefined,
+          emailNotifications: Boolean(settings.emailNotifications),
+        }),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));

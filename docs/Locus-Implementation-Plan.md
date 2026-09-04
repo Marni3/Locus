@@ -359,9 +359,15 @@ Screen 3: Themes Master-Detail & Graph (/themes)
 
 ### Technical Implementation Details
 1. **Screen 1: Reflections Home (`src/components/ReflectionsHome.tsx`)**:
-   - Hero strip: Dismissible card highlighting latest ready Theme (`observationCount >= 2`).
-   - Collapsible "Ready for Synthesis" section: horizontal scrolling ribbon.
-   - Entry card grid: Cards with Source Serif 4 title, date, duration, mood chip, and location badge. Single accent `+ Start Entry` action.
+   - **Daily Journaling Prompt Banner**:
+     - A dismissible, tranquil banner prominently positioned at the top of the feed with an inspiring daily contemplation (e.g., *"What is one decision you are avoiding because you already know the answer?"*).
+     - Clicking the banner automatically initiates a New Reflection, carrying the daily prompt as a floating inspiration chip above the writing area that gently dissolves as soon as the user writes their first reflection turn.
+   - **Hero Strip**: Dismissible card highlighting latest ready Theme (`observationCount >= 2`).
+   - **Collapsible "Ready for Synthesis" section**: horizontal scrolling ribbon.
+   - **Entry Card Grid with Multi-Tag Support**:
+     - Cards rendered with Source Serif 4 title, date, duration, mood chip, and location badge.
+     - Single accent `+ Start Entry` action.
+     - **Calm Qualitative Auto-Tagging**: During entry conclusion synthesis, Gemini automatically tags the entry with 1–3 qualitative thematic/emotional tags (`#Reflective`, `#Breakthrough`, `#Decision`, `#Friction`) stored in `entry.tags: string[]`, replacing reductive 1–10 numeric ratings with rich, filterable qualitative dimensions.
 2. **Screen 2: Active Workspace (`src/components/SessionWorkspace.tsx`)**:
    - Source Serif 4 user bubbles (`#F2EFEB`), Inter AI bubbles (`#FFFFFF`).
    - Message-level inline hover toolbar: Pin toggle (`isPinned`), Note popover, and Copy.
@@ -432,7 +438,18 @@ Create an authentic, longitudinal demo experience for evaluators by authoring re
   - Step 2: Highlighting turn Pinning and Notes in the chat stream.
   - Step 3: Explaining how Themes and Observations track longitudinal growth.
 
-#### 5. Manual Checking & Human Evaluation of Internal Prompts
+#### 5. Email Notification System Expansion (Resend)
+Flesh out the email notification architecture beyond immediate entry conclusion alerts:
+- **Weekly Reflection Digest**:
+  - Automatically aggregate the week's key realizations, newly linked Theme observations, and forward inquiries into a calm weekly briefing.
+- **Configurable Cadence & Schedule in Settings**:
+  - Allow users to customize notification preferences in **Settings ➔ Integrations & Alerts**:
+    - Preferred delivery cadence: `Immediate on Conclusion`, `Weekly Digest`, or `Muted / Off`.
+    - Customizable delivery day of the week (e.g. Sunday evening or Monday morning) and preferred hour.
+- **Resend Production Domain Authentication**:
+  - Transition from sandbox `onboarding@resend.dev` to custom domain verification (DKIM, SPF records in DNS) for production transactional delivery.
+
+#### 6. Manual Checking & Human Evaluation of Internal Prompts
 A comprehensive, hands-on human evaluation of all system instructions and internal prompts across the application:
 - **Scope of Evaluated Prompts**:
   1. **Conversational Stance Prompts**: Reflective Mirror, Idea Spark, Action Blueprint, and Mindful Unpack in `src/services/gemini.ts`.
@@ -445,7 +462,7 @@ A comprehensive, hands-on human evaluation of all system instructions and intern
   - [ ] **Deterministic Schema Adherence**: Verify that model JSON outputs match schema types 100% of the time without truncation.
   - [ ] **Cognitive Framing & Reflection Depth**: Evaluate whether questions open up genuine reflective exploration rather than shallow summaries.
 
-#### 6. Deep Security Audit (5 Threat Zones & Dependency Review)
+#### 7. Deep Security Audit (5 Threat Zones & Dependency Review)
 A rigorous, systematic audit verifying full adherence to Locus Software Standards and OWASP LLM Top 10:
 - **Threat Zone 1 (Input Surfaces)**:
   - Validate Express request body size limit (10MB ceiling).

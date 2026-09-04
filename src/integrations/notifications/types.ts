@@ -23,6 +23,21 @@ export interface MorningDigestPayload {
   dayFramingPrompt: string;
 }
 
+export interface SynthesisEmailPayload {
+  entryTitle: string;
+  entrySummary: string;
+  concludedAt: string;
+  locationSnapshot?: string;
+  matchedThemes: Array<{
+    title: string;
+    currentSynthesis: string;
+  }>;
+  newThemes: Array<{
+    title: string;
+    currentSynthesis: string;
+  }>;
+}
+
 export interface DispatchResult {
   success: boolean;
   channel: 'webhook' | 'email';

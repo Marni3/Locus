@@ -19,7 +19,7 @@ import { concludeAndSynthesizeEntry } from './src/services/synthesis';
 import { fetchUserEntries, saveEntryToFirestore } from './src/lib/firebase';
 import { unpackThemeFurther } from './src/integrations/unpack';
 import { resolveGpsCoordinates, resolvePlaceQuery } from './src/integrations/geocoding';
-import { validateWebhookUrl } from './src/integrations/notifications';
+import { validateWebhookUrl, dispatchSynthesisNotificationEmail } from './src/integrations/notifications';
 
 // 3. API Routes
 
@@ -276,6 +276,30 @@ app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
 
     entry.id = entryId;
     const result = await concludeAndSynthesizeEntry(entry);
+
+    // Non-blocking email dispatch if user requested notifications
+    const userEmail = typeof body.userEmail === 'string' ? body.userEmail : undefined;
+    const emailNotifications = Boolean(body.emailNotifications);
+
+    if (userEmail && emailNotifications) {
+      dispatchSynthesisNotificationEmail(userEmail, {
+        entryTitle: result.concludedEntry.title,
+        entrySummary: result.concludedEntry.summary || 'A thoughtful personal reflection was concluded and synthesized.',
+        concludedAt: result.concludedEntry.concludedAt || new Date().toISOString(),
+        locationSnapshot: result.concludedEntry.locationContext?.name,
+        matchedThemes: result.updatedThemes.map((t) => ({
+          title: t.title,
+          currentSynthesis: t.currentSynthesis,
+        })),
+        newThemes: result.newThemes.map((t) => ({
+          title: t.title,
+          currentSynthesis: t.currentSynthesis,
+        })),
+      }).catch((emailErr) => {
+        console.warn('Background Resend synthesis dispatch warning:', emailErr);
+      });
+    }
+
     return res.json({ success: true, result });
   } catch (error: any) {
     console.error('Error in /api/entries/:id/conclude:', error);

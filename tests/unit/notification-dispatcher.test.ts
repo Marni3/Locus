@@ -5,6 +5,7 @@ import {
   MAX_WEBHOOKS_PER_HOUR,
   dispatchWebhook,
   dispatchMorningDigestEmail,
+  dispatchSynthesisNotificationEmail,
 } from '../../src/integrations/notifications';
 import { Entry, Theme } from '../../src/types';
 import * as ssrfValidator from '../../src/integrations/notifications/ssrfValidator';
@@ -70,6 +71,28 @@ describe('Notification Dispatcher & Morning Digest (Tier 2 TDD)', () => {
   it('handles email dispatch in development with zero external API key requirements', async () => {
     const digest = compileMorningDigest('user-email', sampleEntries, sampleThemes);
     const result = await dispatchMorningDigestEmail('reyna@example.com', digest);
+
+    expect(result.success).toBe(true);
+    expect(result.channel).toBe('email');
+    expect(result.statusCode).toBe(200);
+  });
+
+  it('handles synthesis notification email dispatch with calm HTML formatting and PII scrubbing', async () => {
+    const payload = {
+      entryTitle: 'Exploring Boundary Setting',
+      entrySummary: 'Realized that saying no to urgent requests protects creative focus. Call me at 555-123-4567.',
+      concludedAt: new Date().toISOString(),
+      locationSnapshot: 'Balanga Studio',
+      matchedThemes: [
+        {
+          title: 'Mindful Velocity',
+          currentSynthesis: 'Speed is sustainable only with clear emotional boundaries.',
+        },
+      ],
+      newThemes: [],
+    };
+
+    const result = await dispatchSynthesisNotificationEmail('reyna@example.com', payload);
 
     expect(result.success).toBe(true);
     expect(result.channel).toBe('email');
