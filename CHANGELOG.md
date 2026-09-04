@@ -26,7 +26,9 @@ All notable changes, architectural decisions, schema modifications, and design s
 
 ### Changed
 - **Engineering Implementation Plan Overhaul**:
-  - Restructured [docs/Locus-Implementation-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Implementation-Plan.md) to enforce the cyclical 5-step lifecycle (`[BUILD]` ➔ `[DEPLOY / RUN]` ➔ `[TEST]` ➔ `[FEEDBACK]` ➔ `[VERIFY]`).
+  - Restructured [docs/Locus-Implementation-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Implementation-Plan.md) to enforce the cyclical 5-step lifecycle (`[TEST FIRST]` ➔ `[BUILD / GREEN]` ➔ `[RUN & VALIDATE]` ➔ `[FEEDBACK]` ➔ `[SIGN-OFF]`).
+  - Integrated 3-Tier Contract-Driven & Mock-Boundary TDD architecture across execution phases (Tier 1 fast pure unit TDD, Tier 2 service mock-boundary TDD, Tier 3 Playwright route & UI TDD).
+  - Expanded Phase 4 with formal requirements for **Manual Human Evaluation of all Internal Prompts** (evaluation rubric for tone, privacy, zero leaks, and schema adherence) and **Deep Security Audit** (systematic 5 Threat Zones review and `npm audit` verification).
   - Added Phase 0 triage detailing exact keep, rework, and rebuild decisions across all ported files.
   - Outlined Playwright automated verification harness for local headless testing and screenshot capture.
 - **Rule & Reference Updates**:

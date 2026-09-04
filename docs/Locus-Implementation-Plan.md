@@ -4,24 +4,36 @@
 
 ---
 
-## 🔁 The Phase Execution Lifecycle
+## 🔁 The Phase Execution Lifecycle: Contract-Driven & Mock-Boundary TDD
 
-Every phase in this implementation plan operates under a non-negotiable **5-Step Execution Cycle**:
+Every phase in this implementation plan operates under a non-negotiable **5-Step Test-Driven Development (TDD) Cycle**:
 
 ```mermaid
 flowchart LR
-    Build["1. BUILD\n(Code & Types)"] --> Deploy["2. DEPLOY / RUN\n(Local Vite + Server)"]
-    Deploy --> Test["3. TEST\n(Playwright + Unit)"]
-    Test --> Feedback["4. FEEDBACK\n(Impeccable + User)"]
-    Feedback --> Verify["5. VERIFY\n(Sign-off Gate)"]
+    TestFirst["1. TEST FIRST\n(Contracts & Mocks)"] --> Build["2. BUILD / GREEN\n(Code & Types)"]
+    Build --> Deploy["3. RUN & VALIDATE\n(Local Vite + Server)"]
+    Deploy --> Feedback["4. FEEDBACK\n(Impeccable & UX)"]
+    Feedback --> Verify["5. SIGN-OFF\n(Phase Gate)"]
     Verify --> NextPhase["Next Phase"]
 ```
 
-1. **`[BUILD]`**: Write types, services, integration clients, or React components conforming to [Locus Software Standards](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/rules/software-standards.md) and [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md).
-2. **`[DEPLOY / RUN]`**: Boot the unified server (`npm run dev`) or stage build locally.
-3. **`[TEST]`**: Execute automated Playwright end-to-end scripts, integration mock suites, and security rejection tests.
-4. **`[FEEDBACK]`**: Run Impeccable design audits (`$impeccable audit / critique / polish`), capture visual evidence, and prompt the user for interactive approval.
-5. **`[VERIFY]`**: Confirm the phase's sign-off criteria before unlocking the next phase.
+### The 3-Tier Locus TDD Pyramid
+
+Because live LLMs are non-deterministic and external networks burn quota, testing adheres to 3 distinct strata:
+
+1. **Tier 1: Fast Unit TDD (sub-100ms, Pure Functions)**:
+   - Written *before* implementation code. Covers PII regex scrubbing, recursive `stripUndefined` hygiene, 2-hour inactivity delta math, prompt formatting templates, and LLM JSON output schema parsing.
+2. **Tier 2: Service & Pipeline Mock-Boundary TDD (Mocks & Fallbacks)**:
+   - Written alongside service wrappers. Simulates external failure modes: Gemini 429 rate limits, 503 service outages, model fallback ladder progression, malformed JSON recovery, and SSRF rejection of private IP ranges (`127.0.0.1`, `169.254.169.254`).
+3. **Tier 3: Playwright E2E & Route TDD (Full-Stack Lifecycle & Visual Proof)**:
+   - Written to validate user journeys and HTTP route contracts (`/api/entries/:id/conclude`, message pinning, auto-conclude timers), responsive viewport stability, and Impeccable visual rules (Source Serif 4 typography, Rule of One Accent `#3B7A57`).
+
+### 5-Step Phase Sequence:
+1. **`[TEST FIRST]`**: Author failing unit specs or Playwright route contracts (`tests/unit/`, `tests/e2e/`) specifying inputs, schema validations, and simulated error boundaries before writing service logic.
+2. **`[BUILD / GREEN]`**: Write minimal types, services, integration clients, or React components to make tests pass cleanly, adhering strictly to [Locus Software Standards](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/rules/software-standards.md) and [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md).
+3. **`[RUN & VALIDATE]`**: Boot the unified server (`npm run dev`) and execute test runners (`npm run test:unit`, `npm run test:e2e`).
+4. **`[FEEDBACK]`**: Run Impeccable design audits (`$impeccable audit / critique / polish`), capture visual screenshot proof, and prompt the user for interactive alignment.
+5. **`[SIGN-OFF]`**: Confirm the phase's verification gate criteria (0 test failures, 0 lint errors, 0 design drift) before advancing.
 
 ---
 
@@ -177,16 +189,31 @@ sequenceDiagram
   ```
   *(Or configure via Firebase Console: Indexes ➔ Composite ➔ Vector Index).*
 
-### Testing & Verification Plan
-- **Automated Tests (`tests/e2e/core-loop.spec.ts`)**:
-  - Script simulated dialogue across 4 turns.
-  - Pin message 2 and add a note.
-  - Trigger `/api/entries/:id/conclude` and assert HTTP 200 with structured JSON response.
-  - Assert Firestore records: Entry is `status: 'concluded'`, Theme exists, Observation contains backlink `entryId`.
-- **Manual Walkthrough**:
-  - Run 3 distinct conversations: (1) Work burnout, (2) Creative project, (3) Work burnout follow-up.
-  - Verify conversation (3) appends a second observation to the existing Work Theme rather than creating a duplicate.
-  - Fast-forward the local 2-hour inactivity timer (set threshold to 30 seconds) and confirm auto-conclude executes cleanly.
+### TDD Test-First Specifications & Verification Plan
+
+#### 1. Tier 1: Unit TDD (Written First)
+- **Auto-Conclude Timer Math (`tests/unit/auto-conclude.spec.ts`)**:
+  - Assert that an entry updated 119m ago evaluates to `isActive: true`.
+  - Assert that an entry updated 121m ago evaluates to `isActive: false` (triggers conclude payload).
+- **Prompt & JSON Contract Formatter (`tests/unit/synthesis-prompt.spec.ts`)**:
+  - Assert that Entry turns and pinned messages format into deterministic prompt blocks with `<<<USER_INPUT>>>` delimiters.
+  - Assert that LLM responses with wrapped markdown (````json ... ````) parse into valid `Theme` and `ThemeObservation` objects.
+
+#### 2. Tier 2: Service Mock-Boundary TDD
+- **Gemini Fallback & Synthesis Service (`tests/unit/gemini-fallback.spec.ts`)**:
+  - Mock Gemini client throwing simulated 429 quota exhaustion; assert that `generateContentWithFallback()` sequentially attempts the next model on the ladder (`gemini-3.1-flash-lite`).
+  - Mock vector search cosine similarity returning candidate theme matches; assert LLM resolution prompt receives candidates properly.
+
+#### 3. Tier 3: Playwright E2E & Route TDD (`tests/e2e/core-loop.spec.ts`)
+- Script dialogue across 4 turns.
+- Test message pinning and inline note persistence via `PATCH /api/entries/:id/messages/:messageId`.
+- Trigger `/api/entries/:id/conclude` and assert HTTP 200 with structured JSON response.
+- Assert Firestore persistence: Entry `status: 'concluded'`, Theme exists with rolling synthesis, Observation contains `entryId` backlink.
+
+#### 4. Manual Walkthrough
+- Run 3 distinct conversations: (1) Work burnout, (2) Creative project, (3) Work burnout follow-up.
+- Verify conversation (3) appends a second observation to the existing Work Theme rather than creating a duplicate.
+- Fast-forward the local 2-hour inactivity timer (set threshold to 30 seconds) and confirm auto-conclude executes cleanly.
 
 ### Impeccable Design & Feedback Checkpoint
 - Run `$impeccable shape session-workspace` to verify calm, distraction-free chat stream and invisible auto-conclude countdown.
@@ -405,6 +432,38 @@ Create an authentic, longitudinal demo experience for evaluators by authoring re
   - Step 2: Highlighting turn Pinning and Notes in the chat stream.
   - Step 3: Explaining how Themes and Observations track longitudinal growth.
 
+#### 5. Manual Checking & Human Evaluation of Internal Prompts
+A comprehensive, hands-on human evaluation of all system instructions and internal prompts across the application:
+- **Scope of Evaluated Prompts**:
+  1. **Conversational Stance Prompts**: Reflective Mirror, Idea Spark, Action Blueprint, and Mindful Unpack in `src/services/gemini.ts`.
+  2. **Entry Summarization Prompt**: Single-session essence extraction in `src/services/synthesis.ts`.
+  3. **Theme Matching & Resolution Prompt**: Vector candidate cluster evaluation vs. new theme proposal in `src/services/synthesis.ts`.
+  4. **Deep Theme Unpack Prompt**: Outline and thesis synthesis for long-term longitudinal trajectories.
+- **Human Evaluation Rubric & Criteria**:
+  - [ ] **Empathetic & Non-Prescriptive Tone**: Responses must never lecture, judge, diagnose, or act as an authoritarian therapist.
+  - [ ] **Zero Vendor / Plumbing Leaks**: Prompts must strictly prohibit outputting "Gemini", "Firestore", "LLM", or technical scaffolding.
+  - [ ] **Deterministic Schema Adherence**: Verify that model JSON outputs match schema types 100% of the time without truncation.
+  - [ ] **Cognitive Framing & Reflection Depth**: Evaluate whether questions open up genuine reflective exploration rather than shallow summaries.
+
+#### 6. Deep Security Audit (5 Threat Zones & Dependency Review)
+A rigorous, systematic audit verifying full adherence to Locus Software Standards and OWASP LLM Top 10:
+- **Threat Zone 1 (Input Surfaces)**:
+  - Validate Express request body size limit (10MB ceiling).
+  - Verify JSON schema sanitization on all endpoints.
+  - Run fixture tests confirming outbound PII regex scrub catches all high-risk tokens prior to Gemini / Webhook egress.
+- **Threat Zone 2 (Planning & Reasoning)**:
+  - Audit prompt injection defense: verify that untrusted user transcripts are wrapped in delimiter blocks (`<<<USER_INPUT>>>`) and isolated from system directives.
+- **Threat Zone 3 (Tool & API Execution)**:
+  - Audit Webhook SSRF validation: verify DNS resolution blocks private/internal IPs (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`, `169.254.169.254`), enforces HTTPS, and forbids HTTP redirects.
+- **Threat Zone 4 (Memory & State)**:
+  - Audit Firestore security rules: verify absolute user isolation (`request.auth.uid == userId`) and zero cross-tenant access.
+  - Audit Demo Sandbox: verify `isDemo: true` records can be wiped in a single transaction without orphaned documents.
+- **Threat Zone 5 (Inter-System Communication)**:
+  - Audit client SPA bundle: verify zero API keys or secrets in `dist/client/assets/` (`import.meta.env` audit).
+  - Audit backend logs: verify zero user journal content or authorization tokens in stdout/stderr.
+- **Dependency Vulnerability Scan**:
+  - Run `npm audit` and confirm 0 high or critical vulnerabilities.
+
 ### Testing & Verification Plan
 - **Simulation Test (`tests/e2e/demo-simulation.spec.ts`)**:
   - Trigger "Enter Demo Mode".
@@ -413,6 +472,10 @@ Create an authentic, longitudinal demo experience for evaluators by authoring re
   - Click `[Exit Demo Mode]` and assert all demo items are completely wiped from the evaluator's account.
 - **Responsive Test (`tests/e2e/mobile.spec.ts`)**:
   - Run Playwright mobile emulation (iPhone 14 / Pixel 7 viewports: 375x667, 412x915). Assert zero horizontal scrollbar and clean tap interactions.
+- **Human Prompt Sign-off**:
+  - Manual review document signed off confirming all prompt templates pass the evaluation rubric.
+- **Security Audit Sign-off**:
+  - Audit matrix verified covering all 5 Threat Zones and `npm audit` passing cleanly.
 
 ### Impeccable Design & Feedback Checkpoint
 - Run `$impeccable adapt` to inspect small-viewport layout stability.
