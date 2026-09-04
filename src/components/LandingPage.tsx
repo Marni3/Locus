@@ -36,7 +36,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
           <div>
             <span className="font-serif-heading text-2xl font-bold tracking-tight text-stone-900">ReflectAI</span>
             <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              Gemini + Firestore
+              Personal Insight Sanctuary
             </span>
           </div>
         </div>
@@ -66,7 +66,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
         {/* Security Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F9F7F2] border border-stone-200 text-stone-700 text-xs font-medium mb-8 shadow-2xs">
           <Shield className="w-3.5 h-3.5 text-emerald-700" />
-          <span>User-Isolated Cloud Firestore Storage &bull; End-to-End Private</span>
+          <span>End-to-End Private &bull; Isolated Personal Storage</span>
         </div>
 
         {/* Hero Title */}
@@ -77,7 +77,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
 
         {/* Subtitle */}
         <p className="text-lg sm:text-xl text-stone-600 max-w-2xl font-normal leading-relaxed mb-10">
-          A calm, private sanctuary to write multi-turn journal reflections, deliberate decisions, and converse with Gemini 3.6 Flash for compassionate clarity and structured summaries.
+          A calm, private sanctuary to write multi-turn journal reflections, deliberate decisions, and converse with compassionate reflective intelligence for clarity and structured summaries.
         </p>
 
         {/* Primary CTA */}
@@ -121,9 +121,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
             <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800 mb-4">
               <Compass className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-semibold text-stone-900 mb-2">Multi-Turn AI Reflection</h3>
+            <h3 className="text-base font-semibold text-stone-900 mb-2">Multi-Turn Reflection</h3>
             <p className="text-sm text-stone-600 leading-relaxed">
-              Explore your thoughts with Gemini 3.6 Flash. Choose between Reflective Mirror, Idea Spark, Action Blueprint, or Mindful Unpack modes.
+              Explore your thoughts with responsive dialogue. Choose between Reflective Mirror, Idea Spark, Action Blueprint, or Mindful Unpack modes.
             </p>
           </div>
 
@@ -131,9 +131,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
             <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800 mb-4">
               <Lock className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-semibold text-stone-900 mb-2">Strict Firestore Isolation</h3>
+            <h3 className="text-base font-semibold text-stone-900 mb-2">Strict Private Isolation</h3>
             <p className="text-sm text-stone-600 leading-relaxed">
-              Every journal entry, interaction turn, and summary is stored directly under your authenticated user ID. No cross-user leakage.
+              Every journal entry, interaction turn, and summary is stored directly under your authenticated account. Zero cross-user leakage.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
             </div>
             <h3 className="text-base font-semibold text-stone-900 mb-2">Synthesize &amp; Summarize</h3>
             <p className="text-sm text-stone-600 leading-relaxed">
-              Auto-generate executive takeaways per session, and run longitudinal syntheses across past entries to reveal growth themes.
+              Auto-generate key takeaways per session, and uncover longitudinal syntheses across past entries to illuminate recurring themes.
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
               <span>Sample Interaction &bull; Reflective Mode</span>
             </div>
-            <span className="text-xs text-emerald-300 font-mono">gemini-3.6-flash</span>
+            <span className="text-xs text-emerald-300 font-mono">Reflective Intelligence</span>
           </div>
 
           <div className="space-y-4">
@@ -178,11 +178,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
 
       {/* Footer */}
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-3">
-        <p>&copy; {new Date().getFullYear()} ReflectAI. Securely built with Firebase Auth, Cloud Firestore, and Gemini API.</p>
+        <p>&copy; {new Date().getFullYear()} ReflectAI. A calm, private space for thinking and longitudinal insight.</p>
         <div className="flex items-center gap-4">
           <span className="inline-flex items-center gap-1">
             <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-            OWASP &amp; Firestore Security Compliant
+            OWASP &amp; Data Privacy Compliant
           </span>
         </div>
       </footer>

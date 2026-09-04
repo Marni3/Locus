@@ -45,9 +45,11 @@ All notable changes, architectural decisions, schema modifications, and design s
   - Updated [src/lib/firebase.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/firebase.ts) with Core Object Model collections and enhanced recursive `stripUndefined` payload hygiene.
   - Hardened [firestore.rules](file:///c:/Users/reyna/OneDrive/Documents/Locus/firestore.rules) to enforce owner-bound isolation across all user collections (`/users/{userId}/{document=**}`).
   - Refactored `src/App.tsx` and `src/components/SessionWorkspace.tsx` to align with the new `Entry` and `Message` contracts.
+  - Sanitized user-facing UI copy across `src/components/LandingPage.tsx`, `src/components/SessionWorkspace.tsx`, and `src/components/IntelligenceDrawer.tsx` to eliminate vendor/backend plumbing leaks ("Gemini", "Firestore") in compliance with [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md) and [AGENTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/AGENTS.md).
+  - Enhanced Playwright smoke suite (`tests/e2e/smoke.spec.ts`) with element-level visibility assertions and automated visual screenshot capture.
 
 ### Verified
-- `npm run test:e2e` (Playwright automated smoke test): Passed cleanly in 7.0s.
+- `npm run test:e2e` (Playwright automated smoke test & full-page screenshot): Passed cleanly in 8.3s.
 - `npm run lint` (`tsc --noEmit`): Passed with 0 errors.
 - `npm run build`: Production bundle (`dist/client` + `dist/server.cjs`) built cleanly in 9.59s.
 - `node .agents/skills/impeccable/scripts/doctor.mjs`: Zero configuration drift reported.

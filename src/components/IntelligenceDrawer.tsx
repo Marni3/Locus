@@ -84,7 +84,7 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      onError(err.message || 'Error communicating with Gemini API.');
+      onError(err.message || 'Error communicating with the reflection service.');
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +116,7 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
       setModelUsed(data.modelUsed || 'gemini-3.6-flash');
     } catch (err: any) {
       console.error(err);
-      onError(err.message || 'Error generating cross-session pattern synthesis.');
+      onError(err.message || 'Error communicating with the reflection service.');
     } finally {
       setIsLoading(false);
     }
@@ -129,49 +129,54 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  if (!isOpen) return null;
-
   const isSessionMode = type === 'session_summary';
+  const handleGenerate = isSessionMode ? handleGenerateSessionSummary : handleGenerateCrossSynthesis;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-stone-900/30 backdrop-blur-xs animate-fade-in">
-      <div 
-        id="intelligence-drawer-panel"
-        className="w-full max-w-xl bg-[#FDFBF7] h-full shadow-2xl border-l border-stone-200 flex flex-col justify-between"
+    <div
+      className={`fixed inset-0 z-50 flex justify-end transition-all duration-300 ${
+        isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-stone-900/20 backdrop-blur-xs" onClick={onClose} />
+
+      {/* Drawer Panel */}
+      <div
+        className={`relative w-full max-w-lg bg-[#FAF9F6] shadow-2xl h-full flex flex-col border-l border-stone-200 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
-        {/* Header */}
-        <div className="p-5 border-b border-stone-200 bg-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800">
-              {isSessionMode ? <BookOpen className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
+        {/* Drawer Header */}
+        <div className="p-6 border-b border-stone-200 bg-white flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif-heading text-lg font-bold text-stone-900 leading-tight">
-                {isSessionMode ? 'Session Executive Summary' : 'Journal Pattern Synthesis'}
-              </h3>
+              <h2 className="text-base font-semibold text-stone-900 font-serif">
+                {isSessionMode ? 'Session Essence' : 'Longitudinal Synthesis'}
+              </h2>
               <p className="text-xs text-stone-500">
-                {isSessionMode
-                  ? `Distilled insights for "${activeInteraction?.title || 'Current Session'}"`
-                  : `Longitudinal analysis across ${allInteractions.length} saved entries`}
+                {isSessionMode ? 'Key reflections & extracted actions' : 'Cross-session growth & recurring patterns'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
-              onClick={isSessionMode ? handleGenerateSessionSummary : handleGenerateCrossSynthesis}
+              onClick={handleGenerate}
               disabled={isLoading}
-              className="p-2 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
-              title="Regenerate analysis"
+              title="Regenerate"
+              className="p-1.5 rounded-lg text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors disabled:opacity-40 cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
-
             <button
               onClick={onClose}
-              className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -185,17 +190,15 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
                 <p className="text-sm font-semibold text-stone-800">
                   {isSessionMode ? 'Synthesizing session essence...' : 'Analyzing multi-session themes...'}
                 </p>
-                <p className="text-xs text-stone-500 font-mono">Running Gemini reasoning fallback ladder</p>
+                <p className="text-xs text-stone-500">Uncovering insights and recurring patterns...</p>
               </div>
             </div>
           ) : content ? (
             <div className="space-y-4">
-              {modelUsed && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F9F7F2] border border-stone-200 text-[11px] font-mono text-stone-600">
-                  <Sparkles className="w-3 h-3 text-emerald-700" />
-                  <span>Synthesized via {modelUsed}</span>
-                </div>
-              )}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200 text-[11px] text-stone-600">
+                <Sparkles className="w-3 h-3 text-emerald-700" />
+                <span>Reflection Synthesis</span>
+              </div>
 
               <div className="p-6 bg-white rounded-2xl border border-stone-200 shadow-xs prose prose-stone max-w-none text-stone-800 text-sm leading-relaxed">
                 <Markdown>{content}</Markdown>

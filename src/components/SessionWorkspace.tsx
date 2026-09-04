@@ -293,7 +293,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               {isSaving ? (
                 <span className="flex items-center gap-1 text-[11px] text-stone-500">
                   <RefreshCw className="w-2.5 h-2.5 animate-spin text-emerald-800" />
-                  <span>Saving to Firestore...</span>
+                  <span>Saving...</span>
                 </span>
               ) : saveError ? (
                 <button
