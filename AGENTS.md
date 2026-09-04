@@ -23,12 +23,12 @@ Prior to outputting non-trivial code or system architecture, perform a scenario-
 Never hardcode a single model string. Always wrap content generation with the standard fallback ladder:
 ```typescript
 export const MODEL_FALLBACK_LADDER = [
-  'gemini-3.6-flash',
-  'gemini-3.7-flash',
   'gemini-3.5-flash',
+  'gemini-3.6-flash',
+  'gemini-2.5-flash',
+  'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite',
-  'gemini-flash-latest',
-  'gemini-2.5-flash-lite'
+  'gemini-flash-latest'
 ];
 ```
 Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially attempt the next model in the fallback chain via `generateContentWithFallback()`.
@@ -53,6 +53,10 @@ Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially att
 ### 6. Running Daily Changelog Requirement
 - **Always maintain and update [CHANGELOG.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/CHANGELOG.md) at the project root.**
 - Entries must be grouped by date (`YYYY-MM-DD`) and document every modification, addition, deletion, refactoring, integration change, and verification result produced during each development session.
+
+### 7. Running Blog & Article Talking Points Requirement
+- **Always maintain and update [BLOG_TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/BLOG_TALKING_POINTS.md) at the project root.**
+- Capture interesting design and architecture decisions, counter-intuitive learnings, debugging triumphs (e.g. key rotations, runtime memory caches, model deprecations), privacy trade-offs, and product philosophy so the creator has a rich, ready-to-publish archive of insights for technical blog posts, retrospectives, and launch narratives.
 
 ---
 
