@@ -1,6 +1,6 @@
 # AGENTS.md — Locus / ReflectAI
 
-Welcome to **Locus** (ReflectAI) — an intelligent, calm, and private reflective journaling and personal insight platform built with Express, Vite, React 19, TailwindCSS v4, Firebase Firestore/Auth, and the `@google/genai` SDK.
+Welcome to **Locus** (ReflectAI) — an intelligent, calm, and private reflective journaling and personal insight platform built with **React 19**, **TypeScript**, **TailwindCSS v4**, **Express 4**, **Firebase Firestore/Auth**, and the **`@google/genai`** SDK.
 
 ---
 
@@ -15,7 +15,7 @@ Welcome to **Locus** (ReflectAI) — an intelligent, calm, and private reflectiv
 Prior to outputting non-trivial code or system architecture, perform a scenario-driven threat analysis:
 - **Input Surfaces**: Prompts, untrusted user inputs, external API payloads (strict schema validation via OWASP A03 / LLM02).
 - **Planning & Reasoning**: Prompt injection defense, system instruction isolation (OWASP LLM01).
-- **Tool & API Execution**: Principle of least privilege, SSRF prevention, no raw shell/dynamic execution risks.
+- **Tool & API Execution**: Principle of least privilege, SSRF prevention on webhooks, no raw shell/dynamic execution risks.
 - **Memory & State**: Firestore user data isolation (`request.auth.uid == userId`), session integrity.
 - **Inter-System Communication**: Token leakage prevention, zero secrets in logs.
 
@@ -51,6 +51,22 @@ Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially att
 
 ---
 
+## 🏛️ Core Object Model & Architecture
+
+Consult [Locus-Core-Object-Model.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Core-Object-Model.md) and [Locus-Integrations-and-Build-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Integrations-and-Build-Plan.md) for the active domain architecture:
+
+- **`Entry`**: Episodic reflection conversation between user and AI. Immutable historical record once `concluded` (manually or via **2-hour auto-conclude** timer). Cascade deletes its Messages.
+- **`Message`**: Atomic conversational turn within an Entry. Supports `isPinned` and `note` inline.
+- **`Theme`**: Persistent, longitudinal intellectual/creative trajectory across entries. Stores a rolling `currentSynthesis` (never a task list).
+- **`Theme Observation`**: Discrete, immutable delta connecting an Entry to a Theme. The chronological Observation feed forms the progress timeline.
+- **Synchronous Synthesis Pipeline**: Triggered immediately when an Entry concludes:
+  1. Embed Entry summary via Gemini embeddings API.
+  2. Vector similarity search (`findNearest`) against Theme titles and current syntheses.
+  3. LLM resolves matches: updates existing Themes with new Observations or proposes new Themes.
+  4. Persist updated Themes and new Observations to Firestore.
+
+---
+
 ## 🎨 UI/UX Design System Guidelines
 
 Adhere strictly to [Locus Design Guidelines](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/rules/design-guidelines.md) and the [`locus-design-guidelines`](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-design-guidelines/SKILL.md) skill:
@@ -75,52 +91,59 @@ Adhere strictly to [Locus Design Guidelines](file:///c:/Users/reyna/OneDrive/Doc
 
 ## 🛠️ Tech Stack & Directory Layout
 
-- **Frontend**: React 19, TypeScript, TailwindCSS v4, Lucide React, Motion (Framer Motion).
-- **Backend / API**: Express 4 (`server.ts`), `@google/genai` (Gemini SDK), Vite dev server integration.
-- **Database & Auth**: Firebase 12 (Firestore, Firebase Authentication).
+- **Frontend**: **React 19**, **TypeScript**, **TailwindCSS v4**, **Lucide React**, **Motion** (Framer Motion).
+- **Backend / API**: **Express 4** (`server.ts`), **`@google/genai`** (Gemini SDK), Vite dev server integration.
+- **Database & Auth**: **Firebase 12** (Firestore, Firebase Authentication).
 
 ```
 Locus/
 ├── .agents/
-│   ├── rules/                           # Workspace rules applied automatically
-│   │   ├── software-standards.md        # Core production & security directives
-│   │   └── design-guidelines.md         # Visual tokens & UI/UX principles
-│   └── skills/                          # Progressive disclosure agent skills
-│       ├── locus-software-standards/    # Primary development & security skill
-│       ├── locus-design-guidelines/     # UI/UX design & anti-leakage skill
+│   ├── rules/                              # Workspace rules applied automatically
+│   │   ├── software-standards.md           # Core production & security directives
+│   │   └── design-guidelines.md            # Visual tokens & UI/UX principles
+│   └── skills/                             # Progressive disclosure workspace skills
+│       ├── locus-software-standards/       # Primary development & security skill
+│       ├── locus-design-guidelines/        # UI/UX design & anti-leakage skill
 │       ├── third-party-integration-standards/ # src/integrations/ wrapper pattern
-│       ├── firestore-vector-search/     # Vector embeddings & KNN query rules
-│       ├── feature-architecture-spec/   # 7-point design spec authoring
-│       └── code-quality-standards/      # Strict typing & mock testing standards
+│       ├── firestore-vector-search/        # Vector embeddings & KNN query rules
+│       ├── feature-architecture-spec/      # 7-point design spec authoring
+│       ├── code-quality-standards/         # Strict typing & mock testing standards
+│       ├── pii-sanitizer-implementation/   # Outbound-only regex PII scrubbing
+│       ├── notification-dispatcher-integration/ # SSRF-hardened webhooks + email
+│       └── geocoding-integration/          # Opt-in Maps Geocoding & coordinate minimization
 ├── docs/
-│   ├── standards/                       # Project standards documentation
-│   ├── design/                          # Design guidelines and redesign specs
-│   └── specs/                           # Feature architecture specs (durable record)
+│   ├── Locus-Core-Object-Model.md          # Core entities (Entry, Message, Theme, Observation)
+│   ├── Locus-Implementation-Plan.md        # 5-phase execution plan & test checkpoints
+│   ├── Locus-Integrations-and-Build-Plan.md# Features, security constraints & build order
+│   ├── standards/                          # Project standards documentation
+│   ├── design/                             # Design guidelines and redesign specs
+│   └── specs/                              # Feature architecture specs (durable record)
 ├── src/
-│   ├── components/                      # React UI components
-│   ├── integrations/                    # Isolated 3rd-party wrappers (client/types/errors/mocks)
-│   ├── lib/                             # Firebase and shared helpers
-│   ├── types.ts                         # Core shared application types
-│   ├── App.tsx                          # Root React view
-│   └── index.css                        # Design token definitions
-├── server.ts                            # Unified Express + Vite server entrypoint
-└── firestore.rules                      # Owner-bound security rules
+│   ├── components/                         # React 19 UI components
+│   ├── integrations/                       # Isolated 3rd-party wrappers (client/types/errors/mocks)
+│   ├── lib/                                # Firebase and shared helpers
+│   ├── types.ts                            # Core shared application types
+│   ├── App.tsx                             # Root React component
+│   └── index.css                           # Design token definitions
+├── server.ts                               # Unified Express + Vite server entrypoint
+└── firestore.rules                         # Owner-bound security rules
 ```
 
 ---
 
-## ⚡ Available Agent Skills Quick Reference
-
-When performing specific workflows, leverage the relevant skill:
+## ⚡ Active Workspace Skills Quick Reference
 
 | Skill | Trigger / When to Apply | Path |
 |---|---|---|
 | **`locus-software-standards`** | **Primary baseline for 90%+ of all development tasks** (threat modeling, resilience, error handling, persistence). | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-software-standards/SKILL.md) |
 | **`locus-design-guidelines`** | Writing or modifying any React UI component, modal, drawer, or copy. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/locus-design-guidelines/SKILL.md) |
-| **`third-party-integration-standards`** | Adding or touching external APIs (Maps, embeddings, auth) via `src/integrations/<service>/`. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/third-party-integration-standards/SKILL.md) |
-| **`firestore-vector-search`** | Storing embeddings, composite vector indexing, `findNearest` cosine queries, idea graphs. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/firestore-vector-search/SKILL.md) |
+| **`third-party-integration-standards`** | Adding or touching external APIs via `src/integrations/<service>/`. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/third-party-integration-standards/SKILL.md) |
+| **`firestore-vector-search`** | Storing embeddings, composite vector indexing, `findNearest` cosine queries, Themes. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/firestore-vector-search/SKILL.md) |
 | **`feature-architecture-spec`** | Non-trivial feature design before writing code (`docs/specs/<feature>.md`). | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/feature-architecture-spec/SKILL.md) |
 | **`code-quality-standards`** | Code changes, strict typing boundaries, error handling, mock integration tests. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/code-quality-standards/SKILL.md) |
+| **`pii-sanitizer-implementation`** | Scrubbing phone/email/address prior to egress (Gemini/embeddings/webhooks). | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/pii-sanitizer-implementation/SKILL.md) |
+| **`notification-dispatcher-integration`** | Webhook SSRF validation (HTTPS, DNS IP check, no redirects) & transactional email. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/notification-dispatcher-integration/SKILL.md) |
+| **`geocoding-integration`** | Opt-in Maps reverse geocoding, server consent checks, lat/long minimization. | [SKILL.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/.agents/skills/geocoding-integration/SKILL.md) |
 
 ---
 
