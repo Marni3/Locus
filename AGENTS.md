@@ -24,10 +24,11 @@ Never hardcode a single model string. Always wrap content generation with the st
 ```typescript
 export const MODEL_FALLBACK_LADDER = [
   'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
   'gemini-flash-latest',
-  'gemini-3.7-flash',
-  'gemini-2.5-flash'
+  'gemini-2.5-flash-lite'
 ];
 ```
 Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially attempt the next model in the fallback chain via `generateContentWithFallback()`.

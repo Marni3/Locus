@@ -3,10 +3,11 @@ import { GoogleGenAI } from '@google/genai';
 // 1. Resilient Model Fallback Ladder (Locus Software Standard 2)
 export const MODEL_FALLBACK_LADDER = [
   'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
   'gemini-flash-latest',
-  'gemini-3.7-flash',
-  'gemini-2.5-flash'
+  'gemini-2.5-flash-lite'
 ];
 
 export interface FallbackOptions {

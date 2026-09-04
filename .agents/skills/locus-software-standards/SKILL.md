@@ -47,10 +47,11 @@ Whenever invoking Gemini models via `@google/genai`:
 1. **Never hardcode a single model string** for content generation.
 2. Use the **standard fallback ladder**:
    - Primary: `"gemini-3.6-flash"`
-   - High-Availability Fallback: `"gemini-3.1-flash-lite"`
+   - High-Speed Fallback: `"gemini-3.7-flash"`
+   - Stable Fallback: `"gemini-3.5-flash"`
+   - Low-Latency Fallback: `"gemini-3.1-flash-lite"`
    - Dynamic Alias: `"gemini-flash-latest"`
-   - Deep Reasoning Fallback: `"gemini-3.7-flash"`
-   - Legacy Fallback: `"gemini-2.5-flash"`
+   - Safety Floor: `"gemini-2.5-flash-lite"`
 3. Sequentially catch recoverable errors (`503`, `429`, `404`, `500`) and attempt the next model in the fallback chain.
 4. Route all generation through the centralized helper in backend services:
    ```typescript

@@ -140,26 +140,38 @@ ${transcript}
   }
 }
 
+export const EMBEDDING_FALLBACK_LADDER = [
+  'gemini-embedding-001',
+  'gemini-embedding-2'
+];
+
 /**
- * Generates a 768-dimensional embedding vector using @google/genai text-embedding-004.
+ * Generates an embedding vector using @google/genai embedding models.
  */
 export async function generateSummaryEmbedding(text: string): Promise<number[]> {
   const ai = getAIClient();
-  
-  // text-embedding-004 generates high-quality semantic representations
-  const response: any = await ai.models.embedContent({
-    model: 'text-embedding-004',
-    contents: text,
-  });
+  let lastError: any = null;
 
-  if (Array.isArray(response.embeddings) && response.embeddings[0]?.values) {
-    return response.embeddings[0].values;
-  }
-  if (response.embedding?.values) {
-    return response.embedding.values;
+  for (const model of EMBEDDING_FALLBACK_LADDER) {
+    try {
+      const response: any = await ai.models.embedContent({
+        model,
+        contents: text,
+      });
+
+      if (Array.isArray(response.embeddings) && response.embeddings[0]?.values) {
+        return response.embeddings[0].values;
+      }
+      if (response.embedding?.values) {
+        return response.embedding.values;
+      }
+    } catch (err: any) {
+      lastError = err;
+      continue;
+    }
   }
 
-  return [];
+  throw new Error(`Embedding generation failed across ladder: ${lastError?.message || 'Unknown error'}`);
 }
 
 export interface SynthesisPipelineDependencies {

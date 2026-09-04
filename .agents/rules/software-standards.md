@@ -48,10 +48,11 @@
   1. **Resilient Model Fallback Ladder**:
      Wrap `generateContent` or `generateContentStream` calls with the automated fallback ladder:
      - Primary: `"gemini-3.6-flash"`
-     - High-Availability Fallback: `"gemini-3.1-flash-lite"`
+     - High-Speed Fallback: `"gemini-3.7-flash"`
+     - Stable Fallback: `"gemini-3.5-flash"`
+     - Low-Latency Fallback: `"gemini-3.1-flash-lite"`
      - Dynamic Alias: `"gemini-flash-latest"`
-     - Deep Reasoning Fallback: `"gemini-3.7-flash"`
-     - Legacy Fallback: `"gemini-2.5-flash"`
+     - Safety Floor: `"gemini-2.5-flash-lite"`
   2. **Error Recovery Matrix**:
      Catch recoverable HTTP/API status codes (`503 UNAVAILABLE`, `429 RESOURCE_EXHAUSTED`, `404 NOT_FOUND`, `500 INTERNAL`) and sequentially attempt the next model before throwing.
   3. **Standard Helper Implementation**:
