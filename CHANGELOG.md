@@ -22,7 +22,7 @@ All notable changes, architectural decisions, schema modifications, and design s
   - Specified zero-barrier self-service demo mode accessible directly in the guided walkthrough or Settings, sandboxed strictly to the evaluator's own private user document in Firestore.
   - Designed Phase 4 authentic simulation running 6 chronological multi-turn reflections across 30 days live through the genuine Gemini synthesis pipeline.
 - **Running Blog & Article Talking Points Archive**:
-  - Authored [BLOG_TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/BLOG_TALKING_POINTS.md) at the repository root collecting core product philosophy, technical architecture deep-dives, developer battle scars (API key caching, model deprecations, token economics), and article pitch hooks.
+  - Authored [BLOG_TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/BLOG_TALKING_POINTS.md) at the repository root collecting core product philosophy, intentional vibecoding with OOUX (ORCA framework), technical architecture deep-dives, developer battle scars (API key caching, model deprecations, token economics), and article pitch hooks.
   - Added running requirement to [AGENTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/AGENTS.md) directing agents to maintain this document continuously across future sessions.
 - **Daily Running Changelog Directive**:
   - Added mandatory rule to [AGENTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/AGENTS.md) requiring daily maintenance of `CHANGELOG.md`.

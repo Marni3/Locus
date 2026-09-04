@@ -28,7 +28,44 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 2. Architecture & Engineering Deep-Dives
+## 2. Intentional Vibecoding: Grounding AI Speed in OOUX (Object-Oriented UX)
+
+### The "Vibecoding" Trap: Speed Without Structure
+* **The Seduction**: With modern AI coding assistants, you can generate entire screens and features in minutes by describing vibes, rough layouts, and casual ideas.
+* **The Pitfall (Screen-First Chaos)**: If you code screen-by-screen without a strict underlying domain model, the AI will invent fragmented, overlapping entities on the fly:
+  * One component treats reflections as a generic `chat`.
+  * Another expects a `session` with loose metadata.
+  * Another invents a redundant `Bookmark` collection instead of pinning messages in-place.
+  * Before long, database schemas drift, prompt contexts become chaotic, and the app devolves into an unmaintainable house of cards.
+
+### The Antidote: The OOUX / ORCA Foundation
+* **The Deliberate Choice**: To counteract vibecoding drift, we paused before writing code or crafting system prompts and executed a rigorous **Object-Oriented UX (OOUX)** pass using the **ORCA framework** (Objects, Relationships, Calls-to-Action, Attributes):
+* **The Core Domain Quartet**:
+  1. **`Entry` (The Episodic Conversation)**:
+     * *Nucleus*: The time-bound dialogue between user and reflection companion.
+     * *Lifecycle*: Transitions from `active` → `concluded` (explicitly or via 2-hour inactivity).
+     * *Rule*: An immutable historical record once concluded. Never edited; never rewritten.
+  2. **`Message` (The Atomic Conversational Turn)**:
+     * *Nucleus*: What was said, by whom, and when.
+     * *Attributes*: Carries `isPinned` and optional user `note` inline.
+     * *OOUX Decision*: Bookmarking is metadata on `Message`, not a detached "Quote" or "Bookmark" object. A quoted snippet without parent Entry context is meaningless.
+  3. **`Theme` (The Longitudinal Trajectory)**:
+     * *Nucleus*: An evolving intellectual or emotional dossier across weeks/months.
+     * *Boundary Rule*: A Theme is an intellectual trajectory (patterns, friction points, perspective shifts), **never a task list**. Locus is not a task manager.
+  4. **`Theme Observation` (The Immutable Connective Delta)**:
+     * *Nucleus*: The discrete, immutable delta linking one Entry to one Theme (*"What shifted, was realized, or was decided in this session?"*).
+     * *Why it must be its own object*: Without a separate, immutable Observation per touchpoint, a Theme's rolling synthesis would overwrite itself on every update. You would only ever see where you are, never the path that brought you there. **The Observation feed *is* the progress timeline.**
+
+### Why OOUX Makes AI Coding 10x More Effective
+* **Isomorphic Domain Language**: Because the objects, relationships, and lifecycle rules were formally codified in [Locus-Core-Object-Model.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Core-Object-Model.md), both human and AI were anchored to the exact same mental model:
+  * TypeScript types (`src/types.ts`) mirrored the OOUX spec 1:1.
+  * Firestore collections (`/entries`, `/themes`, `/observations`) mapped cleanly without schema ambiguity.
+  * Gemini prompt schemas ingested candidate Themes and output structured Observations with zero hallucinated keys.
+* **The Builder Takeaway**: *"Vibecoding gives you raw speed, but OOUX gives you intentionality. When you ground AI acceleration in rigorous domain modeling, you get the velocity of a prototype with the structural integrity of enterprise architecture."*
+
+---
+
+## 3. Architecture & Engineering Deep-Dives
 
 ### Resilient AI: The Multi-Tier Model Fallback Ladder
 * **The Lesson**: Never hardcode a single LLM model string in production. Model endpoints suffer transient 503 capacity spikes, 429 quota limits, regional throttling, or sudden vendor deprecations.
@@ -73,7 +110,7 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 3. Real-World Developer Anecdotes & Battle Scars
+## 4. Real-World Developer Anecdotes & Battle Scars
 
 ### The Anatomy of a Ghost Bug: Node Process Caching vs. .env Edits
 * **The Story**: You paste a brand new API key into `.env`, save the file, click "Send" in the browser, and get the exact same `429 Quota Exhausted` error. You check the key, generate another, and still fail. Why?
@@ -93,7 +130,7 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 4. Testing & Software Craftsmanship: 3-Tier TDD
+## 5. Testing & Software Craftsmanship: 3-Tier TDD
 
 * **Tier 1 (Pure Unit Logic)**:
   * Sub-millisecond tests covering PII regexes, SSRF IP parsing, auto-conclude timer thresholds, and prompt formatting without touching network or database.
@@ -104,9 +141,11 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 5. Potential Article / Blog Post Titles & Hooks
-1. **"The Anti-Dashboard: Why Your Journal Shouldn't Be a Jira Board"** (Product Design & UX)
-2. **"How to Build an LLM App That Won't Leak Your Secrets: 5 Threat Zones in Practice"** (App Security & AI Privacy)
-3. **"We Accidentally Spent 30 Minutes Debugging an API Key That Already Worked"** (Developer Humor & Node.js Internals)
-4. **"The Rule of One Accent: Designing Calm Computing Interfaces with Tailwind v4 & Source Serif"** (Design Systems & CSS)
-5. **"Beyond Chatbots: Tracking Long-Term Intellectual Trajectories with Firestore Vector Search & Gemini"** (Architecture & AI Engineering)
+## 6. Potential Article / Blog Post Titles & Hooks
+1. **"Vibecoding with Intent: How OOUX Saved Our AI App from Architectural Chaos"** (Software Architecture & AI Pair Programming)
+2. **"Objects Over Screens: Why the Best AI Workflows Start with an Ontology, Not a Figma Wireframe"** (Product Design & OOUX)
+3. **"The Anti-Dashboard: Why Your Journal Shouldn't Be a Jira Board"** (Product Design & UX)
+4. **"How to Build an LLM App That Won't Leak Your Secrets: 5 Threat Zones in Practice"** (App Security & AI Privacy)
+5. **"We Accidentally Spent 30 Minutes Debugging an API Key That Already Worked"** (Developer Humor & Node.js Internals)
+6. **"The Rule of One Accent: Designing Calm Computing Interfaces with Tailwind v4 & Source Serif"** (Design Systems & CSS)
+7. **"Beyond Chatbots: Tracking Long-Term Intellectual Trajectories with Firestore Vector Search & Gemini"** (Architecture & AI Engineering)
