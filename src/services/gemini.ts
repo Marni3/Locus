@@ -1,13 +1,14 @@
 import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
 
 // 1. Resilient Model Fallback Ladder (Locus Software Standard 2)
 export const MODEL_FALLBACK_LADDER = [
-  'gemini-2.5-flash',
-  'gemini-3.6-flash',
   'gemini-3.5-flash',
+  'gemini-3.6-flash',
+  'gemini-2.5-flash',
+  'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite',
-  'gemini-flash-latest',
-  'gemini-3.5-flash-lite'
+  'gemini-flash-latest'
 ];
 
 export interface FallbackOptions {
@@ -20,9 +21,14 @@ let aiClient: GoogleGenAI | null = null;
 let lastApiKey: string | undefined;
 
 /**
- * Lazy initialization of GoogleGenAI SDK. Reinitializes if GEMINI_API_KEY changes.
+ * Lazy initialization of GoogleGenAI SDK. Reinitializes dynamically if GEMINI_API_KEY changes.
  */
 export function getAIClient(): GoogleGenAI {
+  try {
+    dotenv.config({ override: true });
+  } catch {
+    // Ignore in environments where filesystem is unavailable
+  }
   const apiKey = process.env.GEMINI_API_KEY;
   if (!aiClient || lastApiKey !== apiKey) {
     if (!apiKey) {
