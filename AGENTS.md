@@ -49,6 +49,10 @@ Catch recoverable status codes (`503`, `429`, `404`, `500`) and sequentially att
 - Never hardcode API keys or credentials (`AIzaSy...`).
 - Read runtime secrets from environment variables or Google Cloud Secret Manager.
 
+### 6. Running Daily Changelog Requirement
+- **Always maintain and update [CHANGELOG.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/CHANGELOG.md) at the project root.**
+- Entries must be grouped by date (`YYYY-MM-DD`) and document every modification, addition, deletion, refactoring, integration change, and verification result produced during each development session.
+
 ---
 
 ## 🎨 Impeccable Design System & Authority
