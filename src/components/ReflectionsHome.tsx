@@ -9,7 +9,8 @@ import {
   Star, 
   Layers,
   Plus,
-  Bookmark
+  Bookmark,
+  HelpCircle
 } from 'lucide-react';
 import { Entry, Theme } from '../types';
 import { cleanProseSnippet } from '../lib/textUtils';
@@ -147,9 +148,27 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
             "{dailyPrompt}"
           </span>
         </div>
-        <div className="flex items-center gap-1 text-xs font-semibold text-accent-sage shrink-0">
-          <span>Reflect</span>
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        <div className="flex items-center gap-2 shrink-0">
+          {onStartTour && (
+            <button
+              id="home-open-tour-btn"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartTour();
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-text-muted hover:text-accent-sage hover:bg-canvas transition-colors cursor-pointer border border-transparent hover:border-border-hairline"
+              title="Start guided walkthrough"
+              aria-label="Start guided walkthrough"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-accent-sage" />
+              <span className="hidden xs:inline">Guided tour</span>
+            </button>
+          )}
+          <div className="flex items-center gap-1 text-xs font-semibold text-accent-sage shrink-0">
+            <span>Reflect</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </div>
         </div>
       </div>
 

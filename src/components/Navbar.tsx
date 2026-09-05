@@ -159,11 +159,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="navbar-open-tour-btn"
               onClick={onOpenTour}
-              className="p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
-              title="Guided Tour"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer text-xs font-medium border border-transparent hover:border-border-hairline"
+              title="Start Guided Tour"
               aria-label="Open Guided Tour"
             >
-              <HelpCircle className="w-4 h-4" />
+              <HelpCircle className="w-4 h-4 text-accent-sage" />
+              <span className="hidden sm:inline">Tour</span>
             </button>
           )}
 

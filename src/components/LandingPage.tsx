@@ -162,35 +162,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Epicenter 1: Center background */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '0s' }} />
-          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '2.7s' }} />
-          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '5.4s' }} />
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '0s' }} />
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '2.7s' }} />
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '5.4s' }} />
         </div>
 
         {/* Epicenter 2: Top-left offset */}
         <div className="absolute top-[18%] left-[20%] pointer-events-none">
-          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '1.2s' }} />
-          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '4.8s' }} />
+          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '1.2s' }} />
+          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '4.8s' }} />
         </div>
 
         {/* Epicenter 3: Bottom-right offset */}
         <div className="absolute bottom-[20%] right-[22%] pointer-events-none">
-          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '3.4s' }} />
-          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '6.6s' }} />
+          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '3.4s' }} />
+          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/40 opacity-0 animate-water-ripple" style={{ animationDelay: '6.6s' }} />
         </div>
 
-        {/* Ambient Static Textured Backdrop Rings */}
-        <svg 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] opacity-[0.035] text-accent-sage pointer-events-none" 
-          viewBox="0 0 1000 1000" 
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="500" cy="500" r="160" stroke="currentColor" strokeWidth="1" />
-          <circle cx="500" cy="500" r="260" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" />
-          <circle cx="500" cy="500" r="370" stroke="currentColor" strokeWidth="1" />
-          <circle cx="500" cy="500" r="480" stroke="currentColor" strokeWidth="1" strokeDasharray="5 7" />
-        </svg>
       </div>
 
       {/* Refined & Compact Sanctuary Card */}

@@ -14,7 +14,8 @@ import {
   Shield,
   AlertTriangle,
   Loader2,
-  Palette
+  Palette,
+  HelpCircle
 } from 'lucide-react';
 import { UserSettings, PersonaTone, ReflectionMode, Interaction, NotebookItem } from '../types';
 
@@ -28,6 +29,7 @@ interface SettingsDrawerProps {
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   onLoadDemoData?: () => void;
   onClearDemoData?: () => void;
+  onOpenTour?: () => void;
 }
 
 const TONES: { id: PersonaTone; label: string; desc: string }[] = [
@@ -55,6 +57,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   onShowToast,
   onLoadDemoData,
   onClearDemoData,
+  onOpenTour,
 }) => {
   const [activeTab, setActiveTab] = useState<'persona' | 'appearance' | 'tags' | 'notebook' | 'data' | 'integrations'>('persona');
   const [formState, setFormState] = useState<UserSettings>(settings);
@@ -91,6 +94,33 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   }, [settings, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleCancel = () => {
+    // Revert preview back to confirmed settings
+    const fontFallbacks: Record<string, string> = {
+      'Literata': "'Literata', 'Source Serif 4', Georgia, serif",
+      'Inter': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      'Roboto': "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'Overpass Mono': "'Overpass Mono', 'Courier Prime', monospace",
+      'Overpass': "'Overpass', 'Inter', sans-serif",
+    };
+    const family = fontFallbacks[settings.fontFamily || 'Literata'] || `'${settings.fontFamily || 'Literata'}', Georgia, serif`;
+    document.documentElement.style.setProperty('--font-reading', family);
+    document.documentElement.style.setProperty('--font-leaf', family);
+    document.documentElement.style.setProperty('--font-serif', family);
+
+    const accents: Record<string, string> = {
+      sage: '#3B7A57',
+      moss: '#2E5A36',
+      irongall: '#2C3E50',
+      ochre: '#B87333',
+      terracotta: '#8A3A22'
+    };
+    if (accents[settings.accentColor || 'sage']) {
+      document.documentElement.style.setProperty('--accent-sage', accents[settings.accentColor || 'sage']);
+    }
+    onClose();
+  };
 
   const handleSave = () => {
     onSaveSettings(formState);
@@ -333,7 +363,21 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     ].map((f) => (
                       <div
                         key={f.id}
-                        onClick={() => setFormState({ ...formState, fontFamily: f.id as any })}
+                        onClick={() => {
+                          const nextFamily = f.id as any;
+                          setFormState({ ...formState, fontFamily: nextFamily });
+                          const fontFallbacks: Record<string, string> = {
+                            'Literata': "'Literata', 'Source Serif 4', Georgia, serif",
+                            'Inter': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                            'Roboto': "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                            'Overpass Mono': "'Overpass Mono', 'Courier Prime', monospace",
+                            'Overpass': "'Overpass', 'Inter', sans-serif",
+                          };
+                          const family = fontFallbacks[nextFamily] || `'${nextFamily}', Georgia, serif`;
+                          document.documentElement.style.setProperty('--font-reading', family);
+                          document.documentElement.style.setProperty('--font-leaf', family);
+                          document.documentElement.style.setProperty('--font-serif', family);
+                        }}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                           (formState.fontFamily || 'Literata') === f.id
                             ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
@@ -369,7 +413,20 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     ].map((c) => (
                       <div
                         key={c.id}
-                        onClick={() => setFormState({ ...formState, accentColor: c.id as any })}
+                        onClick={() => {
+                          const nextColor = c.id as any;
+                          setFormState({ ...formState, accentColor: nextColor });
+                          const accents: Record<string, string> = {
+                            sage: '#3B7A57',
+                            moss: '#2E5A36',
+                            irongall: '#2C3E50',
+                            ochre: '#B87333',
+                            terracotta: '#8A3A22'
+                          };
+                          if (accents[nextColor]) {
+                            document.documentElement.style.setProperty('--accent-sage', accents[nextColor]);
+                          }
+                        }}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center gap-3 ${
                           (formState.accentColor || 'sage') === c.id
                             ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
@@ -411,6 +468,32 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                       </span>
                     </div>
                   </label>
+                </div>
+
+                {/* Guided Tour Launcher */}
+                <div className="p-4 bg-[#FAF9F6] border border-border-hairline rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+                  <div>
+                    <span className="text-xs font-semibold text-stone-900 block">
+                      Guided Walkthrough Tour
+                    </span>
+                    <span className="text-xs text-stone-500 block mt-0.5 leading-relaxed">
+                      Re-open the 7-stage interactive tour through Locus's reflective philosophy and core features.
+                    </span>
+                  </div>
+                  {onOpenTour && (
+                    <button
+                      id="settings-restart-tour-btn"
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenTour();
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-sage text-white text-xs font-semibold hover:opacity-95 transition-all shadow-2xs cursor-pointer shrink-0"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>Start Tour</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -757,7 +840,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
         {/* Footer Actions */}
         <div className="p-4 border-t border-stone-200 bg-white flex items-center justify-end gap-2">
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-4 py-2 text-xs font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
           >
             Cancel

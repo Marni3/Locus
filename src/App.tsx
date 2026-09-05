@@ -106,7 +106,17 @@ export default function App() {
     }
 
     if (settings.fontFamily) {
-      root.style.setProperty('--font-reading', settings.fontFamily);
+      const fontFallbacks: Record<string, string> = {
+        'Literata': "'Literata', 'Source Serif 4', Georgia, serif",
+        'Inter': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        'Roboto': "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        'Overpass Mono': "'Overpass Mono', 'Courier Prime', monospace",
+        'Overpass': "'Overpass', 'Inter', sans-serif",
+      };
+      const family = fontFallbacks[settings.fontFamily] || `'${settings.fontFamily}', Georgia, serif`;
+      root.style.setProperty('--font-reading', family);
+      root.style.setProperty('--font-leaf', family);
+      root.style.setProperty('--font-serif', family);
     }
   }, [settings.reducedMotion, settings.accentColor, settings.fontFamily]);
 
@@ -689,6 +699,10 @@ export default function App() {
         onShowToast={showToast}
         onLoadDemoData={handleLoadDemoData}
         onClearDemoData={handleClearDemoData}
+        onOpenTour={() => {
+          setIsSettingsOpen(false);
+          setIsWalkthroughOpen(true);
+        }}
       />
 
       {/* Interactive Guided Walkthrough */}

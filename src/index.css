@@ -4,6 +4,7 @@
   --font-serif: 'Literata', 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-leaf: 'Literata', 'Source Serif 4', Georgia, serif;
+  --font-reading: 'Literata', 'Source Serif 4', Georgia, serif;
   --font-quote: 'Newsreader', 'Literata', Georgia, serif;
   --font-ui: 'Archivo', 'Inter', sans-serif;
   --font-stamp: 'Courier Prime', 'Overpass Mono', monospace;
@@ -39,7 +40,9 @@
     --vermilion: #8A3A22;
     --moss: #3B5540;
     --rule: #DCD7CD;
-    --font-leaf: 'Literata', 'Source Serif 4', Georgia, serif;
+    --font-reading: 'Literata', 'Source Serif 4', Georgia, serif;
+    --font-leaf: var(--font-reading);
+    --font-serif: var(--font-reading);
     --font-quote: 'Newsreader', 'Literata', Georgia, serif;
     --font-ui: 'Archivo', 'Inter', sans-serif;
     --font-stamp: 'Courier Prime', 'Overpass Mono', monospace;
@@ -62,6 +65,10 @@
   .font-leaf {
     font-family: var(--font-leaf);
     font-optical-sizing: auto;
+  }
+
+  .font-reading {
+    font-family: var(--font-reading);
   }
 
   .font-quote {
@@ -109,8 +116,8 @@
     transform: scale(0.2);
     opacity: 0;
   }
-  20% {
-    opacity: 0.14;
+  25% {
+    opacity: 0.32;
   }
   100% {
     transform: scale(2.6);
