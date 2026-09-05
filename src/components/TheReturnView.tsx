@@ -37,7 +37,7 @@ export const TheReturnView: React.FC<TheReturnViewProps> = ({
 
           {/* Machine Provenance in Courier Prime Mono */}
           <div className="flex items-center gap-2 font-stamp text-xs text-[#5A5648] text-right truncate">
-            <span className="hidden sm:inline">The Return ·</span>
+            <span className="hidden sm:inline">Looking back ·</span>
             <span className="text-[#191813] font-semibold truncate">{evidence}</span>
           </div>
         </div>

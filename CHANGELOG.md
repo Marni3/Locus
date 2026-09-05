@@ -21,6 +21,17 @@ All notable changes, architectural decisions, schema modifications, and design s
     7. Unpack Further enabled live across multiple themes with $\ge 2$ observations.
   - **Dynamic Relative Timestamps ([scripts/finalize-demo-dataset.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/scripts/finalize-demo-dataset.ts))**: Transformed compiled dataset in [src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts) to use `subDays(days)` so reflections are always temporally anchored relative to the user's current session date without heavy 3072-dimensional vector bundle bloat.
 
+- **Workspace De-Cluttering & Refinement (Option B: Zero-Banner Ambient Integration)**:
+  - **Eliminated Banner Stack**: Removed 4 stacked intrusive banners from [src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx) (First-Run Tour banner, Daily Prompt card, Ready for Synthesis ribbon, The Return banner), restoring a serene, archival canvas with natural breathing room.
+  - **Ambient Daily Contemplation Bar**: Integrated an elegant single-line contemplation bar (`#daily-contemplation-bar`) with typography in Source Serif 4 displaying the active daily prompt with a clean `Reflect →` action.
+  - **Inline Filter Alignment & Synthesis Tab**: Merged `Ready for Synthesis ({readyThemes.length})` into the inline filter chips adjacent to the search input, rendering an interactive theme grid with observation counts and trajectory unpack actions.
+  - **Persistent "Looking back" Navigation**: Added a dedicated "Looking back" tab in [src/components/Navbar.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Navbar.tsx) with a subtle terracotta indicator dot when past reflections are available for re-reading, transitioning provenance naming from "The Return" to plainspoken "Looking back".
+- **Guided Walkthrough Overhaul ([src/components/WalkthroughOverlay.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/WalkthroughOverlay.tsx))**:
+  - **Auto-Navigating Linear Tour**: Overhauled walkthrough to dynamically drive the application behind it upon clicking Next (`reflections` canvas → `session` dialogue → bookmarks drawer → sealed `reader` → `return` archivist → `themes` constellation) without modal dismissal or disjointed jumps.
+  - **Compact Bottom-Right Floating Card**: Completely removed the dark, full-screen backdrop overlay (`backdrop-blur-xs`) in favor of a sleek $360\text{px}$–$410\text{px}$ floating card docked at `bottom-6 right-6 z-50`, leaving the underlying UI fully visible and interactive.
+  - **Briefer Micro-Copy & Zero AI Glitter**: Replaced verbose explanations with punchy 1–2 sentence summaries, exorcised all `Sparkles` icons from the entire walkthrough, and eliminated disruptive prompt action buttons that previously ejected users from the tour.
+  - **Minimized Pill & Keyboard Accessibility**: Retained minimized floating pill (`#walkthrough-minimized-pill`) and added full arrow key (`ArrowRight` / `ArrowLeft`) and `Escape` keyboard navigation.
+
 ### Changed
 - **Balanced Multi-Turn Dialogue Dataset ([src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts))**:
   - Balanced the 15-entry archive into 8 rich multi-turn conversational exchanges (Entries 1, 2, 5, 6, 9, 10, 12, 15 with 6–8 alternating turns) and 7 streamlined episodic journal reflections (Entries 3, 4, 7, 8, 11, 13, 14 with 2 turns), mirroring authentic daily human rhythm.

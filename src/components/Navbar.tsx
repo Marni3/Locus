@@ -8,7 +8,8 @@ import {
   ArrowLeft,
   ChevronDown,
   Bookmark,
-  HelpCircle
+  HelpCircle,
+  Clock
 } from 'lucide-react';
 import { LocusMark } from './LocusMark';
 import { UserProfile } from '../types';
@@ -18,12 +19,13 @@ interface NavbarProps {
   searchTerm?: string;
   onSearchChange?: (val: string) => void;
   onNewSession: () => void;
-  activeView: 'reflections' | 'themes' | 'session';
-  onViewChange: (view: 'reflections' | 'themes') => void;
+  activeView: 'reflections' | 'themes' | 'session' | 'return';
+  onViewChange: (view: 'reflections' | 'themes' | 'return') => void;
   onOpenSettings: () => void;
   onOpenBookmarks?: () => void;
   onOpenTour?: () => void;
   bookmarkCount?: number;
+  hasReturnCandidate?: boolean;
   onSignOut: () => void;
   totalSessions?: number;
 }
@@ -37,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenBookmarks,
   onOpenTour,
   bookmarkCount,
+  hasReturnCandidate,
   onSignOut,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,12 +79,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Center: Segmented Navigation (Reflections vs Themes) */}
+        {/* Center: Segmented Navigation (Reflections, Themes, Looking back) */}
         <div className="inline-flex p-1 rounded-xl bg-canvas border border-border-hairline text-xs font-medium font-sans shadow-2xs">
           <button
             id="nav-tab-reflections"
             onClick={() => onViewChange('reflections')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeView === 'reflections' || activeView === 'session'
                 ? 'bg-surface text-text-primary shadow-2xs font-semibold'
                 : 'text-text-muted hover:text-text-primary'
@@ -94,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             id="nav-tab-themes"
             onClick={() => onViewChange('themes')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeView === 'themes'
                 ? 'bg-surface text-text-primary shadow-2xs font-semibold'
                 : 'text-text-muted hover:text-text-primary'
@@ -102,6 +105,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Layers className="w-3.5 h-3.5 text-accent-sage" />
             <span>Themes</span>
+          </button>
+
+          <button
+            id="nav-tab-return"
+            onClick={() => onViewChange('return')}
+            className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeView === 'return'
+                ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 text-accent-sage" />
+            <span>Looking back</span>
+            {hasReturnCandidate && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#8A3A22] shrink-0" title="Daily reflection available" />
+            )}
           </button>
         </div>
 

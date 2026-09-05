@@ -11,7 +11,6 @@ import {
   ArrowLeft, 
   X, 
   CheckCircle2,
-  Sparkles,
   Minimize2
 } from 'lucide-react';
 
@@ -22,14 +21,12 @@ export interface WalkthroughStep {
   narrative: string;
   icon: React.ElementType;
   badge: string;
-  sampleActionLabel?: string;
-  onSampleAction?: () => void;
-  illustrationNote?: string;
 }
 
 interface WalkthroughOverlayProps {
   isOpen: boolean;
   onClose: () => void;
+  onStepChange?: (stepIndex: number, stepId: string) => void;
   onStartSampleReflection?: (sampleText: string) => void;
   onOpenThemes?: () => void;
   onOpenReturn?: () => void;
@@ -39,10 +36,7 @@ interface WalkthroughOverlayProps {
 export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
   isOpen,
   onClose,
-  onStartSampleReflection,
-  onOpenThemes,
-  onOpenReturn,
-  onOpenBookmarks,
+  onStepChange,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -51,102 +45,102 @@ export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
     {
       id: 'canvas',
       title: 'The Reflections Canvas',
-      subtitle: 'A tactile, calm space for personal inquiry',
-      narrative: 'Welcome to Locus. This is your personal sanctuary—a calm, tactile space for your daily reflections organized as thoughtful cards. No algorithmic feeds, gamified streaks, or enterprise clutter: only your thoughts resting on an archival paper substrate.',
+      subtitle: 'Archival cards & personal sanctuary',
+      narrative: 'A calm, tactile space for your daily reflections. No streaks, gamification, or enterprise clutter—only your thoughts on archival paper.',
       icon: BookOpen,
-      badge: 'Step 1 of 7 · Foundation',
-      illustrationNote: 'Masonry cards with category tags, mood indicators, and temporal stamps.',
+      badge: 'Step 1 of 7 · Canvas',
     },
     {
       id: 'companion',
       title: 'Starting a Reflection',
-      subtitle: 'Solving the blank page without conversational fatigue',
-      narrative: 'Starting a reflection is effortless. When you open a session, you are greeted by an attentive conversational companion that listens, reframes, and inquires rather than diagnosing. You can write a spontaneous check-in or explore an open question.',
+      subtitle: 'Attentive conversational partner',
+      narrative: 'Open an active session to think out loud. Your companion listens, mirrors, and prompts deeper inquiry rather than prescribing answers.',
       icon: MessageSquare,
-      badge: 'Step 2 of 7 · Active Writing',
-      sampleActionLabel: 'Try: "I\'m feeling good today"',
-      onSampleAction: () => {
-        onStartSampleReflection?.("I'm feeling good today");
-        onClose();
-      },
-      illustrationNote: 'Sample prompt: "I\'m feeling good today" initiates immediate gentle mirroring.',
+      badge: 'Step 2 of 7 · Dialogue',
     },
     {
       id: 'bookmarks',
       title: 'Bookmarking Key Realizations',
-      subtitle: 'Replacing pins with intentional bookmarks',
-      narrative: 'During a reflection, meaningful epiphanies emerge. Instead of ephemeral pins, Locus allows you to Bookmark specific passages. Bookmarks gather in a dedicated drawer where you can view them chronologically or grouped by reflection.',
+      subtitle: 'Preserving pivotal epiphanies',
+      narrative: 'Bookmark meaningful turns into your permanent insight ledger, always accessible from the top navigation bar.',
       icon: Bookmark,
-      badge: 'Step 3 of 7 · Preserving Insights',
-      sampleActionLabel: 'View Bookmarks Drawer',
-      onSampleAction: () => {
-        onOpenBookmarks?.();
-        onClose();
-      },
-      illustrationNote: 'Click the Bookmark ribbon on any turn to archive it into your permanent ledger.',
+      badge: 'Step 3 of 7 · Bookmarks',
     },
     {
       id: 'sealing',
       title: 'Finite Pages & Page Sealing',
-      subtitle: 'Like a real physical notebook, entries have an end',
-      narrative: 'Like a real journal, entries in Locus have an end. When your reflection reaches natural closure, click [ Conclude & Seal ]. If left unattended, Locus auto-concludes the session after 2 hours. Once sealed, the page becomes permanently immutable—protecting the integrity of who you were when you wrote it.',
+      subtitle: 'Preserving historical integrity',
+      narrative: 'Entries conclude and seal naturally or after 2 hours. Once sealed, a page is permanently immutable, protecting who you were when you wrote it.',
       icon: Lock,
-      badge: 'Step 4 of 7 · Immutability',
-      illustrationNote: 'Sealing freezes turns into an immutable historical record with cryptographic hash integrity.',
+      badge: 'Step 4 of 7 · Sealing',
     },
     {
       id: 'margins',
       title: 'The Strata Margin Layer',
-      subtitle: 'Revisiting past thoughts without rewriting history',
-      narrative: 'How do you revisit a sealed entry? You don\'t rewrite history—you write in the margins. Just like marginalia in an antique book, your margin notes are stamped with temporal distance ("written 94 days later") and semantic ink stances (Correction, Confirmation, Question, Grief, Gratitude). The AI remains completely silent in the margins; this space is strictly yours.',
+      subtitle: 'Marginalia across time',
+      narrative: 'Revisit sealed reflections to write in the margins with temporal distance stamps and ink stances—without altering the original historical entry.',
       icon: Columns,
-      badge: 'Step 5 of 7 · Strata Marginalia',
-      illustrationNote: '2-column reader with a recessed paper-deep margin gutter and Courier Prime temporal stamps.',
+      badge: 'Step 5 of 7 · Strata Margins',
     },
     {
       id: 'the-return',
       title: 'The Return: One Page a Day',
-      subtitle: 'Solving the forgotten notebook problem',
-      narrative: 'To ensure your insights don\'t gather digital dust, Locus surfaces exactly one past entry each day through The Return. It routes with explainable purpose: on anniversaries ("written 1 year ago today"), open threads, or when a past entry contradicts a current belief. It offers zero AI commentary, simply inviting you: "Write in the margin."',
+      subtitle: 'Resurfacing past insights',
+      narrative: 'Locus resurfaces exactly one past page each day on its anniversary or thematic relevance, inviting you to reflect in the margin.',
       icon: Clock,
-      badge: 'Step 6 of 7 · Daily Archivist',
-      sampleActionLabel: 'Explore The Return',
-      onSampleAction: () => {
-        onOpenReturn?.();
-        onClose();
-      },
-      illustrationNote: 'Full-bleed single entry with provenance banner and contradiction comparison.',
+      badge: 'Step 6 of 7 · Looking Back',
     },
     {
       id: 'themes',
       title: 'Longitudinal Themes & Constellation',
-      subtitle: 'Watching your intellectual trajectories evolve over time',
-      narrative: 'As you reflect and annotate across weeks and months, the synthesis engine clusters discrete observations into longitudinal Themes. Visit the Themes screen to explore an interactive concept graph, trace your observation trajectories, and unpack deep thematic essays.',
+      subtitle: 'Tracking intellectual trajectories',
+      narrative: 'Discrete observations cluster into longitudinal themes, mapped across time in an interactive concept constellation.',
       icon: Layers,
       badge: 'Step 7 of 7 · Synthesis',
-      sampleActionLabel: 'Open Themes Constellation',
-      onSampleAction: () => {
-        onOpenThemes?.();
-        onClose();
-      },
-      illustrationNote: 'Interactive SVG concept graph linking recurring themes and chronological observations.',
     },
   ];
+
+  // Reset to step 0 and trigger step change when opened
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStepIndex(0);
+      setIsMinimized(false);
+      onStepChange?.(0, steps[0].id);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
       if (e.key === 'Escape') {
-        onClose();
+        handleDismiss();
       } else if (e.key === 'ArrowRight' && currentStepIndex < steps.length - 1) {
-        setCurrentStepIndex((prev) => prev + 1);
+        handleNext();
       } else if (e.key === 'ArrowLeft' && currentStepIndex > 0) {
-        setCurrentStepIndex((prev) => prev - 1);
+        handleBack();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentStepIndex, steps.length, onClose]);
+  }, [isOpen, currentStepIndex, steps.length]);
+
+  const handleNext = () => {
+    if (currentStepIndex < steps.length - 1) {
+      const nextIdx = currentStepIndex + 1;
+      setCurrentStepIndex(nextIdx);
+      onStepChange?.(nextIdx, steps[nextIdx].id);
+    } else {
+      handleDismiss();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStepIndex > 0) {
+      const prevIdx = currentStepIndex - 1;
+      setCurrentStepIndex(prevIdx);
+      onStepChange?.(prevIdx, steps[prevIdx].id);
+    }
+  };
 
   const handleDismiss = () => {
     try {
@@ -185,143 +179,115 @@ export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-[#191813]/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in"
+      id="walkthrough-modal"
+      className="fixed bottom-6 right-6 z-50 w-[360px] sm:w-[410px] max-w-[calc(100vw-2rem)] bg-[#FAF9F6] border border-[#DCD7CD] rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto transition-all animate-fade-in"
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-labelledby="walkthrough-title"
     >
-      <div 
-        id="walkthrough-modal"
-        className="w-full max-w-xl bg-[#FAF9F6] border border-[#DCD7CD] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-      >
-        {/* Top Progress Bar */}
-        <div className="w-full bg-[#EAE6DC] h-1.5 flex">
-          {steps.map((_, idx) => (
-            <div
-              key={idx}
-              className={`h-full flex-1 transition-all duration-300 ${
-                idx <= currentStepIndex ? 'bg-[#3B7A57]' : 'bg-transparent'
-              }`}
-            />
-          ))}
-        </div>
+      {/* Top Segmented Progress Bar */}
+      <div className="w-full bg-[#EAE6DC] h-1 flex">
+        {steps.map((_, idx) => (
+          <div
+            key={idx}
+            className={`h-full flex-1 transition-all duration-300 ${
+              idx <= currentStepIndex ? 'bg-[#3B7A57]' : 'bg-transparent'
+            }`}
+          />
+        ))}
+      </div>
 
-        {/* Modal Header */}
-        <div className="p-5 sm:p-6 pb-2 flex items-center justify-between border-b border-[#EAE6DC]">
-          <div className="flex items-center gap-2.5">
-            <span className="font-stamp text-xs text-[#5A5648] uppercase tracking-wider font-semibold">
-              {currentStep.badge}
-            </span>
-          </div>
+      {/* Header */}
+      <div className="px-4 py-3 pb-2 flex items-center justify-between border-b border-[#EAE6DC]">
+        <span className="font-stamp text-[10px] text-[#5A5648] uppercase tracking-wider font-semibold">
+          {currentStep.badge}
+        </span>
 
-          <div className="flex items-center gap-1">
-            <button
-              id="walkthrough-minimize-btn"
-              onClick={() => setIsMinimized(true)}
-              className="p-1.5 rounded-lg text-[#5A5648] hover:text-[#191813] hover:bg-[#EAE6DC] transition-colors cursor-pointer"
-              title="Minimize walkthrough"
-              aria-label="Minimize walkthrough"
-            >
-              <Minimize2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="p-1.5 rounded-lg text-[#5A5648] hover:text-[#191813] hover:bg-[#EAE6DC] transition-colors cursor-pointer"
-              aria-label="Close walkthrough"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Step Body */}
-        <div className="p-6 sm:p-8 space-y-5 flex-1">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#DCEEE3] text-[#3B7A57] flex items-center justify-center shrink-0 shadow-2xs">
-              <IconComponent className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 id="walkthrough-title" className="font-serif text-xl sm:text-2xl font-bold text-[#191813] tracking-tight leading-snug">
-                {currentStep.title}
-              </h2>
-              <p className="font-ui text-xs sm:text-sm text-[#5A5648] mt-0.5">
-                {currentStep.subtitle}
-              </p>
-            </div>
-          </div>
-
-          <p className="font-reading text-sm sm:text-base text-[#191813]/90 leading-relaxed bg-[#FFFFFF] p-4 rounded-xl border border-[#EAE6DC] shadow-2xs">
-            {currentStep.narrative}
-          </p>
-
-          {/* Contextual Illustration or Callout */}
-          {currentStep.illustrationNote && (
-            <div className="p-3 bg-[#F4F3EE] rounded-lg border border-[#EAE6DC] flex items-center gap-2.5 text-xs text-[#5A5648]">
-              <Sparkles className="w-3.5 h-3.5 text-[#3B7A57] shrink-0" />
-              <span className="font-stamp text-[11px] leading-tight">
-                {currentStep.illustrationNote}
-              </span>
-            </div>
-          )}
-
-          {/* Optional Action Button */}
-          {currentStep.sampleActionLabel && currentStep.onSampleAction && (
-            <div className="pt-1">
-              <button
-                onClick={currentStep.onSampleAction}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#DCEEE3] hover:bg-[#cbe6d4] text-[#3B7A57] font-ui text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs border border-[#3B7A57]/30"
-              >
-                <span>{currentStep.sampleActionLabel}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Modal Footer Controls */}
-        <div className="p-4 sm:p-6 pt-3 bg-[#F4F3EE] border-t border-[#EAE6DC] flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <button
+            id="walkthrough-minimize-btn"
+            onClick={() => setIsMinimized(true)}
+            className="p-1 rounded-md text-[#5A5648] hover:text-[#191813] hover:bg-[#EAE6DC] transition-colors cursor-pointer"
+            title="Minimize walkthrough"
+            aria-label="Minimize walkthrough"
+          >
+            <Minimize2 className="w-3.5 h-3.5" />
+          </button>
           <button
             onClick={handleDismiss}
-            className="text-xs font-ui text-[#5A5648] hover:text-[#191813] transition-colors cursor-pointer px-2 py-1"
+            className="p-1 rounded-md text-[#5A5648] hover:text-[#191813] hover:bg-[#EAE6DC] transition-colors cursor-pointer"
+            aria-label="Close walkthrough"
           >
-            Skip Walkthrough
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Body Content */}
+      <div className="p-4 sm:p-5 space-y-3 flex-1">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#DCEEE3] text-[#3B7A57] flex items-center justify-center shrink-0 shadow-2xs">
+            <IconComponent className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h2 id="walkthrough-title" className="font-serif text-base font-bold text-[#191813] tracking-tight leading-snug">
+              {currentStep.title}
+            </h2>
+            <p className="font-ui text-xs text-[#5A5648] mt-0.5">
+              {currentStep.subtitle}
+            </p>
+          </div>
+        </div>
+
+        <p className="font-reading text-xs sm:text-[13px] text-[#191813]/90 leading-relaxed bg-[#FFFFFF] p-3 rounded-xl border border-[#EAE6DC] shadow-2xs">
+          {currentStep.narrative}
+        </p>
+      </div>
+
+      {/* Footer Controls */}
+      <div className="px-4 py-3 bg-[#F4F3EE] border-t border-[#EAE6DC] flex items-center justify-between">
+        <button
+          onClick={handleDismiss}
+          className="text-xs font-ui text-[#5A5648] hover:text-[#191813] transition-colors cursor-pointer px-1 py-0.5"
+        >
+          Skip Tour
+        </button>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            id="walkthrough-back-btn"
+            onClick={handleBack}
+            disabled={isFirst}
+            className={`p-1.5 rounded-lg border text-xs font-ui transition-all flex items-center gap-1 ${
+              isFirst
+                ? 'border-transparent text-black/20 cursor-not-allowed'
+                : 'border-[#DCD7CD] bg-white text-[#191813] hover:bg-[#EAE6DC] cursor-pointer'
+            }`}
+            aria-label="Previous step"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            <span className="hidden sm:inline">Back</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          {isLast ? (
             <button
-              onClick={() => setCurrentStepIndex((prev) => Math.max(0, prev - 1))}
-              disabled={isFirst}
-              className={`p-2 rounded-xl border text-xs font-ui transition-all flex items-center gap-1 ${
-                isFirst
-                  ? 'border-transparent text-black/20 cursor-not-allowed'
-                  : 'border-[#DCD7CD] bg-white text-[#191813] hover:bg-[#EAE6DC] cursor-pointer'
-              }`}
-              aria-label="Previous step"
+              id="walkthrough-finish-btn"
+              onClick={handleDismiss}
+              className="px-3.5 py-1.5 rounded-lg bg-[#3B7A57] hover:bg-[#2E5A36] text-white text-xs font-ui font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Back</span>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Begin Reflecting</span>
             </button>
-
-            {isLast ? (
-              <button
-                id="walkthrough-finish-btn"
-                onClick={handleDismiss}
-                className="px-4 py-2 rounded-xl bg-[#3B7A57] hover:bg-[#2E5A36] text-white text-xs sm:text-sm font-ui font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Begin Reflecting</span>
-              </button>
-            ) : (
-              <button
-                id="walkthrough-next-btn"
-                onClick={() => setCurrentStepIndex((prev) => Math.min(steps.length - 1, prev + 1))}
-                className="px-4 py-2 rounded-xl bg-[#3B7A57] hover:bg-[#2E5A36] text-white text-xs sm:text-sm font-ui font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Next</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          ) : (
+            <button
+              id="walkthrough-next-btn"
+              onClick={handleNext}
+              className="px-3.5 py-1.5 rounded-lg bg-[#3B7A57] hover:bg-[#2E5A36] text-white text-xs font-ui font-semibold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <span>Next</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </div>
     </div>

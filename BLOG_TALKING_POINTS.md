@@ -43,6 +43,34 @@ A living repository of technical insights, architectural decisions, product phil
   * **The Concentric Locus Mark (`⊙`)**: Replaced the AI sparkle with an architectural focal point symbolizing inner centeredness, presence, and stillness.
   * **Typographic Ink-Bleed Thinking**: Replaced flashing skeleton bars with a quiet, italic Source Serif 4 thought indicator: *"Reflecting with you…"*, mimicking the gentle breathing pause of human conversation.
   * **Semantic Whole-Word Distillation**: Titles break cleanly on sentence or word boundaries, treating user expressions with literary respect.
+
+### The Death of Banner Stacks: Designing Ambient Sanctuary Interfaces
+* **The Clutter Creep Trap**: As features accumulate (onboarding tour, daily reflection prompt, synthesis-ready alerts, resurfacing loops), the top of the main screen turns into a "banner traffic jam"—stacked notifications competing for urgency like an airline check-in counter.
+* **The Sanctuary Standard**: In a reflective tool, greeting a user with 4 stacked warning and callout banners creates subconscious cognitive debt and anxiety.
+* **The Locus Solution (Option B Ambient Integration)**:
+  * Replaced the bulky daily prompt banner with an elegant single-line `#daily-contemplation-bar` (`Daily Reflection Prompt · "..." [Reflect →]`).
+  * Converted the synthesis notification ribbon into an inline filter chip (`Ready for Synthesis (N)`), directly beside `All`, `Concluded`, `Active`, and `Bookmarked`. Clicking it renders an interactive theme grid with observation counts and trajectory unpack triggers.
+  * Migrated the daily resurfacing banner into a calm "Looking back" tab in the permanent top navigation, badged only by a subtle terracotta dot (`#8A3A22`) when an entry is ready.
+  * The result: 100% of the canvas is returned to the user's thoughts and archival cards.
+
+### The Self-Navigating Walkthrough: Why Tours Shouldn't Modalize the Mind
+* **The Traditional Tour Anti-Pattern**: Typical guided tours pop up full-screen modal overlays (`backdrop-blur`) that completely hide the interface they are trying to explain. Even worse, action buttons like "Try saying: I'm feeling good today" immediately close the tour and dump the user on a raw chat screen, abandoning them mid-flow.
+* **The Locus Architecture**:
+  * **Docked Floating Card ($360\text{px}$–$410\text{px}$)**: Anchored cleanly at `bottom-6 right-6` with zero backdrop dimming. The entire product remains visible and tactile behind the card.
+  * **Auto-Driving Stage Transitions**: When the user clicks [Next], the application itself navigates in sync:
+    1. Canvas (`reflections`)
+    2. Active session dialogue (`session`)
+    3. Bookmarks drawer (slides open from right)
+    4. Sealed reader with Strata margins (`reader`)
+    5. Daily archivist loop (`Looking back`)
+    6. Themes concept constellation graph (`themes`)
+    7. Welcome completion (restores canvas)
+  * **Zero Premature Exits**: No sample action buttons that kick users out of the tour prematurely. Just clear, bite-sized (1–2 sentence) micro-copy and clean Next/Back navigation.
+
+### Naming Matters: From Grandiose Jargon to Plainspoken Honesty
+* **The Trap of Tech Hubris**: Engineers and product designers love grandiose, high-falutin naming: calling a simple re-read feature "The Return", or using dense academic jargon like "Multi-Agent Heuristic Dialectic". To a real human writing at midnight about feeling isolated in a college dorm, this language feels alienating and robotic.
+* **The Pivot to Plainspoken Vocabulary**: We renamed "The Return" to "Looking back". It retains the exact same explainable mathematical provenance algorithm underneath (anniversaries, temporal distance, semantic contradiction), but greets the user with genuine warmth and humility rather than pretentious marketing theatre.
+
   * **Zero Plumbing Leaks**: Markdown headers and section labels are systematically stripped from body cards, presenting pure prose.
 
 ### The Strata Architecture: Solving the Dual Journaling Paradox (Option B)

@@ -10,28 +10,22 @@ test.describe('Interactive Guided Walkthrough & Phase 4 Polish E2E', () => {
     await expect(demoBtn).toBeVisible();
     await demoBtn.click();
 
-    // 2. Verify First-Run Welcome Banner appears on Reflections Home
-    const tourBanner = page.locator('#first-run-tour-banner');
-    await expect(tourBanner).toBeVisible();
-    await expect(tourBanner).toContainText('Welcome to Locus');
+    // 2. Open Guided Tour from Navbar
+    const tourBtn = page.locator('#navbar-open-tour-btn');
+    await expect(tourBtn).toBeVisible();
+    await tourBtn.click();
 
-    // 3. Click "Take Guided Tour" from banner
-    const bannerStartBtn = page.locator('#banner-start-tour-btn');
-    await expect(bannerStartBtn).toBeVisible();
-    await bannerStartBtn.click();
-
-    // 4. Verify Walkthrough modal appears at Step 1
+    // 3. Verify Walkthrough modal appears at Step 1
     const modal = page.locator('#walkthrough-modal');
     await expect(modal).toBeVisible();
     await expect(modal.locator('#walkthrough-title')).toContainText('The Reflections Canvas');
     await expect(modal.locator('text=Step 1 of 7')).toBeVisible();
 
-    // 5. Advance to Step 2: Starting a Reflection
+    // 4. Advance to Step 2: Starting a Reflection
     const nextBtn = page.locator('#walkthrough-next-btn');
     await nextBtn.click();
     await expect(modal.locator('#walkthrough-title')).toContainText('Starting a Reflection');
     await expect(modal.locator('text=Step 2 of 7')).toBeVisible();
-    await expect(modal.locator('button:has-text("I\'m feeling good today")')).toBeVisible();
 
     // 6. Test minimizing the walkthrough tour
     const minimizeBtn = page.locator('#walkthrough-minimize-btn');

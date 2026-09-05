@@ -49,15 +49,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'concluded' | 'active' | 'bookmarked' | 'starred'>('all');
-
-  const [isTourBannerDismissed, setIsTourBannerDismissed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('locus_tour_banner_dismissed') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [activeFilter, setActiveFilter] = useState<'all' | 'concluded' | 'active' | 'bookmarked' | 'starred' | 'ready-to-unpack'>('all');
 
   // Daily prompt rotation based on day of year
   const dailyPrompt = useMemo(() => {
@@ -68,24 +60,6 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
     const dayOfYear = Math.floor(diff / oneDay);
     return DAILY_PROMPTS[dayOfYear % DAILY_PROMPTS.length];
   }, []);
-
-  const [isPromptDismissed, setIsPromptDismissed] = useState<boolean>(() => {
-    try {
-      const todayKey = new Date().toISOString().split('T')[0];
-      return localStorage.getItem(`locus_prompt_dismissed_${todayKey}`) === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const handleDismissPrompt = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsPromptDismissed(true);
-    try {
-      const todayKey = new Date().toISOString().split('T')[0];
-      localStorage.setItem(`locus_prompt_dismissed_${todayKey}`, 'true');
-    } catch {}
-  };
 
   // Ready for synthesis themes (observationCount >= 2)
   const readyThemes = useMemo(() => {
@@ -152,146 +126,34 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
 
   return (
     <div className="min-h-full bg-canvas text-text-primary px-3.5 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto space-y-6">
-      {/* 0. First-Run Guided Tour Banner */}
-      {!isTourBannerDismissed && onStartTour && (
-        <div 
-          id="first-run-tour-banner"
-          className="relative overflow-hidden bg-[#FAF8F5] border border-[#3B7A57]/30 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-[#3B7A57]/50 transition-all animate-fade-in"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <span className="w-8 h-8 rounded-xl bg-accent-sage-tint/80 text-accent-sage flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 border border-accent-sage/20">
-                ⊙
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-accent-sage font-sans flex items-center gap-1.5">
-                  Welcome to Locus
-                </span>
-                <h3 className="font-serif text-sm sm:text-base font-semibold text-text-primary">
-                  Experience how daily reflections crystallize into permanent themes
-                </h3>
-                <p className="text-xs text-text-muted leading-relaxed font-sans max-w-xl">
-                  Take the interactive 2-minute walkthrough to explore conversational reflection, bookmarked epiphanies, the sealed margin reader, and longitudinal concept graphs.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-              <button
-                id="banner-start-tour-btn"
-                onClick={onStartTour}
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-accent-sage hover:bg-[#2E5A36] rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
-              >
-                <span>Take Guided Tour</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setIsTourBannerDismissed(true);
-                  try {
-                    localStorage.setItem('locus_tour_banner_dismissed', 'true');
-                  } catch {}
-                }}
-                className="p-1.5 text-text-muted hover:text-text-primary rounded-lg transition-colors cursor-pointer"
-                title="Dismiss banner"
-                aria-label="Dismiss banner"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+      {/* Option B: Ambient Daily Reflection Prompt Bar */}
+      <div 
+        id="daily-contemplation-bar"
+        onClick={() => onNewReflection(dailyPrompt)}
+        className="p-3.5 bg-surface border border-border-hairline rounded-2xl shadow-2xs hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onNewReflection(dailyPrompt)}
+        aria-label={`Daily Reflection Prompt: ${dailyPrompt}. Click to reflect.`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-7 h-7 rounded-xl bg-accent-sage-tint text-accent-sage flex items-center justify-center text-xs shrink-0 font-bold border border-accent-sage/15">
+            ⊙
+          </span>
+          <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted font-sans hidden sm:inline shrink-0">
+            Daily Reflection Prompt ·
+          </span>
+          <span className="font-serif italic text-xs sm:text-sm text-text-primary group-hover:text-accent-sage transition-colors truncate">
+            "{dailyPrompt}"
+          </span>
         </div>
-      )}
-
-      {/* 1. Daily Journaling Prompt Banner */}
-      {!isPromptDismissed && (
-        <div 
-          onClick={() => onNewReflection(dailyPrompt)}
-          className="relative overflow-hidden bg-surface border border-border-hairline rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5D0C7] hover:shadow-sm transition-all cursor-pointer group"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && onNewReflection(dailyPrompt)}
-          aria-label="Daily Journaling Prompt: Click to reflect"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-accent-sage-tint text-accent-sage flex items-center justify-center shrink-0 mt-0.5">
-                <Compass className="w-4 h-4" />
-              </div>
-              <div className="space-y-1">
-                <span className="text-[13px] uppercase tracking-wider font-semibold text-text-muted flex items-center gap-1.5 font-sans">
-                  Daily Reflection Prompt
-                </span>
-                <p className="font-serif text-base sm:text-lg font-medium text-text-primary group-hover:text-accent-sage transition-colors leading-snug">
-                  "{dailyPrompt}"
-                </p>
-                <div className="flex items-center gap-1 text-xs text-accent-sage font-medium pt-1">
-                  <span>Start a session with this contemplation</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleDismissPrompt}
-              className="p-1 text-text-muted hover:text-text-primary rounded-lg hover:bg-canvas transition-colors shrink-0"
-              title="Dismiss prompt"
-              aria-label="Dismiss prompt"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex items-center gap-1 text-xs font-semibold text-accent-sage shrink-0">
+          <span>Reflect</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </div>
-      )}
+      </div>
 
-      {/* 2. Ready for Synthesis Ribbon (Themes with >= 2 observations) */}
-      {readyThemes.length > 0 && (
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-accent-sage" />
-              <h2 className="text-xs uppercase tracking-wider font-semibold text-text-muted font-sans">
-                Ready for Synthesis
-              </h2>
-            </div>
-            <span className="text-xs text-text-muted font-sans">
-              {readyThemes.length} {readyThemes.length === 1 ? 'theme' : 'themes'}
-            </span>
-          </div>
-
-          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2">
-            {readyThemes.map(theme => (
-              <div
-                key={theme.id}
-                onClick={() => onSelectTheme(theme)}
-                className="shrink-0 w-64 sm:w-72 snap-start bg-surface border border-border-hairline rounded-xl p-3.5 hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs text-text-muted mb-1 font-sans">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-sage-tint text-accent-sage">
-                      {theme.observationCount} observations
-                    </span>
-                    <span>{formatRelativeDate(theme.updatedAt)}</span>
-                  </div>
-                  <h3 className="font-serif text-sm sm:text-base font-semibold text-text-primary group-hover:text-accent-sage transition-colors line-clamp-1">
-                    {theme.title}
-                  </h3>
-                  <p className="text-xs text-text-muted line-clamp-2 mt-1 leading-relaxed font-sans">
-                    {theme.currentSynthesis || 'Observations accumulated and ready to unpack into trajectory insights.'}
-                  </p>
-                </div>
-                <div className="mt-2 text-right">
-                  <span className="text-xs font-medium text-accent-sage inline-flex items-center gap-0.5">
-                    Unpack theme &rarr;
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 3. Controls Header: Search & Filters */}
+      {/* Controls Header: Search & Filters */}
       <div className="space-y-3 pt-1">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search Box */}
@@ -337,34 +199,24 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                 ) : tab}
               </button>
             ))}
+
+            {/* Ready for Synthesis Filter Tab */}
+            {readyThemes.length > 0 && (
+              <button
+                id="filter-ready-themes"
+                onClick={() => setActiveFilter(activeFilter === 'ready-to-unpack' ? 'all' : 'ready-to-unpack')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  activeFilter === 'ready-to-unpack'
+                    ? 'bg-accent-sage text-white shadow-2xs font-semibold'
+                    : 'bg-accent-sage-tint text-accent-sage hover:bg-accent-sage/20'
+                }`}
+              >
+                <Layers className="w-3 h-3 text-current" />
+                <span>Ready for Synthesis ({readyThemes.length})</span>
+              </button>
+            )}
           </div>
         </div>
-
-        {/* The Return Daily Revisit Banner if concluded entries exist */}
-        {onOpenTheReturn && entries.some(e => e.status === 'concluded') && (
-          <div 
-            onClick={onOpenTheReturn}
-            className="p-3.5 sm:p-4 rounded-xl bg-[#FFFFFF] border border-[#DCD7CD] hover:border-[#8A3A22] shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#8A3A22]/10 text-[#8A3A22] flex items-center justify-center shrink-0">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-ui text-xs sm:text-sm font-bold uppercase tracking-wider text-[#191813] group-hover:text-[#8A3A22] transition-colors">
-                  The Return · Re-read One Page
-                </h4>
-                <p className="font-stamp text-xs text-[#5A5648]">
-                  Surfacing one past reflection to revisit and write in the margins
-                </p>
-              </div>
-            </div>
-            <span className="font-ui text-xs font-semibold text-[#8A3A22] group-hover:underline flex items-center gap-1 shrink-0 ml-2">
-              <span className="hidden sm:inline">Open</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </span>
-          </div>
-        )}
 
         {/* Qualitative Tag Filter Chips (if tags exist) */}
         {allTags.length > 0 && (
@@ -398,8 +250,49 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
         )}
       </div>
 
-      {/* 4. Google Keep-Style 2-Column Vertical Masonry Card Grid */}
-      {isLoading ? (
+      {/* 4. Google Keep-Style 2-Column Vertical Masonry Card Grid or Ready Themes Grid */}
+      {activeFilter === 'ready-to-unpack' ? (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between pb-2 border-b border-border-hairline">
+            <h3 className="font-serif text-base font-semibold text-text-primary flex items-center gap-2">
+              <Layers className="w-4 h-4 text-accent-sage" />
+              <span>Themes Ready for Synthesis</span>
+            </h3>
+            <span className="text-xs text-text-muted font-sans">{readyThemes.length} available</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {readyThemes.map(theme => (
+              <div
+                key={theme.id}
+                onClick={() => onSelectTheme(theme)}
+                className="bg-surface border border-border-hairline rounded-2xl p-5 hover:border-accent-sage hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between text-left group"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && onSelectTheme(theme)}
+              >
+                <div>
+                  <div className="flex items-center justify-between text-xs text-text-muted mb-2 font-sans">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-sage-tint text-accent-sage">
+                      {theme.observationCount} observations
+                    </span>
+                    <span>{formatRelativeDate(theme.updatedAt)}</span>
+                  </div>
+                  <h4 className="font-serif text-base font-bold text-text-primary group-hover:text-accent-sage transition-colors">
+                    {theme.title}
+                  </h4>
+                  <p className="text-xs text-text-muted mt-2 leading-relaxed line-clamp-3 font-sans">
+                    {theme.currentSynthesis || 'Observations accumulated and ready to synthesize into trajectory insights.'}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-border-hairline flex items-center justify-between text-xs font-semibold text-accent-sage">
+                  <span>Unpack Trajectory</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="text-center py-16 text-text-muted text-sm font-sans">
           Loading your reflection canvas...
         </div>

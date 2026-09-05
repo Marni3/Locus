@@ -30,7 +30,6 @@ test.describe('Interactive Guided Walkthrough E2E', () => {
     // Step 2: Starting a Reflection
     await expect(modal.locator('#walkthrough-title')).toContainText('Starting a Reflection');
     await expect(modal.locator('text=Step 2 of 7')).toBeVisible();
-    await expect(modal.locator('button:has-text("I\'m feeling good today")')).toBeVisible();
 
     // Advance to Step 3
     await nextBtn.click();

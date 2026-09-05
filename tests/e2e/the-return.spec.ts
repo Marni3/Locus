@@ -10,13 +10,13 @@ test.describe('The Return Explainable Daily Archivist Loop E2E', () => {
     await expect(demoBtn).toBeVisible();
     await demoBtn.click();
 
-    // 2. Locate and click The Return banner on Reflections Home
-    const theReturnBanner = page.locator('text=The Return · Re-read One Page');
-    await expect(theReturnBanner).toBeVisible();
-    await theReturnBanner.click();
+    // 2. Locate and click Looking back tab on Navbar
+    const returnTab = page.locator('#nav-tab-return');
+    await expect(returnTab).toBeVisible();
+    await returnTab.click();
 
-    // 3. Verify The Return full-bleed screen
-    await expect(page.locator('header').locator('text=The Return ·')).toBeVisible();
+    // 3. Verify Looking back full-bleed screen
+    await expect(page.locator('header').locator('text=Looking back ·')).toBeVisible();
 
     // Verify machine provenance evidence
     const mainArea = page.locator('main');

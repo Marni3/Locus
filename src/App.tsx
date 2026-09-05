@@ -337,13 +337,86 @@ export default function App() {
     return count;
   }, [entries]);
 
+  const hasReturnCandidate = useMemo(() => {
+    return Boolean(selectReturnCandidate(entries));
+  }, [entries]);
+
   const handleOpenTheReturn = () => {
     const candidate = selectReturnCandidate(entries);
     if (candidate) {
       setReturnCandidate(candidate);
       setActiveView('return');
     } else {
-      showToast('No past reflections ready for The Return yet.', 'info');
+      showToast('No past reflections ready for Looking back yet.', 'info');
+    }
+  };
+
+  const handleWalkthroughStepChange = (stepIndex: number, stepId: string) => {
+    switch (stepId) {
+      case 'canvas':
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        setActiveView('reflections');
+        break;
+      case 'companion': {
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        // Ensure active entry is ready for conversational view
+        if (!activeEntryId || (activeEntry && activeEntry.status === 'concluded')) {
+          const unsealed = entries.find((e) => e.status !== 'concluded');
+          if (unsealed) {
+            setActiveEntryId(unsealed.id);
+          } else if (entries.length > 0) {
+            setActiveEntryId(entries[0].id);
+          }
+        }
+        setActiveView('session');
+        break;
+      }
+      case 'bookmarks':
+        setIsSettingsOpen(false);
+        setIsBookmarksOpen(true);
+        break;
+      case 'sealing': {
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        const sampleConcluded = entries.find((e) => e.status === 'concluded');
+        if (sampleConcluded) {
+          setActiveEntryId(sampleConcluded.id);
+          setActiveView('reader');
+        } else {
+          setActiveView('session');
+        }
+        break;
+      }
+      case 'margins': {
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        const sampleConcluded = entries.find((e) => e.status === 'concluded') || entries[0];
+        if (sampleConcluded) {
+          setActiveEntryId(sampleConcluded.id);
+          setActiveView('reader');
+        }
+        break;
+      }
+      case 'the-return': {
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        const candidate = selectReturnCandidate(entries);
+        if (candidate) {
+          setReturnCandidate(candidate);
+        }
+        setActiveView('return');
+        break;
+      }
+      case 'themes':
+        setIsBookmarksOpen(false);
+        setIsSettingsOpen(false);
+        setActiveView('themes');
+        break;
+      default:
+        setActiveView('reflections');
+        break;
     }
   };
 
@@ -463,8 +536,15 @@ export default function App() {
       <Navbar
         user={currentUser}
         onNewSession={() => createNewSession()}
-        activeView={activeView === 'reader' || activeView === 'return' ? 'reflections' : activeView}
-        onViewChange={(view) => setActiveView(view)}
+        activeView={activeView === 'reader' ? 'reflections' : activeView}
+        onViewChange={(view) => {
+          if (view === 'return') {
+            handleOpenTheReturn();
+          } else {
+            setActiveView(view);
+          }
+        }}
+        hasReturnCandidate={hasReturnCandidate}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
         onOpenTour={() => setIsWalkthroughOpen(true)}
@@ -614,14 +694,11 @@ export default function App() {
       {/* Interactive Guided Walkthrough */}
       <WalkthroughOverlay
         isOpen={isWalkthroughOpen}
-        onClose={() => setIsWalkthroughOpen(false)}
-        onStartSampleReflection={(sampleText) => {
-          createNewSession(sampleText);
-          setActiveView('session');
+        onClose={() => {
+          setIsWalkthroughOpen(false);
+          setIsBookmarksOpen(false);
         }}
-        onOpenThemes={() => setActiveView('themes')}
-        onOpenReturn={handleOpenTheReturn}
-        onOpenBookmarks={() => setIsBookmarksOpen(true)}
+        onStepChange={handleWalkthroughStepChange}
       />
 
       {/* Notifications / Error Toast */}
