@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locus — Concept Graph Physics & Typography Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #FAF9F6;
+      --bg-surface: #FFFFFF;
+      --accent-sage: #3B7A57;
+      --accent-sage-tint: #DCEEE3;
+      --text-primary: #232323;
+      --text-muted: #6B6B6B;
+      --border-hairline: #E6E3DC;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    header {
+      max-width: 920px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Controls Wrapper */
+    .controls-wrapper {
+      max-width: 920px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .top-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .choreography-group {
+      display: inline-flex;
+      background: #ECE9E2;
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+    }
+
+    .choreo-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .choreo-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .choreo-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #A0AEC0;
+      transition: all 0.2s;
+    }
+
+    .status-dot.active {
+      background: var(--accent-sage);
+      box-shadow: 0 0 6px var(--accent-sage);
+    }
+
+    .replay-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid var(--accent-sage);
+      background: var(--accent-sage-tint);
+      color: var(--accent-sage);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .replay-btn:hover {
+      background: var(--accent-sage);
+      color: #FFFFFF;
+    }
+
+    /* Stage Container */
+    #stage-container {
+      position: relative;
+      width: 100%;
+      max-width: 920px;
+      height: 520px;
+      background: #FAF9F6;
+      border: 1px solid var(--border-hairline);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      touch-action: none;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Explanation Card */
+    .info-card {
+      max-width: 920px;
+      width: 100%;
+      margin-top: 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .info-pill {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--accent-sage-tint);
+      color: var(--accent-sage);
+      white-space: nowrap;
+    }
+
+    .info-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .info-text strong {
+      color: var(--text-primary);
+    }
+
+    .node-title-line {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 12px;
+      font-weight: 600;
+      fill: #232323;
+      text-rendering: geometricPrecision;
+      -webkit-font-smoothing: antialiased;
+      transition: opacity 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Concept Graph: Graceful Bloom Choreography</h1>
+    <p class="subtitle">
+      Compare 3 graceful entrance choreographies below. Instead of a sudden blast, nodes bloom with <strong>staggered wave easing</strong>, <strong>opacity & scale growth</strong>, and a <strong>soft cushioned landing</strong> into 100% static stillness.
+    </p>
+  </header>
+
+  <div class="controls-wrapper">
+    <div class="top-controls-row">
+      <div class="choreography-group">
+        <button class="choreo-btn active" id="btn-spiral" onclick="setBloomChoreography('spiral')">🌸 1. Spiral Petal Cascade (Staggered)</button>
+        <button class="choreo-btn" id="btn-harmonic" onclick="setBloomChoreography('harmonic')">🌊 2. Silky Harmonic S-Curve (Unified)</button>
+        <button class="choreo-btn" id="btn-ripple" onclick="setBloomChoreography('ripple')">💫 3. Core Ripple & Bloom</button>
+      </div>
+
+      <div class="actions-group">
+        <button class="replay-btn" onclick="triggerBloom()">✨ Replay Bloom</button>
+        <div class="status-badge">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Settled & Motionless (0% CPU)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage-container">
+    <svg id="svg-stage" width="920" height="520">
+      <!-- Ripple Effect Ring Layer -->
+      <g id="svg-ripple-layer"></g>
+      <!-- Connecting Springs / Links -->
+      <g id="svg-links"></g>
+      <!-- Interactive Nodes -->
+      <g id="svg-nodes"></g>
+    </svg>
+  </div>
+
+  <div class="info-card">
+    <span class="info-pill" id="info-mode-pill">🌸 Spiral Petal Cascade</span>
+    <div class="info-text" id="info-mode-desc">
+      <strong>Choreography:</strong> Nodes unfold clockwise in a slight 80ms spiral sequence, like flower petals opening. Each node grows from scale 0.35 with a silky ease-out curve, gently floating into its orbital position. Titles fade in softly at the landing point. Completely static once settled.
+    </div>
+  </div>
+
+  <script>
+    const INITIAL_THEMES = [
+      { id: 't1', title: 'Paralysis Around Scope and Launching', obsCount: 5 },
+      { id: 't2', title: 'Architectural Simplicity & Momentum', obsCount: 4 },
+      { id: 't3', title: 'Delegation Friction & Control Anxiety', obsCount: 3 },
+      { id: 't4', title: 'Boundary Setting & Energy Reserves', obsCount: 6 },
+      { id: 't5', title: 'Fear of Public Exposure & Judgment', obsCount: 2 }
+    ];
+
+    const CENTER = { x: 460, y: 240 };
+    let currentChoreography = 'spiral'; // 'spiral', 'harmonic', 'ripple'
+    let draggedNode = null;
+    let dragOffset = { x: 0, y: 0 };
+    let animId = null;
+    let bloomStartTime = 0;
+    let isBlooming = false;
+
+    // Smart Multi-Line Word Wrap Helper (No Capsule Box)
+    function splitTitleIntoTwoLines(title) {
+      const words = title.split(' ');
+      if (words.length <= 2) return [title, ''];
+      const mid = Math.ceil(words.length / 2);
+      const line1 = words.slice(0, mid).join(' ');
+      const line2 = words.slice(mid).join(' ');
+      return [line1, line2];
+    }
+
+    let nodes = [];
+
+    function initNodes() {
+      nodes = [
+        {
+          id: 'hub-you',
+          isHub: true,
+          label: 'YOU',
+          line1: 'YOU',
+          line2: '',
+          x: CENTER.x,
+          y: CENTER.y,
+          homeX: CENTER.x,
+          homeY: CENTER.y,
+          vx: 0,
+          vy: 0,
+          scale: 1,
+          opacity: 1,
+          radius: 28,
+          obsCount: 0
+        }
+      ];
+
+      INITIAL_THEMES.forEach((theme, i) => {
+        const total = INITIAL_THEMES.length;
+        const angle = (i / total) * 2 * Math.PI - Math.PI / 2;
+        const dist = 180;
+        const [line1, line2] = splitTitleIntoTwoLines(theme.title);
+        const homeX = CENTER.x + Math.cos(angle) * dist;
+        const homeY = CENTER.y + Math.sin(angle) * dist;
+
+        nodes.push({
+          id: theme.id,
+          isHub: false,
+          index: i,
+          label: theme.title,
+          line1,
+          line2,
+          x: CENTER.x,
+          y: CENTER.y,
+          homeX,
+          homeY,
+          vx: 0,
+          vy: 0,
+          scale: 0.3,
+          opacity: 0,
+          radius: 22 + (theme.obsCount * 2.2),
+          obsCount: theme.obsCount,
+          origAngle: angle,
+          orbitDist: dist
+        });
+      });
+    }
+
+    initNodes();
+
+    // DOM References
+    const svgRippleLayer = document.getElementById('svg-ripple-layer');
+    const svgLinks = document.getElementById('svg-links');
+    const svgNodes = document.getElementById('svg-nodes');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+
+    function setEngineActive(active, text) {
+      if (active) {
+        statusDot.className = 'status-dot active';
+        statusText.textContent = text || (draggedNode ? 'Spring Tension Active' : 'Blooming Constellation...');
+      } else {
+        statusDot.className = 'status-dot';
+        statusText.textContent = 'Settled & Motionless (0% CPU)';
+      }
+    }
+
+    function initSVG() {
+      svgRippleLayer.innerHTML = '';
+      svgLinks.innerHTML = '';
+      svgNodes.innerHTML = '';
+
+      const hub = nodes[0];
+
+      // Create links
+      for (let i = 1; i < nodes.length; i++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', `svg-link-${i}`);
+        line.setAttribute('stroke', '#E6E3DC');
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-dasharray', '4 4');
+        line.setAttribute('opacity', '0');
+        svgLinks.appendChild(line);
+      }
+
+      // Create nodes
+      nodes.forEach((node) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('id', `svg-node-${node.id}`);
+        g.style.cursor = 'grab';
+
+        // Outer glow circle
+        const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        glow.setAttribute('r', node.radius + 6);
+        glow.setAttribute('fill', node.isHub ? 'rgba(59, 122, 87, 0.08)' : 'rgba(59, 122, 87, 0.04)');
+        g.appendChild(glow);
+
+        // Main circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('id', `svg-circle-${node.id}`);
+        circle.setAttribute('r', node.radius);
+        circle.setAttribute('fill', node.isHub ? '#3B7A57' : '#FFFFFF');
+        circle.setAttribute('stroke', node.isHub ? '#2E6145' : '#D5D0C7');
+        circle.setAttribute('stroke-width', node.isHub ? '2' : '1.5');
+        g.appendChild(circle);
+
+        // Inner text
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('y', '4');
+        text.setAttribute('fill', node.isHub ? '#FFFFFF' : '#6B6B6B');
+        text.setAttribute('font-size', node.isHub ? '11' : '10');
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('font-family', 'Inter, sans-serif');
+        text.textContent = node.isHub ? 'YOU' : `${node.obsCount} obs`;
+        g.appendChild(text);
+
+        // Clean Floating 2-Line Serif Title (NO CAPSULE)
+        if (!node.isHub) {
+          const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          titleText.setAttribute('text-anchor', 'middle');
+          titleText.setAttribute('class', 'node-title-line');
+          titleText.setAttribute('id', `svg-title-${node.id}`);
+          titleText.setAttribute('y', node.radius + 16);
+          titleText.style.opacity = '0';
+
+          const tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+          tspan1.setAttribute('x', '0');
+          tspan1.textContent = node.line1;
+          titleText.appendChild(tspan1);
+
+          if (node.line2) {
+            const tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan2.setAttribute('x', '0');
+            tspan2.setAttribute('dy', '15');
+            tspan2.textContent = node.line2;
+            titleText.appendChild(tspan2);
+          }
+
+          g.appendChild(titleText);
+        }
+
+        svgNodes.appendChild(g);
+      });
+
+      updateSVGPositions();
+    }
+
+    function updateSVGPositions() {
+      const hub = nodes[0];
+
+      for (let i = 1; i < nodes.length; i++) {
+        const node = nodes[i];
+        const line = document.getElementById(`svg-link-${i}`);
+        if (line) {
+          line.setAttribute('x1', hub.x);
+          line.setAttribute('y1', hub.y);
+          line.setAttribute('x2', node.x);
+          line.setAttribute('y2', node.y);
+          line.setAttribute('opacity', node.opacity);
+        }
+      }
+
+      nodes.forEach(node => {
+        const g = document.getElementById(`svg-node-${node.id}`);
+        if (g) {
+          g.setAttribute('transform', `translate(${node.x.toFixed(1)}, ${node.y.toFixed(1)}) scale(${node.scale || 1})`);
+          g.setAttribute('opacity', node.opacity !== undefined ? node.opacity : 1);
+        }
+        const circle = document.getElementById(`svg-circle-${node.id}`);
+        if (circle && !node.isHub) {
+          circle.setAttribute('fill', node === draggedNode ? '#DCEEE3' : '#FFFFFF');
+          circle.setAttribute('stroke', node === draggedNode ? '#3B7A57' : '#D5D0C7');
+          circle.setAttribute('stroke-width', node === draggedNode ? '2.2' : '1.5');
+        }
+        const title = document.getElementById(`svg-title-${node.id}`);
+        if (title && !node.isHub) {
+          title.style.fill = node === draggedNode ? '#3B7A57' : '#232323';
+          // Title smoothly reveals as opacity approaches 1
+          title.style.opacity = node.opacity > 0.8 ? '1' : '0';
+        }
+      });
+    }
+
+    // ==========================================
+    // GRACEFUL BLOOM CHOREOGRAPHY ENGINE
+    // ==========================================
+    // Smooth Quintic Ease-Out Curve: starts with subtle acceleration, decelerates like silk
+    function easeOutQuint(x) {
+      return 1 - Math.pow(1 - x, 5);
+    }
+
+    // Smooth Elastic Settle Curve
+    function easeOutBack(x) {
+      const c1 = 1.25;
+      const c3 = c1 + 1;
+      return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    }
+
+    function runBloomStep(timestamp) {
+      if (!bloomStartTime) bloomStartTime = timestamp;
+      const elapsed = (timestamp - bloomStartTime) / 1000; // seconds
+
+      let allDone = true;
+
+      // Ripple animation if mode 3
+      if (currentChoreography === 'ripple') {
+        renderRipple(elapsed);
+      }
+
+      for (let i = 1; i < nodes.length; i++) {
+        const node = nodes[i];
+
+        // Calculate individual staggered start time
+        let delay = 0;
+        if (currentChoreography === 'spiral') {
+          delay = (node.index) * 0.09; // Staggered clockwise spiral
+        } else if (currentChoreography === 'ripple') {
+          delay = 0.15; // Wave reaches orbit
+        } else {
+          delay = 0; // Unified harmonic S-curve
+        }
+
+        const duration = 1.05; // 1.05s graceful glide
+        const nodeTime = elapsed - delay;
+
+        if (nodeTime < 0) {
+          // Hasn't started yet: remain clustered at center
+          node.x = CENTER.x;
+          node.y = CENTER.y;
+          node.scale = 0.3;
+          node.opacity = 0;
+          allDone = false;
+        } else if (nodeTime <= duration) {
+          const progress = Math.min(1, Math.max(0, nodeTime / duration));
+          const eased = easeOutBack(progress);
+          const easedOpacity = Math.min(1, progress * 1.5);
+
+          // Interpolate position from center to home orbit
+          node.x = CENTER.x + (node.homeX - CENTER.x) * eased;
+          node.y = CENTER.y + (node.homeY - CENTER.y) * eased;
+          node.scale = 0.35 + (1 - 0.35) * easeOutQuint(progress);
+          node.opacity = easedOpacity;
+          allDone = false;
+        } else {
+          // Completed: lock precisely to final coordinates
+          node.x = node.homeX;
+          node.y = node.homeY;
+          node.scale = 1;
+          node.opacity = 1;
+        }
+      }
+
+      updateSVGPositions();
+
+      if (!allDone) {
+        setEngineActive(true, 'Blooming gracefully...');
+        animId = requestAnimationFrame(runBloomStep);
+      } else {
+        isBlooming = false;
+        setEngineActive(false);
+        animId = null;
+        if (currentChoreography === 'ripple') {
+          svgRippleLayer.innerHTML = '';
+        }
+      }
+    }
+
+    function renderRipple(elapsed) {
+      svgRippleLayer.innerHTML = '';
+      if (elapsed > 1.2) return;
+      
+      const r = Math.min(220, elapsed * 220);
+      const opacity = Math.max(0, 1 - (elapsed / 1.2));
+
+      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      ring.setAttribute('cx', CENTER.x);
+      ring.setAttribute('cy', CENTER.y);
+      ring.setAttribute('r', r);
+      ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', '#3B7A57');
+      ring.setAttribute('stroke-width', '1.5');
+      ring.setAttribute('opacity', (opacity * 0.4).toFixed(2));
+      svgRippleLayer.appendChild(ring);
+    }
+
+    function triggerBloom() {
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+      isBlooming = true;
+      draggedNode = null;
+      bloomStartTime = 0;
+      initNodes();
+      initSVG();
+      animId = requestAnimationFrame(runBloomStep);
+    }
+
+    // ==========================================
+    // INTERACTION HANDLERS (POST-BLOOM DRAGGING)
+    // ==========================================
+    function getPointerPos(e) {
+      const rect = document.getElementById('stage-container').getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    function onPointerDown(e) {
+      if (isBlooming) return; // Wait for bloom to finish
+      const pos = getPointerPos(e);
+
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const node = nodes[i];
+        const dx = pos.x - node.x;
+        const dy = pos.y - node.y;
+        if (Math.sqrt(dx * dx + dy * dy) <= node.radius + 28) {
+          draggedNode = node;
+          dragOffset = { x: dx, y: dy };
+          wakeInteractionPhysics();
+          break;
+        }
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!draggedNode || isBlooming) return;
+      const pos = getPointerPos(e);
+      draggedNode.x = pos.x - dragOffset.x;
+      draggedNode.y = pos.y - dragOffset.y;
+      updateSVGPositions();
+      wakeInteractionPhysics();
+    }
+
+    function onPointerUp() {
+      if (draggedNode) {
+        draggedNode.vx = 0;
+        draggedNode.vy = 0;
+      }
+      draggedNode = null;
+      wakeInteractionPhysics();
+    }
+
+    // Liquid Physics for User Dragging
+    function stepInteractionPhysics() {
+      let maxMovement = 0;
+      const springK = 0.045;
+      const damping = 0.88;
+
+      for (let i = 1; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (node === draggedNode) continue;
+
+        let fx = 0;
+        let fy = 0;
+
+        // 1. Orbital Spring toward home orbital ring
+        const dx = node.x - CENTER.x;
+        const dy = node.y - CENTER.y;
+        const currentDist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const distDiff = currentDist - node.orbitDist;
+        fx -= (dx / currentDist) * distDiff * springK;
+        fy -= (dy / currentDist) * distDiff * springK;
+
+        // 2. Soft Coulomb Repulsion
+        for (let j = 0; j < nodes.length; j++) {
+          if (i === j) continue;
+          const other = nodes[j];
+          const rx = node.x - other.x;
+          const ry = node.y - other.y;
+          const rDist2 = rx * rx + ry * ry;
+          const rDist = Math.sqrt(rDist2) || 1;
+          const minDist = node.radius + other.radius + 65;
+
+          if (rDist < minDist) {
+            const repStrength = (minDist - rDist) * (other === draggedNode ? 0.28 : 0.16);
+            fx += (rx / rDist) * repStrength;
+            fy += (ry / rDist) * repStrength;
+          }
+        }
+
+        node.vx = (node.vx + fx) * damping;
+        node.vy = (node.vy + fy) * damping;
+        node.x += node.vx;
+        node.y += node.vy;
+
+        const move = Math.abs(node.vx) + Math.abs(node.vy);
+        if (move > maxMovement) maxMovement = move;
+      }
+
+      updateSVGPositions();
+
+      if (maxMovement < 0.04 && !draggedNode) {
+        setEngineActive(false);
+        animId = null;
+      } else {
+        setEngineActive(true, draggedNode ? 'Spring Tension Active' : 'Settling...');
+        animId = requestAnimationFrame(stepInteractionPhysics);
+      }
+    }
+
+    function wakeInteractionPhysics() {
+      if (!animId && !isBlooming) {
+        setEngineActive(true);
+        animId = requestAnimationFrame(stepInteractionPhysics);
+      }
+    }
+
+    const container = document.getElementById('stage-container');
+    container.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+
+    // ==========================================
+    // CHOREOGRAPHY SWITCHER
+    // ==========================================
+    const descPill = document.getElementById('info-mode-pill');
+    const descText = document.getElementById('info-mode-desc');
+
+    function setBloomChoreography(choreo) {
+      currentChoreography = choreo;
+
+      document.getElementById('btn-spiral').classList.toggle('active', choreo === 'spiral');
+      document.getElementById('btn-harmonic').classList.toggle('active', choreo === 'harmonic');
+      document.getElementById('btn-ripple').classList.toggle('active', choreo === 'ripple');
+
+      if (choreo === 'spiral') {
+        descPill.textContent = '🌸 Spiral Petal Cascade';
+        descText.innerHTML = '<strong>Choreography:</strong> Nodes unfold clockwise in an 80ms staggered sequence, like flower petals opening. Each node grows from scale 0.35 and fades in smoothly, easing out into its orbital position. Titles fade in softly at the landing point. 100% static once settled.';
+      } else if (choreo === 'harmonic') {
+        descPill.textContent = '🌊 Silky Harmonic S-Curve';
+        descText.innerHTML = '<strong>Choreography:</strong> All nodes expand simultaneously, but with a luxurious quintic ease-out curve (zero initial pop). Nodes grow from scale 0.35 and opacity 0 into their orbital ring with cushioned deceleration.';
+      } else if (choreo === 'ripple') {
+        descPill.textContent = '💫 Core Ripple & Bloom';
+        descText.innerHTML = '<strong>Choreography:</strong> The central "YOU" hub pulses a subtle expanding emerald wave ring that pushes the nodes outward into place. Clean, quiet, and cosmic.';
+      }
+
+      triggerBloom();
+    }
+
+    // Boot with Spiral Petal Cascade on load!
+    triggerBloom();
+  </script>
+</body>
+</html>

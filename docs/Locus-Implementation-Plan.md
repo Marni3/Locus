@@ -406,19 +406,89 @@ Screen 3: Themes Master-Detail & Graph (/themes)
 
 ---
 
+## 🏛️ Phase 3.6: Centered Sanctuary Portal (`LandingPage.tsx`) & Full-App Impeccable UX Finalization
+
+### Objective
+Eliminate the generic, AI-generated marketing landing page and replace it with an authentic, centered, rounded rectangular sanctuary portal ($1080 \times 640\text{px}$, 70/30 split), add Email Authentication in `src/lib/firebase.ts`, and run comprehensive Impeccable UX polish passes across all views before building the guided tour.
+
+### Architectural Breakdown
+
+```
+Centered Sanctuary Portal Card (Desktop 1080px × 640px)
+┌───────────────────────────────────────────────────┬──────────────────────────────┐
+│  LEFT ~70%: Auto-Rotating Visual Showcase         │  RIGHT ~30%: Auth & Sandbox  │
+│  ┌─────────────────────────────────────────────┐  │  [Logo] Locus / ReflectAI    │
+│  │                                             │  │  "A private sanctuary for    │
+│  │  [Slide 1 / 2 / 3 Showcase Viewport]        │  │   deep personal reflection"  │
+│  │  • Card 1: Longitudinal Thought Trajectory  │  │                              │
+│  │  • Card 2: Concept Graph & Spiral Bloom     │  │  [ G  Sign in with Google ]  │
+│  │  • Card 3: Calm, Private Thinking           │  │                              │
+│  │                                             │  │  [ ✉️  Sign in with Email  ]  │
+│  │  [ ◯ ◯ ◯ ] Auto-progress indicator pills   │  │                              │
+│  └─────────────────────────────────────────────┘  │  ───────── OR ─────────────  │
+│  "Thoughts evolve into themes, not task lists"    │  [ 🚀 Try Demo Space ]       │
+│                                                   │  (Loads 30d data + Tour)     │
+└───────────────────────────────────────────────────┴──────────────────────────────┘
+```
+
+1. **The Centered Sanctuary Portal Card (`src/components/LandingPage.tsx`)** `[COMPLETED]`:
+   - **Dimensions & Atmosphere**: Max-w-5xl, centered horizontally and vertically on `#FAF9F6` canvas with soft elevation shadow (`shadow-xl`), rounded corners (`rounded-3xl`), and hairline border (`border-border-hairline`).
+   - **Left Panel (~68%) — Auto-Rotating Visual Showcase Carousel**:
+     - Auto-rotating cards with 6-second cadence, pause-on-hover, and smooth cross-fade animation.
+     - **Slide 1: Longitudinal Thought Trajectory**: Visual progression demonstrating how episodic daily reflections crystallize into persistent themes over weeks rather than fleeting task lists.
+     - **Slide 2: Concept Graph & Spiral Bloom**: Interactive animated preview of theme nodes, connected observations, and directed vectors ($Obs_1 \rightarrow Obs_2 \dots$).
+     - **Slide 3: Calm, Private Thinking**: Source Serif 4 prose, 2-hour auto-conclude assurance, zero streaks/gamification, and local/isolated encryption.
+     - Subtle progress indicators (`3 pills`) with direct click navigation.
+   - **Right Panel (~32%) — Focused Auth & Action Column**:
+     - Locus wordmark & subtle mission statement.
+     - **Sign in with Google** button (`#hero-google-signin-btn`).
+     - **Sign in with Email** (clean toggleable email/password form for non-Google users with error handling).
+     - **"Try Demo" CTA** (`#hero-demo-mode-btn`): Direct zero-friction gateway that loads the authentic 30-day simulation dataset, navigates to Reflections Home, and launches the Guided Walkthrough Tour.
+   - **Responsive Stacking**: On mobile viewports ($< 768\text{px}$), the card stacks seamlessly: the showcase becomes a swipeable top banner, and the auth actions sit thumb-friendly below it.
+
+2. **Email Authentication Support (`src/lib/firebase.ts`)** `[COMPLETED]`:
+   - Implement `signInWithEmail(email, password)` and `signUpWithEmail(email, password)` using Firebase Auth `signInWithEmailAndPassword` and `createUserWithEmailAndPassword`.
+
+3. **Full-App Impeccable UX Polish Passes** `[COMPLETED]`:
+   - **Pass 1 — Anti-AI Design Purification**:
+     - Bespoke `LocusMark` monogram (`⊙`) replacing Lucide `Sparkles` brand logo.
+     - Whole-word semantic title distillation (`extractCleanTitle()`) with punctuation-aware sentence breaks, avoiding severed syllables.
+     - Universal prose markdown header and syntax stripping (`cleanProseSnippet()`) across card previews.
+     - Quiet Source Serif 4 thought indicator (*"Reflecting with you…"*) replacing ChatGPT-style bouncing gray skeleton bars.
+   - **Pass 2 — Adaptive Grid Density & Calibrated Stillness**:
+     - Count-adaptive layout in `ReflectionsHome.tsx` eliminating 65% dead white space on 1–2 cards (`max-w-xl mx-auto` for 1, `max-w-4xl grid-cols-2` for 2, responsive `grid-cols-3/4` for $\ge 3$).
+     - 100% elimination of residual `Sparkles` icons (0 occurrences in entire codebase).
+     - Eradication of anxious `animate-pulse` loops in favor of calm steady sage rings.
+     - App-level loading monogram using static `LocusMark`.
+
+4. **Testing & Verification (Phase 3.6 Gate)** `[VERIFIED]`:
+   - `npm run lint` (`tsc --noEmit`): 0 errors.
+   - `node .agents/skills/impeccable/scripts/detect.mjs src/`: 0 anti-patterns.
+   - `npm run test:unit`: 68/68 passed.
+   - `npx playwright test tests/e2e/smoke.spec.ts`: 1/1 passed.
+   - `npx playwright test tests/e2e/screens.spec.ts`: 4/4 passed.
+
+---
+
 ## 🛠️ Phase 4: Polish, Authentic Month-Long Simulation & Demo Sandbox
 
 ### Objective
-Create an authentic, longitudinal demo experience for evaluators by authoring realistic chronological reflections spanning a 30-day timeline, running them live through the genuine Gemini synthesis pipeline to produce organic Theme evolution, and adding the guided walkthrough overlay.
+Connect the new "Try Demo" portal gateway to the authentic 30-day simulation dataset, build the 3-step non-blocking Guided Walkthrough Tour overlay, add weekly email notification preferences to Settings, and execute human prompt evaluation and security audits.
 
 ### Technical Implementation Details
 
-#### 1. Evaluator Demo Mode (Self-Service Sandbox)
-- **Zero-Barrier Access**: Available to any evaluator directly:
-  - Button at the start of the **Guided Walkthrough**: `[Explore with Demo Mode]`.
-  - Also accessible anytime in **Settings ➔ Demo Mode**.
+#### 1. Evaluator Demo Mode & Guided Tour Sequence
+- **Direct Handshake**: Clicking `[Try Demo Space]` from the Centered Sanctuary Portal:
+  1. Initializes the authentic 30-day chronological simulation dataset in memory/Firestore.
+  2. Transitions into `ReflectionsHome`.
+  3. Automatically mounts the **Guided Walkthrough Tour** (`src/components/WalkthroughOverlay.tsx`).
+- **Guided Walkthrough Tour (`src/components/WalkthroughOverlay.tsx`)**:
+  - Non-blocking, calm 3-step tour overlay:
+    - **Step 1 (Reflections Home)**: Explaining episodic reflections, the Google Keep-style masonry notes, and the "Ready for Synthesis" ribbon.
+    - **Step 2 (Active Workspace)**: Highlighting Source Serif 4 user prose, companion insights, message turn pinning, and the 2-hour auto-conclude timer.
+    - **Step 3 (Themes & Concept Graph)**: Demonstrating the Spiral Petal Bloom, observation trajectory arrows, and deep theme unpacking.
+  - Can be dismissed, minimized, or re-launched anytime from the Navbar or Settings Drawer.
 - **User-Scoped Isolation**:
-  - Writes data strictly to the evaluator's own `/users/{uid}/...` collections.
   - All records tagged with `isDemo: true`.
   - A clean `[Exit Demo Mode / Clear Sample Data]` button removes all demo records in 1 click without affecting real user reflections.
 

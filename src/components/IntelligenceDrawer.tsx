@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  Sparkles, 
   Layers, 
   Copy, 
   Check, 
@@ -150,8 +149,8 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
         {/* Drawer Header */}
         <div className="p-6 border-b border-stone-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-accent-sage-tint border border-accent-sage/20 flex items-center justify-center text-accent-sage">
+              <Compass className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-stone-900 font-serif">
@@ -195,8 +194,8 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
             </div>
           ) : content ? (
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200 text-[11px] text-stone-600">
-                <Sparkles className="w-3 h-3 text-emerald-700" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200 text-[13px] text-stone-600">
+                <Compass className="w-3 h-3 text-accent-sage" />
                 <span>Reflection Synthesis</span>
               </div>
 

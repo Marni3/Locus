@@ -1,11 +1,24 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 
 const ARTIFACT_DIR = 'C:/Users/reyna/.gemini/antigravity-ide/brain/4fef8806-df7e-4a34-a62c-15640532c803';
+const IMAGE_DOCS_DIR = path.join(process.cwd(), 'image_docs');
 
-test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
+// Helper to save screenshot to both artifact dir and image_docs
+async function saveDualScreenshot(page: any, filename: string, fullPage: boolean = true) {
+  const artifactPath = path.join(ARTIFACT_DIR, filename);
+  const imageDocsPath = path.join(IMAGE_DOCS_DIR, filename);
 
-  test('1. Landing Page -> Demo Mode -> Reflections Home (Mobile & Desktop)', async ({ page }) => {
+  await page.screenshot({ path: artifactPath, fullPage });
+  if (fs.existsSync(IMAGE_DOCS_DIR)) {
+    fs.copyFileSync(artifactPath, imageDocsPath);
+  }
+}
+
+test.describe('Phase 3.5 Screen Architecture & Verification Suite', () => {
+
+  test('1. Landing Page -> Demo Mode -> Reflections Home (Ready for Synthesis Ribbon & Tag Wrap)', async ({ page }) => {
     // 1. Load Landing Page on desktop
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
@@ -27,8 +40,8 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     const dailyPromptBanner = page.locator('text=Daily Reflection Prompt');
     await expect(dailyPromptBanner).toBeVisible();
 
-    // Ready for Synthesis Ribbon
-    const synthesisRibbon = page.locator('text=Ready for Longitudinal Synthesis');
+    // Ready for Synthesis Ribbon (renamed in Phase 3.5)
+    const synthesisRibbon = page.locator('text=Ready for Synthesis');
     await expect(synthesisRibbon).toBeVisible();
 
     // Google Keep-Style Cards
@@ -38,10 +51,7 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     expect(count).toBeGreaterThanOrEqual(5);
 
     // Capture Desktop Reflections Home screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen1_reflections_home_desktop.png'),
-      fullPage: true,
-    });
+    await saveDualScreenshot(page, 'screen1_reflections_home_desktop.png', true);
 
     // Test Search Filter
     const searchInput = page.locator('input[placeholder*="Search reflections"]');
@@ -59,13 +69,10 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     await expect(cards.first()).toBeVisible();
 
     // Capture Mobile Reflections Home screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen1_reflections_home_mobile.png'),
-      fullPage: false,
-    });
+    await saveDualScreenshot(page, 'screen1_reflections_home_mobile.png', false);
   });
 
-  test('2. Screen 2: Active Workspace (Dialogue, Source Serif 4 Prose, Pinning)', async ({ page }) => {
+  test('2. Screen 2: Concluded Split View (Transcript Left, Executive Synthesis Dossier Right)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.goto('/');
 
@@ -73,7 +80,7 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     await page.locator('#hero-demo-mode-btn').click();
     await page.waitForSelector('#nav-tab-reflections');
 
-    // Click on the first reflection card to open session
+    // Click on the first concluded reflection card to open session
     const firstCard = page.locator('div[role="button"][aria-label^="Reflection:"]').first();
     await firstCard.click();
 
@@ -81,22 +88,36 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     const sessionWorkspace = page.locator('#session-workspace-container');
     await expect(sessionWorkspace).toBeVisible();
 
-    // Check dialogue stream turns
+    // Concluded Split View verification:
+    // Left pane (60%): Reflection Turns Stream
     const userBubbles = page.locator('div[id^="turn-"] .font-serif');
     await expect(userBubbles.first()).toBeVisible();
+
+    // Right pane (40%): Executive Synthesis Dossier
+    const execSynthesis = page.locator('text=Executive Synthesis');
+    await expect(execSynthesis).toBeVisible();
+
+    const keyTakeaways = page.locator('text=Key Takeaways');
+    await expect(keyTakeaways).toBeVisible();
+
+    const immutableRecord = page.locator('text=Immutable Record');
+    await expect(immutableRecord).toBeVisible();
+
+    const newReflectionBtn = page.locator('#workspace-start-new-reflection-btn');
+    await expect(newReflectionBtn).toBeVisible();
+
+    const viewThemesBtn = page.locator('#workspace-dossier-view-themes-btn');
+    await expect(viewThemesBtn).toBeVisible();
 
     // Verify back navigation button to reflections
     const backBtn = page.locator('button[aria-label="Return to Reflections Canvas"]');
     await expect(backBtn).toBeVisible();
 
-    // Capture Session Workspace screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen2_session_workspace.png'),
-      fullPage: true,
-    });
+    // Capture Session Workspace Concluded Split View screenshot
+    await saveDualScreenshot(page, 'screen2_session_workspace.png', true);
   });
 
-  test('3. Screen 3: Themes Split Master-Detail & Interactive Concept Graph', async ({ page }) => {
+  test('3. Screen 3: Themes Timeline & Hybrid Concept Graph (Physics, Pills, Sub-Graph Drill-Down)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.goto('/');
 
@@ -120,29 +141,53 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     await expect(timelineHeading.first()).toBeVisible();
 
     // Capture Themes Timeline screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen3_themes_timeline.png'),
-      fullPage: true,
-    });
+    await saveDualScreenshot(page, 'screen3_themes_timeline.png', true);
 
     // Mode B: Switch to Concept Graph
     const graphTabBtn = page.locator('button:has-text("Concept Graph")');
     await graphTabBtn.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
 
     // Verify SVG interactive graph rendered
-    const svgElement = page.locator('svg[viewBox="0 0 700 520"]');
+    const svgElement = page.locator('#concept-graph-svg');
     await expect(svgElement).toBeVisible();
 
     // Verify Center "YOU" Node
     const centerNode = page.locator('text="YOU"');
     await expect(centerNode).toBeVisible();
 
-    // Capture Concept Graph screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen3_themes_concept_graph.png'),
-      fullPage: true,
-    });
+    // Verify collision-buffered pill badges outside node circles
+    const pillBadges = page.locator('g[id^="theme-badge-"]');
+    await expect(pillBadges.first()).toBeVisible();
+
+    // Capture Concept Graph constellation screenshot
+    await saveDualScreenshot(page, 'screen3_themes_concept_graph.png', true);
+
+    // Test Double-Click Drill-Down into Observation Sub-Graph Trajectory
+    const firstThemeNode = page.locator('g[id^="theme-node-"]').first();
+    await firstThemeNode.dblclick();
+    await page.waitForTimeout(400);
+
+    // Verify Observation Trajectory Sub-Graph view:
+    // 1. Breadcrumbs `< Constellation`
+    const breadcrumbBtn = page.locator('button:has-text("Constellation")');
+    await expect(breadcrumbBtn).toBeVisible();
+
+    // 2. Trajectory directed arrow marker
+    const arrowMarker = page.locator('svg marker#trajectory-arrow');
+    await expect(arrowMarker).toBeAttached();
+
+    // 3. Observation node pills rendered
+    const obsNodes = page.locator('g[id^="obs-node-"]');
+    await expect(obsNodes.first()).toBeVisible();
+
+    // Capture Observation Trajectory Sub-Graph screenshot
+    await saveDualScreenshot(page, 'screen3_themes_observation_trajectory.png', true);
+
+    // Click breadcrumb to return back to constellation
+    await breadcrumbBtn.click();
+    await page.waitForTimeout(300);
+    await expect(centerNode).toBeVisible();
   });
 
   test('4. Screen 4: Settings Drawer & SSRF Webhook Security', async ({ page }) => {
@@ -182,9 +227,6 @@ test.describe('Phase 3 Screen Architecture & Responsiveness Suite', () => {
     await expect(blockedBadge).toContainText('Blocked');
 
     // Capture Settings Drawer screenshot
-    await page.screenshot({
-      path: path.join(ARTIFACT_DIR, 'screen4_settings_drawer.png'),
-      fullPage: true,
-    });
+    await saveDualScreenshot(page, 'screen4_settings_drawer.png', true);
   });
 });

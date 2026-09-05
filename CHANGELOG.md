@@ -7,6 +7,104 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-05]
 
 ### Added
+- **Phase 3.6 - Pass 2: Adaptive Grid Density, Calibrated Stillness & Universal Sparkle Eradication**:
+  - **Adaptive Grid Density & Centered Reading Dignity ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
+    - Eliminated the 65% dead white space bug where multi-column CSS (`columns-2 md:columns-3 lg:columns-4`) forced low reflection counts (1–2 cards) into the far-left columns while leaving the rest of the canvas empty.
+    - Implemented count-adaptive responsive layout:
+      - 1 card: Centered intimate reader card (`max-w-xl mx-auto`).
+      - 2 cards: Balanced side-by-side twin layout (`max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4`).
+      - 3+ cards: Full responsive masonry grid (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4`).
+  - **Calibrated Stillness & Pulse Eradication ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx), [src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx))**:
+    - Replaced generic nervous `animate-pulse` status indicators with calm, steady sage rings (`w-2 h-2 rounded-full bg-accent-sage ring-2 ring-accent-sage/25`).
+    - Replaced single-letter bouncing 'L' loading state in `App.tsx` with centered static `LocusMark` monogram.
+  - **100% Sparkles Eradication Across Entire Codebase**:
+    - Cleared all residual `Sparkles` icons from all active views, drawers, and legacy modals:
+      - `ThemesView.tsx`: Unpack Further changed to `Compass`, Re-bloom changed to `RotateCcw`.
+      - `SettingsDrawer.tsx`: "Voice & Tone" and "Load Demo Reflection Archive" converted to `Compass`.
+      - `LandingPage.tsx`: "Explore Demo Space" converted to `Compass`, header badge converted to `LocusMark`.
+      - `ReflectionsHome.tsx`: Empty state converted to `Compass`.
+      - Cleared legacy components (`SaveToNotebookModal.tsx`, `NotebookView.tsx`, `IntelligenceDrawer.tsx`).
+    - Verified **0 occurrences** of `Sparkles` and **0 occurrences** of `animate-pulse` across the entire codebase.
+
+- **Phase 3.6 - Pass 1: Anti-AI Purification & Typography Normalization**:
+  - **Bespoke Locus Monogram ([src/components/LocusMark.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LocusMark.tsx), [src/components/Navbar.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Navbar.tsx))**:
+    - Replaced the generic 4-pointed Lucide `Sparkles` AI icon in the navbar brand lockup with a bespoke concentric SVG Locus mark (`⊙`) representing a focal point of convergence, presence, and stillness.
+    - Refined navbar typography: removed the redundant stacked "Reflective Journal" subtitle in favor of a clean, serene brand identity (`Locus SANCTUARY`).
+  - **Whole-Word Semantic Title Distillation ([src/lib/textUtils.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/textUtils.ts), [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Created `extractCleanTitle(prompt, maxLen)` utility eliminating severed syllable truncations (e.g. `hesita...`, `gen...`).
+    - Titles break cleanly at natural sentence punctuation (`[.?!;\n]`) or whole-word boundaries at ~46 characters with a dignified ellipsis (`…`), preserving the integrity of user thought.
+  - **Universal Prose Markdown Sanitization ([src/lib/textUtils.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/textUtils.ts), [src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx), [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Created `cleanProseSnippet(text)` utility that strips markdown headers (`## Executive Synthesis`), bold/italic formatting, quote marks, and raw section labels before rendering preview snippets on reflection cards and concluded dossiers.
+  - **Quiet Typographic Thinking Indicator ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Replaced generic ChatGPT-style bouncing gray skeleton loading bars and sparkle badges with an editorial Source Serif 4 thought indicator: *"Reflecting with you…"*, accompanied by a quiet, gentle breathing ink dot.
+    - Replaced `Sparkles` in workspace companion turn headers with `LocusMark`, in empty states with `Compass`, and in Key Takeaways with `BookOpen`.
+  - **Comprehensive Unit Testing Suite ([tests/unit/text-utils.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/text-utils.test.ts))**:
+    - Added 10 new unit tests covering sentence boundaries, word-boundary truncation, markdown header removal, and empty state resilience (suite total now 68/68 passing).
+
+- **Phase 3.6: Centered Sanctuary Portal Refinements & Authentication Modernization**:
+  - **Refined Sanctuary Card Geometry & Animated Water Ripples ([src/components/LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx), [src/index.css](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/index.css))**:
+    - Scaled down card dimensions from `max-w-5xl` ($1080\text{px}$) to an intimate, compact `max-w-4xl` (~$880\text{px}$) with natural height and balanced padding (`p-6 sm:p-7`).
+    - Engineered continuous GPU-composited water ripple wave keyframes (`@keyframes water-ripple`, `animation-fill-mode: backwards`, and `opacity-0` base state) across 3 staggered epicenters, eliminating static boot-up rings and running with 0% CPU consumption.
+    - Scaled down category pills (`Themes`, `Concept Graph`, `Private & Quiet`) to quiet, delicate, sentence-case tags (`text-2xs font-normal text-text-muted bg-stone-100/90 px-1.5 py-0.5 rounded border border-border-hairline/70`) that no longer overpower the typography.
+    - Added silky cross-fade transitions (`opacity-0` $\rightarrow$ `opacity-100` with `duration-300`) between showcase slides.
+  - **Radical Right-Column Decluttering ([src/components/LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx))**:
+    - Purged marketing clutter: removed the `"Sanctuary Portal"` badge pill, removed the `"No sign-up required • 30-day..."` subtext, and removed the bottom security disclaimer footer.
+    - Retained strictly the dignified functional core: `Reflect with depth.`, mode switcher, Google button, email/password form, and direct demo entry.
+  - **3-Pillar User-Focused Showcase Narrative ([src/components/LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx))**:
+    - Shifted focus from abstract privacy/enterprise storage marketing toward the three core values users care about:
+      1. *Conversational Reflection*: "Think out loud, naturally." — untangling thoughts in conversation without blank page pressure, with live dialog card preview.
+      2. *Themes & Growth*: "Watch your insights connect." — distilling sessions into enduring themes and chronological observations to show personal growth.
+      3. *Visual Constellation & Timeline*: "Explore your concept graph." — exploring ideas through the authentic mini SVG constellation matching `ThemesView.tsx` with central `YOU` hub, spring links, and floating serif theme nodes.
+  - **Firebase Email & Password Authentication ([src/lib/firebase.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/firebase.ts))**:
+    - Implemented and exported `signInWithEmail(email, password)` and `signUpWithEmail(email, password)` via Firebase Auth SDK.
+    - Full error handling normalization (invalid credentials, weak passwords, email in use) while preserving existing Google OAuth and Firestore undefined-stripping safeguards.
+  - **Centered Sanctuary Portal Modal ([src/components/LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx))**:
+    - Replaced the generic full-width marketing hero with an intimate, centered rounded rectangular sanctuary card ($1080 \times 640\text{px}$, `max-w-5xl rounded-3xl bg-surface border border-border-hairline shadow-xl`).
+    - **Left Column (~68%)**: Auto-rotating visual showcase carousel cycling every 6s across 3 core product pillars:
+      1. *Longitudinal Architecture*: From daily fragments to enduring clarity, showcasing sample entry-to-theme synthesis cards.
+      2. *Spatial Geometry*: Living thoughts in harmonic resonance, highlighting the spiral petal bloom topology and liquid drag physics.
+      3. *Calm Sanctuary*: Zero ads, zero social feeds, per-user cryptographic isolation and outbound PII scrubbing standards.
+      - Features pause-on-hover, keyboard accessibility, dot steppers, and discrete next/prev navigation chevrons.
+    - **Right Column (~32%)**: Refined sanctuary access gateway featuring:
+      - Clean `h1` brand title ("Reflect with depth.") preserving test selectors.
+      - Interactive mode switcher between "Sign In" and "Create Account".
+      - Google OAuth button (`#hero-google-signin-btn`).
+      - Inlined email and password form with friendly inline error handling.
+      - Prominent zero-friction demo gateway (`#hero-demo-mode-btn`) with 30-day preloaded simulation notice.
+    - **Mobile Responsiveness**: Dynamic responsive breakdown gracefully transitioning from horizontal 68/32 split on desktop to stacked swipeable showcase on mobile.
+  
+- **Phase 3.5: Hybrid Concept Graph, Visual Artifact Hardening & Impeccable Design Audit**:
+  - **Spiral Petal Bloom Choreography & Dynamic Graph Entrance ([src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx))**:
+    - **85ms Staggered Clockwise Petal Bloom**: Theme nodes dynamically blossom outward from the central `YOU` anchor hub in a rhythmic clockwise sequence ($0.35 \rightarrow 1.0$ scale, $0.0 \rightarrow 1.0$ opacity) driven by custom `easeOutBack(x)` position cushioning and `easeOutQuint(x)` scale growth curves.
+    - **100% Static Stillness (0% CPU upon Settle)**: Solved sub-pixel font shimmering and rasterization snapping by eliminating artificial continuous ambient drift. Once the bloom settles (1.05s glide), all animation frame loops cleanly terminate (`cancelAnimationFrame`), consuming 0% idle CPU and ensuring calm, stable editorial readability.
+    - **Smart Floating Two-Line Typography (No Capsule Box)**: Eliminated bounding `<rect>` capsule border stroke, replacing it with balanced two-line `Source Serif 4` typography split via `splitTitleIntoTwoLines()`. Added `stroke="#FAF9F6" strokeWidth={3.5} paintOrder="stroke fill"` background glyph halo to prevent underlying spring links from intersecting letterforms, while preserving the `theme-badge-*` testing selector.
+    - **Direct-to-DOM Liquid Drag Physics**: Bypassed React fiber reconciliation overhead during drag gestures by mutating SVG transforms directly, achieving buttery 60fps/120fps liquid elasticity ($K=0.045$, damping $0.88$, soft Coulomb repulsion $K_{rep}=0.28$) with automatic quiet settle threshold (`maxMovement < 0.04`).
+    - **Tactile "Re-bloom" Action**: Added a discrete header action button to allow users to trigger the spiral petal blossom sequence at any time on demand.
+  - **Hybrid Concept Graph Architecture ([src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx))**:
+    - **Double-Click Observation Sub-Graph Drill-Down**: Interactive transition into a theme's constituent observation graph without backend schema mutations. Central theme node transforms into an anchor hub surrounded by chronological satellite observation nodes.
+    - **Directed Chronological Trajectory Vectors**: SVG `<marker id="trajectory-arrow">` with directed vector lines ($Obs_1 \rightarrow Obs_2 \rightarrow \dots \rightarrow Obs_n$) dynamically tracing intellectual trajectory over time.
+    - **Constellation Breadcrumb Navigation**: Seamless one-tap return back to macro constellation graph.
+  - **Concluded Reflection Split View (Approach B) ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Replaced the single-feed conclude view with an intentional 60/40 two-column split layout.
+    - Left pane (60%): Preserves the complete historical conversational transcript in Source Serif 4.
+    - Right pane (40%): Sticky Executive Synthesis Dossier with clean markdown stripping, qualitative tag pills, key takeaways, immutable record assurance, and cross-navigation CTAs (`+ Start New Reflection` & `Explore Themes & Concept Graph`).
+  - **Unpack Further Dual-Mode Resilience Engine ([src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx))**:
+    - Built client-side heuristic synthesis fallback when `/api/themes/:id/unpack` fails (e.g. offline, server restart, quota). Generates structured working thesis, contextual narrative, and 3 exploration paths directly from local observations, guaranteeing zero `Failed to fetch` crashes.
+  - **Toast Notification Engine Hardening (Approach A) ([src/components/Toast.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Toast.tsx), [src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx))**:
+    - Added 4000ms auto-dismiss timer on non-error notifications with pause-on-hover.
+    - Conditioned `Retry Operation` button strictly on `type === 'error' && Boolean(onRetry)`.
+    - Positioned notifications in calm, centered bottom overlay (`bottom-6 left-1/2 -translate-x-1/2`).
+  - **"Ready for Synthesis" Ribbon & Tag Wrap (Approach A) ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
+    - Renamed ribbon section to **"Ready for Synthesis"** for immediate, calm clarity.
+    - Added CSS scroll-snap (`snap-x snap-mandatory` and `snap-start` cards) for delightful tactile mobile swiping.
+    - Configured `flex flex-wrap gap-1.5` on qualitative tags to eliminate horizontal pill clipping.
+  - **Permanent Visual Asset Documentation Archive (`image_docs/`)**:
+    - Initialized `image_docs/` in repo root and added to `.gitignore`.
+    - Archived 8 full-resolution PNG screenshots documenting all core states and views.
+  - **Comprehensive Impeccable Design Token Harmonization**:
+    - Executed repository-wide audit with `.agents/skills/impeccable/scripts/detect.mjs`.
+    - Eliminated all AI side-tab tells (`border-l-4`, `border-l-2`), contrast warnings (`text-stone-800` on `bg-amber-50`), and off-ramp font sizes (`10px`, `11px`), reducing detector anti-pattern count from 97 down to **0**.
+
 - **Phase 3: Screen Architecture & Impeccable Mobile-First Polish**:
   - **Screen 1: Reflections Home ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
     - Mobile-first 2-column masonry vertical card grid (`columns-2 md:columns-3 lg:columns-4 gap-3.5 space-y-3.5 break-inside-avoid`).

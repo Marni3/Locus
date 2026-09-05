@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
-import { Sparkles, Shield, Compass, BookOpen, ArrowRight, Lock, CheckCircle, RefreshCw } from 'lucide-react';
-import { signInWithGoogle } from '../lib/firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Shield, 
+  Compass, 
+  BookOpen, 
+  Lock, 
+  ArrowRight, 
+  RefreshCw, 
+  ChevronLeft, 
+  ChevronRight, 
+  Mail, 
+  KeyRound, 
+  Network,
+  MessageSquare,
+  Clock
+} from 'lucide-react';
+import { LocusMark } from './LocusMark';
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../lib/firebase';
 
 interface LandingPageProps {
   onSignInSuccess?: () => void;
@@ -8,209 +23,529 @@ interface LandingPageProps {
   onError: (errorMsg: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMode }) => {
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
+interface ShowcaseSlide {
+  badge: string;
+  title: string;
+  description: string;
+  previewType: 'conversation' | 'synthesis' | 'graph';
+}
 
+const SHOWCASE_SLIDES: ShowcaseSlide[] = [
+  {
+    badge: 'Reflection',
+    title: 'Think out loud, naturally.',
+    description: 'A quiet conversational space to untangle your thoughts—no blank page pressure or rigid structure.',
+    previewType: 'conversation'
+  },
+  {
+    badge: 'Themes & Growth',
+    title: 'Watch your insights connect.',
+    description: 'Each session is distilled into enduring themes and chronological observations, revealing how your perspectives evolve over time.',
+    previewType: 'synthesis'
+  },
+  {
+    badge: 'Concept Graph',
+    title: 'Explore your concept graph.',
+    description: 'View your themes as an interconnected constellation or switch to the timeline to trace how your thinking evolved.',
+    previewType: 'graph'
+  }
+];
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMode }) => {
+  // Carousel State with Cross-Fade Transition
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+
+  // Authentication State
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const changeSlide = useCallback((getNextIndex: (prev: number) => number) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlide(getNextIndex);
+      setIsTransitioning(false);
+    }, 220);
+  }, []);
+
+  // Auto-rotate carousel every 6 seconds if not hovered
+  useEffect(() => {
+    if (isCarouselHovered) return;
+    const interval = setInterval(() => {
+      changeSlide((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [isCarouselHovered, changeSlide]);
+
+  const handleNextSlide = useCallback(() => {
+    changeSlide((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
+  }, [changeSlide]);
+
+  const handlePrevSlide = useCallback(() => {
+    changeSlide((prev) => (prev - 1 + SHOWCASE_SLIDES.length) % SHOWCASE_SLIDES.length);
+  }, [changeSlide]);
+
+  const handleSelectSlide = useCallback((idx: number) => {
+    if (idx === currentSlide) return;
+    changeSlide(() => idx);
+  }, [currentSlide, changeSlide]);
+
+  // Google Sign-In
   const handleGoogleSignIn = async () => {
     try {
       setIsAuthenticating(true);
+      setAuthError(null);
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Sign-in error:', err);
-      // Suppress popup-closed-by-user or provide actionable message
       if (err.code !== 'auth/popup-closed-by-user') {
-        onError(err.message || 'Authentication failed. Please check your connection and try again.');
+        const msg = err.message || 'Authentication failed. Please verify your connection.';
+        setAuthError(msg);
+        onError(msg);
       }
     } finally {
       setIsAuthenticating(false);
     }
   };
 
+  // Email & Password Auth
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setAuthError('Please enter both your email and password.');
+      return;
+    }
+    if (password.length < 6) {
+      setAuthError('Password must be at least 6 characters.');
+      return;
+    }
+
+    try {
+      setIsAuthenticating(true);
+      setAuthError(null);
+      if (authMode === 'signin') {
+        await signInWithEmail(email, password);
+      } else {
+        await signUpWithEmail(email, password);
+      }
+    } catch (err: any) {
+      console.error('Email auth error:', err);
+      let message = 'Authentication failed. Please check your credentials.';
+      if (err.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        message = 'Incorrect email or password. Please verify and try again.';
+      } else if (err.code === 'auth/email-already-in-use') {
+        message = 'An account with this email already exists. Try signing in.';
+      } else if (err.code === 'auth/weak-password') {
+        message = 'Password is too weak. Please use at least 6 characters.';
+      } else if (err.message) {
+        message = err.message;
+      }
+      setAuthError(message);
+      onError(message);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const activeSlideData = SHOWCASE_SLIDES[currentSlide];
+
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Top Header */}
-      <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-stone-900 flex items-center justify-center text-emerald-300 shadow-xs">
-            <Sparkles className="w-5 h-5" />
+    <div className="relative min-h-screen bg-canvas text-text-primary flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-accent-sage-tint selection:text-accent-sage overflow-hidden">
+      
+      {/* Continuous Animated Water Droplet Ripple Waves */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Epicenter 1: Center background */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '0s' }} />
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '2.7s' }} />
+          <div className="absolute w-[440px] h-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '5.4s' }} />
+        </div>
+
+        {/* Epicenter 2: Top-left offset */}
+        <div className="absolute top-[18%] left-[20%] pointer-events-none">
+          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '1.2s' }} />
+          <div className="absolute w-[340px] h-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '4.8s' }} />
+        </div>
+
+        {/* Epicenter 3: Bottom-right offset */}
+        <div className="absolute bottom-[20%] right-[22%] pointer-events-none">
+          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '3.4s' }} />
+          <div className="absolute w-[380px] h-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-sage/20 opacity-0 animate-water-ripple" style={{ animationDelay: '6.6s' }} />
+        </div>
+
+        {/* Ambient Static Textured Backdrop Rings */}
+        <svg 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] opacity-[0.035] text-accent-sage pointer-events-none" 
+          viewBox="0 0 1000 1000" 
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="500" cy="500" r="160" stroke="currentColor" strokeWidth="1" />
+          <circle cx="500" cy="500" r="260" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" />
+          <circle cx="500" cy="500" r="370" stroke="currentColor" strokeWidth="1" />
+          <circle cx="500" cy="500" r="480" stroke="currentColor" strokeWidth="1" strokeDasharray="5 7" />
+        </svg>
+      </div>
+
+      {/* Refined & Compact Sanctuary Card */}
+      <div className="relative z-10 w-full max-w-4xl rounded-3xl bg-surface border border-border-hairline shadow-xl overflow-hidden flex flex-col md:flex-row">
+        
+        {/* ================= LEFT COLUMN: Visual Showcase (~64%) ================= */}
+        <div 
+          className="relative flex-1 md:w-[62%] lg:w-[64%] p-6 sm:p-7 sm:py-8 flex flex-col justify-between bg-gradient-to-br from-surface via-canvas to-stone-50/50 overflow-hidden"
+          onMouseEnter={() => setIsCarouselHovered(true)}
+          onMouseLeave={() => setIsCarouselHovered(false)}
+        >
+          {/* Top Brand Lockup & Stepper Controls */}
+          <div className="flex items-center justify-between z-10 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-accent-sage flex items-center justify-center text-white shadow-2xs shrink-0">
+                <LocusMark className="w-3 h-3" />
+              </div>
+              <span className="font-serif text-sm font-semibold tracking-tight text-text-primary shrink-0">Locus</span>
+              <span className="hidden sm:inline-block text-2xs font-normal text-text-muted bg-stone-100/90 px-1.5 py-0.5 rounded border border-border-hairline/70 truncate">
+                {activeSlideData.badge}
+              </span>
+            </div>
+
+            {/* Slide Navigation Buttons */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handlePrevSlide}
+                aria-label="Previous slide"
+                className="w-7 h-7 rounded-full border border-border-hairline bg-surface/80 hover:bg-surface text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextSlide}
+                aria-label="Next slide"
+                className="w-7 h-7 rounded-full border border-border-hairline bg-surface/80 hover:bg-surface text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
+
+          {/* Carousel Slide Content with Silky Cross-Fade */}
+          <div 
+            className={`my-6 z-10 transition-opacity duration-300 ease-in-out ${
+              isTransitioning ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            <h2 className="font-serif text-2xl sm:text-3xl font-normal text-text-primary tracking-tight leading-[1.2] mb-2">
+              {activeSlideData.title}
+            </h2>
+            <p className="text-xs sm:text-sm text-text-muted font-sans leading-relaxed max-w-lg mb-5">
+              {activeSlideData.description}
+            </p>
+
+            {/* Interactive Visual Representation */}
+            <div className="w-full rounded-2xl bg-surface border border-border-hairline p-4 shadow-2xs">
+              {activeSlideData.previewType === 'conversation' && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-2xs text-text-muted pb-1.5 border-b border-border-hairline">
+                    <span className="font-medium text-accent-sage flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-accent-sage" />
+                      Active Reflection
+                    </span>
+                    <span>10:42 AM</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-canvas border border-border-hairline/70">
+                    <p className="text-xs font-serif text-text-primary leading-relaxed">
+                      &ldquo;Feeling stuck on this architecture shift. I keep overthinking edge cases instead of taking the first step.&rdquo;
+                    </p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-surface border border-border-hairline/80 shadow-2xs">
+                    <div className="flex items-center gap-1.5 mb-1 text-2xs text-text-muted">
+                      <div className="w-3.5 h-3.5 rounded bg-accent-sage/10 text-accent-sage flex items-center justify-center">
+                        <LocusMark className="w-2 h-2" />
+                      </div>
+                      <span className="font-medium text-text-primary text-2xs">Reflective Inquiry</span>
+                    </div>
+                    <p className="text-xs font-sans text-text-muted leading-relaxed">
+                      Overthinking edge cases is often protection against starting imperfectly. What is the smallest decision you can make right now?
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeSlideData.previewType === 'synthesis' && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-2xs text-text-muted pb-1.5 border-b border-border-hairline">
+                    <span className="font-medium text-accent-sage flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-sage ring-2 ring-accent-sage/25" />
+                      Synthesized Observation
+                    </span>
+                    <span>March 14</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-canvas border border-border-hairline/70">
+                    <p className="text-xs font-serif italic text-text-primary leading-relaxed">
+                      &ldquo;Hesitated to publish the draft today. Realized it's not about perfection, but about being seen in progress.&rdquo;
+                    </p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-accent-sage-tint/40 border border-accent-sage/20 text-xs">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <BookOpen className="w-3.5 h-3.5 text-accent-sage" />
+                      <span className="font-semibold text-text-primary text-xs">Theme: Creative Vulnerability</span>
+                    </div>
+                    <p className="text-2xs text-text-muted leading-relaxed">
+                      4 reflections over 6 weeks &bull; Gradual shift from defensive perfectionism toward steady sharing.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeSlideData.previewType === 'graph' && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-2xs text-text-muted pb-1.5 border-b border-border-hairline">
+                    <div className="flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-md bg-accent-sage-tint/60 text-accent-sage font-medium text-2xs flex items-center gap-1 border border-accent-sage/20">
+                        <Network className="w-3 h-3" />
+                        Graph
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-text-muted text-2xs flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Timeline
+                      </span>
+                    </div>
+                    <span className="text-2xs text-text-muted">3 Themes &bull; 12 Observations</span>
+                  </div>
+
+                  {/* Authentic Mini-Constellation Canvas matching ThemesView.tsx */}
+                  <div className="relative h-[116px] w-full rounded-xl bg-canvas/90 border border-border-hairline/70 overflow-hidden flex items-center justify-center">
+                    <svg className="w-full h-full" viewBox="0 0 320 116" fill="none">
+                      {/* Connecting Spring Links */}
+                      <line x1="160" y1="58" x2="68" y2="40" stroke="#E6E3DC" strokeWidth="1.5" />
+                      <line x1="160" y1="58" x2="252" y2="38" stroke="#E6E3DC" strokeWidth="1.5" />
+                      <line x1="160" y1="58" x2="160" y2="94" stroke="#E6E3DC" strokeWidth="1.5" strokeDasharray="3 3" />
+
+                      {/* Theme Node 1: Creative Practice */}
+                      <g>
+                        <circle cx="68" cy="40" r="13" fill="#FFFFFF" stroke="#3B7A57" strokeWidth="1.5" />
+                        <circle cx="68" cy="40" r="3.5" fill="#3B7A57" />
+                        <text x="68" y="66" textAnchor="middle" fill="#232323" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
+                          Creative Practice
+                        </text>
+                        <text x="68" y="76" textAnchor="middle" fill="#6B6B6B" fontSize="8" fontFamily="'Inter', sans-serif">
+                          5 observations
+                        </text>
+                      </g>
+
+                      {/* Central "YOU" Anchor Hub matching ThemesView.tsx */}
+                      <g>
+                        <circle cx="160" cy="58" r="16" fill="#3B7A57" />
+                        <circle cx="160" cy="58" r="21" stroke="#3B7A57" strokeWidth="1" opacity="0.25" />
+                        <text x="160" y="62" textAnchor="middle" fill="#FFFFFF" fontSize="8.5" fontFamily="'Inter', sans-serif" fontWeight="700" letterSpacing="0.05em">
+                          YOU
+                        </text>
+                      </g>
+
+                      {/* Theme Node 2: Deep Focus */}
+                      <g>
+                        <circle cx="252" cy="38" r="13" fill="#FFFFFF" stroke="#3B7A57" strokeWidth="1.5" />
+                        <circle cx="252" cy="38" r="3.5" fill="#3B7A57" />
+                        <text x="252" y="64" textAnchor="middle" fill="#232323" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
+                          Deep Focus
+                        </text>
+                        <text x="252" y="74" textAnchor="middle" fill="#6B6B6B" fontSize="8" fontFamily="'Inter', sans-serif">
+                          4 observations
+                        </text>
+                      </g>
+
+                      {/* Theme Node 3: Leadership */}
+                      <g className="opacity-80">
+                        <circle cx="160" cy="94" r="10" fill="#FFFFFF" stroke="#6B6B6B" strokeWidth="1.2" />
+                        <text x="160" y="110" textAnchor="middle" fill="#6B6B6B" fontSize="8.5" fontFamily="'Source Serif 4', Georgia, serif">
+                          Leadership
+                        </text>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Dot Stepper */}
+          <div className="flex items-center gap-1.5 pt-1 z-10">
+            {SHOWCASE_SLIDES.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectSlide(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  currentSlide === idx 
+                    ? 'w-6 bg-accent-sage' 
+                    : 'w-1.5 bg-border-hairline hover:bg-stone-300'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ================= RIGHT COLUMN: Clean Gateway (~36%) ================= */}
+        <div className="flex-none md:w-[38%] lg:w-[36%] bg-[#FBFBF9] border-t md:border-t-0 md:border-l border-border-hairline p-6 sm:p-7 flex flex-col justify-center">
           <div>
-            <span className="font-serif-heading text-2xl font-bold tracking-tight text-stone-900">ReflectAI</span>
-            <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              Personal Insight Sanctuary
-            </span>
-          </div>
-        </div>
+            {/* Clean Title */}
+            <div className="mb-5 text-center md:text-left">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
+                Reflect with depth.
+              </h1>
+            </div>
 
-        <div className="flex items-center gap-3">
-          {onEnterDemoMode && (
-            <button
-              id="header-demo-btn"
-              onClick={onEnterDemoMode}
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-medium transition-all shadow-2xs cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Demo Mode</span>
-            </button>
-          )}
+            {/* Auth Mode Switcher (Sign In vs Create Account) */}
+            <div className="flex items-center rounded-xl bg-canvas p-1 border border-border-hairline mb-4">
+              <button
+                type="button"
+                onClick={() => { setAuthMode('signin'); setAuthError(null); }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  authMode === 'signin'
+                    ? 'bg-surface text-text-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode('signup'); setAuthError(null); }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  authMode === 'signup'
+                    ? 'bg-surface text-text-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
 
-          <button
-            id="header-signin-btn"
-            onClick={handleGoogleSignIn}
-            disabled={isAuthenticating}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-medium transition-all shadow-xs disabled:opacity-50 cursor-pointer"
-          >
-            {isAuthenticating ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Connecting...</span>
-              </>
-            ) : (
-              <>
-                <span>Sign In with Google</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
+            {/* Error Notification Banner */}
+            {authError && (
+              <div className="mb-3.5 p-2.5 rounded-xl bg-red-50/80 border border-red-200 text-red-700 text-xs leading-relaxed animate-in fade-in duration-200">
+                {authError}
+              </div>
             )}
-          </button>
-        </div>
-      </header>
 
-      {/* Main Hero & Content */}
-      <main className="w-full max-w-5xl mx-auto px-6 py-12 flex flex-col items-center text-center">
-        {/* Security Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F9F7F2] border border-stone-200 text-stone-700 text-xs font-medium mb-8 shadow-2xs">
-          <Shield className="w-3.5 h-3.5 text-emerald-700" />
-          <span>End-to-End Private &bull; Isolated Personal Storage</span>
-        </div>
-
-        {/* Hero Title */}
-        <h1 className="font-serif-heading text-5xl sm:text-6xl md:text-7xl font-normal tracking-tight text-stone-900 max-w-3xl leading-[1.08] mb-6">
-          Reflect with depth. <br />
-          <span className="italic text-stone-600">Discover your patterns.</span>
-        </h1>
-
-        {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-stone-600 max-w-2xl font-normal leading-relaxed mb-10">
-          A calm, private sanctuary to write multi-turn journal reflections, deliberate decisions, and converse with compassionate reflective intelligence for clarity and structured summaries.
-        </p>
-
-        {/* Primary CTA */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md mb-16">
-          <button
-            id="hero-google-signin-btn"
-            onClick={handleGoogleSignIn}
-            disabled={isAuthenticating}
-            className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-base transition-all shadow-sm hover:shadow-md disabled:opacity-50 group cursor-pointer"
-          >
-            {isAuthenticating ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
-                />
-              </svg>
-            )}
-            <span>Sign in with Google</span>
-            <ArrowRight className="w-4 h-4 text-emerald-200 group-hover:translate-x-1 transition-transform" />
-          </button>
-
-          {onEnterDemoMode && (
+            {/* Google OAuth Button */}
             <button
-              id="hero-demo-mode-btn"
-              onClick={onEnterDemoMode}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-white hover:bg-stone-50 text-stone-800 font-medium text-base transition-all border border-stone-300 shadow-2xs hover:shadow-xs cursor-pointer"
+              id="hero-google-signin-btn"
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isAuthenticating}
+              className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-surface hover:bg-stone-50 text-text-primary border border-border-hairline text-xs font-medium transition-all shadow-2xs hover:shadow-xs disabled:opacity-50 cursor-pointer mb-3.5"
             >
-              <Sparkles className="w-4 h-4 text-emerald-700" />
-              <span>Explore Demo Space</span>
+              {isAuthenticating ? (
+                <RefreshCw className="w-4 h-4 animate-spin text-accent-sage" />
+              ) : (
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
+                  />
+                </svg>
+              )}
+              <span>Continue with Google</span>
             </button>
-          )}
+
+            {/* Hairline Divider */}
+            <div className="relative flex items-center justify-center my-3">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border-hairline" />
+              </div>
+              <span className="relative px-2.5 bg-[#FBFBF9] text-2xs text-text-muted font-medium uppercase tracking-wider">
+                or with email
+              </span>
+            </div>
+
+            {/* Email + Password Form */}
+            <form onSubmit={handleEmailAuth} className="space-y-2.5">
+              <div>
+                <label className="block text-2xs font-medium text-text-muted mb-1">Email address</label>
+                <div className="relative flex items-center">
+                  <Mail className="w-3.5 h-3.5 absolute left-3 text-text-muted pointer-events-none" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full pl-9 pr-3 py-1.5 bg-surface rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-stone-400 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-2xs font-medium text-text-muted mb-1">Password</label>
+                <div className="relative flex items-center">
+                  <KeyRound className="w-3.5 h-3.5 absolute left-3 text-text-muted pointer-events-none" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="w-full pl-9 pr-3 py-1.5 bg-surface rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-stone-400 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isAuthenticating}
+                className="w-full mt-1 py-2 px-4 rounded-xl bg-accent-sage hover:bg-emerald-900 text-white font-medium text-xs transition-all shadow-2xs hover:shadow-xs disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isAuthenticating ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <span>{authMode === 'signin' ? 'Sign In' : 'Create Account'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Direct Demo Gateway */}
+            {onEnterDemoMode && (
+              <div className="mt-4 pt-3.5 border-t border-border-hairline">
+                <button
+                  id="hero-demo-mode-btn"
+                  type="button"
+                  onClick={onEnterDemoMode}
+                  className="w-full py-2 px-4 rounded-xl bg-accent-sage-tint/40 hover:bg-accent-sage-tint text-accent-sage border border-accent-sage/30 text-xs font-medium transition-all shadow-2xs hover:shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Compass className="w-3.5 h-3.5 text-accent-sage" />
+                  <span>Explore Demo Space</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-          <div id="feature-card-dialogue" className="p-6 rounded-2xl bg-white border border-stone-200 shadow-2xs hover:border-stone-300 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800 mb-4">
-              <Compass className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-semibold text-stone-900 mb-2">Multi-Turn Reflection</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Explore your thoughts with responsive dialogue. Choose between Reflective Mirror, Idea Spark, Action Blueprint, or Mindful Unpack modes.
-            </p>
-          </div>
-
-          <div id="feature-card-privacy" className="p-6 rounded-2xl bg-white border border-stone-200 shadow-2xs hover:border-stone-300 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-800 mb-4">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-semibold text-stone-900 mb-2">Strict Private Isolation</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Every journal entry, interaction turn, and summary is stored directly under your authenticated account. Zero cross-user leakage.
-            </p>
-          </div>
-
-          <div id="feature-card-synthesis" className="p-6 rounded-2xl bg-white border border-stone-200 shadow-2xs hover:border-stone-300 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-[#F9F7F2] border border-stone-200 flex items-center justify-center text-stone-800 mb-4">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-semibold text-stone-900 mb-2">Synthesize &amp; Summarize</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Auto-generate key takeaways per session, and uncover longitudinal syntheses across past entries to illuminate recurring themes.
-            </p>
-          </div>
-        </div>
-
-        {/* Demo Preview Snippet */}
-        <div className="mt-14 w-full rounded-2xl bg-stone-900 text-stone-100 p-6 md:p-8 text-left border border-stone-800 shadow-xl">
-          <div className="flex items-center justify-between pb-4 border-b border-stone-800 mb-4">
-            <div className="flex items-center gap-2 text-xs text-stone-400">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <span>Sample Interaction &bull; Reflective Mode</span>
-            </div>
-            <span className="text-xs text-emerald-300 font-mono">Reflective Intelligence</span>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-stone-800/80 p-4 rounded-xl border border-stone-700/60 max-w-xl">
-              <p className="text-xs font-semibold text-emerald-200 mb-1">You wrote:</p>
-              <p className="text-sm text-stone-200 italic font-serif leading-relaxed">
-                "I feel stretched thin between launching this new project and making time for deep rest. I keep confusing urgency with importance."
-              </p>
-            </div>
-
-            <div className="bg-stone-800/40 p-4 rounded-xl border border-stone-700/30 max-w-2xl ml-auto">
-              <p className="text-xs font-semibold text-stone-400 mb-1">ReflectAI Mirror:</p>
-              <p className="text-sm text-stone-300 leading-relaxed">
-                You've identified a classic cognitive trap: treating someone else's timeline as an existential emergency. What is one non-negotiable project boundary that, if held firmly for the next 48 hours, would restore your creative peace?
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="w-full max-w-7xl mx-auto px-6 py-6 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-3">
-        <p>&copy; {new Date().getFullYear()} ReflectAI. A calm, private space for thinking and longitudinal insight.</p>
-        <div className="flex items-center gap-4">
-          <span className="inline-flex items-center gap-1">
-            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-            OWASP &amp; Data Privacy Compliant
-          </span>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };

@@ -45,5 +45,29 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D5D0C7;
+  background: #6B6B6B;
 }
+
+/* Calm continuous water droplet expanding ripple waves */
+@keyframes water-ripple {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.14;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.animate-water-ripple {
+  opacity: 0;
+  animation: water-ripple 8s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
+  animation-fill-mode: backwards;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+

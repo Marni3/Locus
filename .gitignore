@@ -10,3 +10,4 @@ coverage/
 .impeccable/*.cache.json
 test-results/
 playwright-report/
+image_docs/

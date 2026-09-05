@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Send, 
-  Sparkles, 
   RefreshCw, 
   Check, 
   Copy, 
@@ -13,6 +12,7 @@ import {
   ListChecks, 
   Flame,
   BookMarked,
+  BookOpen,
   Smile,
   MoreVertical,
   Plus,
@@ -25,10 +25,13 @@ import {
   Navigation,
   Search,
   X,
-  Loader2
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Interaction, InteractionTurn, ReflectionMode } from '../types';
+import { Interaction, InteractionTurn, UserSettings, ReflectionMode } from '../types';
+import { extractCleanTitle, cleanProseSnippet } from '../lib/textUtils';
+import { LocusMark } from './LocusMark';
 import { getRemainingActiveMs, formatRemainingTime } from '../services/concludeEngine';
 
 interface SessionWorkspaceProps {
@@ -49,6 +52,7 @@ interface SessionWorkspaceProps {
   onToggleSidebar?: () => void;
   initialPrompt?: string;
   onDismissInitialPrompt?: () => void;
+  onNavigateToThemes?: () => void;
 }
 
 const STANCES: { id: ReflectionMode; label: string; icon: any; desc: string }[] = [
@@ -78,6 +82,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   onToggleSidebar,
   initialPrompt,
   onDismissInitialPrompt,
+  onNavigateToThemes,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -288,10 +293,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
     const updatedTurns = [...(interaction.turns || []), newTurn];
     
-    // Auto-update title if it's still default
+    // Auto-update title if it's still default (using clean whole-word extraction)
     let newTitle = interaction.title;
     if (interaction.title === 'New Reflection' || interaction.title === 'Untitled Reflection') {
-      newTitle = userPrompt.slice(0, 38) + (userPrompt.length > 38 ? '...' : '');
+      newTitle = extractCleanTitle(userPrompt);
       setTitle(newTitle);
     }
 
@@ -575,7 +580,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                   <div className="flex items-center justify-between pb-1.5 border-b border-stone-100">
                     <div>
                       <h4 className="font-semibold text-stone-800 text-xs">Location Context</h4>
-                      <p className="text-[10px] text-stone-400">Attach where you are thinking from</p>
+                      <p className="text-xs text-stone-400">Attach where you are thinking from</p>
                     </div>
                     <button
                       type="button"
@@ -587,7 +592,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                   </div>
 
                   {locationError && (
-                    <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-[11px]">
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs">
                       {locationError}
                     </div>
                   )}
@@ -608,7 +613,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                     <span>Use Current GPS</span>
                   </button>
 
-                  <div className="flex items-center gap-2 text-[10px] text-stone-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-xs text-stone-400 uppercase tracking-wider">
                     <span className="flex-1 h-px bg-stone-200"></span>
                     <span>Or Search / Type</span>
                     <span className="flex-1 h-px bg-stone-200"></span>
@@ -640,7 +645,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                           type="button"
                           id="workspace-remove-location-btn"
                           onClick={handleRemoveLocation}
-                          className="text-[11px] text-rose-600 hover:underline cursor-pointer"
+                          className="text-xs text-rose-600 hover:underline cursor-pointer"
                         >
                           Clear location
                         </button>
@@ -665,21 +670,21 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
             {/* Save Status Indicator */}
             <div className="flex items-center gap-1.5 ml-auto md:ml-2">
               {isSaving ? (
-                <span className="flex items-center gap-1 text-[11px] text-stone-500">
+                <span className="flex items-center gap-1 text-xs text-stone-500">
                   <RefreshCw className="w-2.5 h-2.5 animate-spin text-emerald-800" />
                   <span>Saving...</span>
                 </span>
               ) : saveError ? (
                 <button
                   onClick={onRetrySave}
-                  className="flex items-center gap-1 text-[11px] text-rose-600 hover:underline cursor-pointer"
+                  className="flex items-center gap-1 text-xs text-rose-600 hover:underline cursor-pointer"
                   title={saveError}
                 >
                   <AlertCircle className="w-3 h-3" />
                   <span>Save failed (Retry)</span>
                 </button>
               ) : (
-                <span className="flex items-center gap-1 text-[11px] text-emerald-800 font-medium">
+                <span className="flex items-center gap-1 text-xs text-emerald-800 font-medium">
                   <Check className="w-3 h-3" />
                   <span>Saved</span>
                 </span>
@@ -761,7 +766,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
       {/* Stance Selector Banner */}
       <div className="px-6 py-2 bg-[#F9F7F2] border-b border-stone-200 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
-        <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider shrink-0">
+        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider shrink-0">
           Mode:
         </span>
         {STANCES.map((st) => {
@@ -785,366 +790,484 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
         })}
       </div>
 
-      {/* Center Reflection Turns Scrollable Feed */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
-        {turns.length === 0 ? (
-          <div className="max-w-xl mx-auto py-12 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mx-auto shadow-2xs">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-serif-heading text-xl font-bold text-stone-900">
-                Begin your reflection
-              </h3>
-              <p className="text-sm text-stone-500 mt-1.5 leading-relaxed font-sans">
-                Write down what's on your mind. Explore a challenge, reflect on a recent decision, or unpack your day.
-              </p>
-            </div>
+      {/* Reflection Turns & Workspace Layout */}
+      {(() => {
+        const cleanSummary = cleanProseSnippet(interaction.summary || '');
 
-            {/* Floating Inspiration Chip if launched from daily prompt */}
-            {initialPrompt && (
-              <div className="p-4 bg-[#DCEEE3]/40 border border-[#3B7A57]/30 rounded-2xl text-left space-y-2 relative group mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wider font-semibold text-[#3B7A57] flex items-center gap-1.5 font-sans">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Daily Reflection Inspiration
-                  </span>
-                  {onDismissInitialPrompt && (
-                    <button
-                      onClick={onDismissInitialPrompt}
-                      className="p-1 text-stone-400 hover:text-stone-600 rounded-md cursor-pointer"
-                      title="Dismiss prompt"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+        const renderTurnsFeed = (compact?: boolean) => {
+          if (turns.length === 0) {
+            return (
+              <div className="max-w-xl mx-auto py-12 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent-sage-tint text-accent-sage flex items-center justify-center mx-auto shadow-2xs">
+                  <Compass className="w-6 h-6" />
                 </div>
-                <p className="font-serif text-sm sm:text-base text-stone-900 italic leading-snug">
-                  "{initialPrompt}"
-                </p>
-                <button
-                  onClick={() => setInputText(initialPrompt)}
-                  className="text-xs text-[#3B7A57] font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
-                >
-                  Use this contemplation as your starter &rarr;
-                </button>
+                <div>
+                  <h3 className="font-serif-heading text-xl font-bold text-stone-900">
+                    Begin your reflection
+                  </h3>
+                  <p className="text-sm text-stone-500 mt-1.5 leading-relaxed font-sans">
+                    Write down what's on your mind. Explore a challenge, reflect on a recent decision, or unpack your day.
+                  </p>
+                </div>
+
+                {/* Floating Inspiration Chip if launched from daily prompt */}
+                {initialPrompt && (
+                  <div className="p-4 bg-[#DCEEE3]/40 border border-[#3B7A57]/30 rounded-2xl text-left space-y-2 relative group mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-wider font-semibold text-[#3B7A57] flex items-center gap-1.5 font-sans">
+                        <Compass className="w-3.5 h-3.5" />
+                        Daily Reflection Inspiration
+                      </span>
+                      {onDismissInitialPrompt && (
+                        <button
+                          onClick={onDismissInitialPrompt}
+                          className="p-1 text-stone-400 hover:text-stone-600 rounded-md cursor-pointer"
+                          title="Dismiss prompt"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="font-serif text-sm sm:text-base text-stone-900 italic leading-snug">
+                      "{initialPrompt}"
+                    </p>
+                    <button
+                      onClick={() => setInputText(initialPrompt)}
+                      className="text-xs text-[#3B7A57] font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
+                    >
+                      Use this contemplation as your starter &rarr;
+                    </button>
+                  </div>
+                )}
+
+                {/* Prompt Starter Pills */}
+                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                  {[
+                    'What made today feel productive or draining?',
+                    'I am torn between two choices and want to weigh trade-offs.',
+                    'Help me unpack why I am feeling hesitant about this goal.',
+                    'I want to express gratitude for three specific moments today.',
+                  ].map((prompt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setInputText(prompt)}
+                      className="p-3 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-snug transition-all text-left shadow-2xs cursor-pointer"
+                    >
+                      "{prompt}"
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
+            );
+          }
 
-            {/* Prompt Starter Pills */}
-            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-              {[
-                'What made today feel productive or draining?',
-                'I am torn between two choices and want to weigh trade-offs.',
-                'Help me unpack why I am feeling hesitant about this goal.',
-                'I want to express gratitude for three specific moments today.',
-              ].map((prompt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setInputText(prompt)}
-                  className="p-3 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-snug transition-all text-left shadow-2xs cursor-pointer"
-                >
-                  "{prompt}"
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className={`mx-auto space-y-6 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
-            {turns.map((turn, idx) => {
-              const isUser = turn.role === 'user';
+          return (
+            <div className={`mx-auto space-y-6 transition-all duration-300 ${compact ? 'max-w-full' : isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
+              {turns.map((turn, idx) => {
+                const isUser = turn.role === 'user';
 
-              return (
-                <div
-                  key={turn.id || idx}
-                  id={`turn-${turn.id || idx}`}
-                  className={`group relative flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
-                >
-                  {/* Turn Card */}
+                return (
                   <div
-                    className={`rounded-2xl p-5 shadow-2xs transition-all ${
-                      isSidebarOpen ? 'max-w-2xl' : 'max-w-3xl'
-                    } ${
-                      isUser
-                        ? 'bg-[#F2EFEB] border border-[#E6E3DC] text-[#232323] rounded-br-xs'
-                        : 'bg-white border border-[#E6E3DC] text-[#232323] rounded-bl-xs'
-                    }`}
+                    key={turn.id || idx}
+                    id={`turn-${turn.id || idx}`}
+                    className={`group relative flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
                   >
-                    {/* Role Header */}
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase font-sans">
-                        {isUser ? (
-                          <span className="text-[#3B7A57]">You &bull; Reflection</span>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-[#3B7A57]">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Reflection Companion</span>
-                          </div>
-                        )}
-                        {turn.isPinned && (
-                          <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900">
-                            <Pin className="w-2.5 h-2.5 fill-current" />
-                            <span>Pinned</span>
+                    {/* Turn Card */}
+                    <div
+                      className={`rounded-2xl p-4 sm:p-5 shadow-2xs transition-all ${
+                        compact ? 'max-w-full' : isSidebarOpen ? 'max-w-2xl' : 'max-w-3xl'
+                      } ${
+                        isUser
+                          ? 'bg-[#F2EFEB] border border-[#E6E3DC] text-[#232323] rounded-br-xs'
+                          : 'bg-white border border-[#E6E3DC] text-[#232323] rounded-bl-xs'
+                      }`}
+                    >
+                      {/* Role Header */}
+                      <div className="flex items-center justify-between gap-4 mb-2">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase font-sans">
+                          {isUser ? (
+                            <span className="text-[#3B7A57]">You &bull; Reflection</span>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-accent-sage">
+                              <LocusMark className="w-3.5 h-3.5" />
+                              <span>Reflection Companion</span>
+                            </div>
+                          )}
+                          {turn.isPinned && (
+                            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-900">
+                              <Pin className="w-2.5 h-2.5 fill-current" />
+                              <span>Pinned</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-stone-400">
+                            {new Date(turn.createdAt || turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                        )}
+
+                          {/* Turn Pin Toggle */}
+                          <button
+                            onClick={() => handleTogglePin(turn.id, turn.isPinned)}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              turn.isPinned
+                                ? 'text-amber-500 bg-amber-900/30'
+                                : isUser
+                                ? 'text-stone-500 hover:text-stone-300'
+                                : 'text-stone-400 hover:text-stone-600'
+                            }`}
+                            title={turn.isPinned ? 'Unpin message' : 'Pin message'}
+                            aria-label={turn.isPinned ? 'Unpin message' : 'Pin message'}
+                          >
+                            <Pin className={`w-3 h-3 ${turn.isPinned ? 'fill-current' : ''}`} />
+                          </button>
+
+                          {/* Turn Note Toggle */}
+                          <button
+                            onClick={() => {
+                              setEditingNoteTurnId(editingNoteTurnId === turn.id ? null : turn.id);
+                              setNoteDraft(turn.note || '');
+                            }}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              turn.note
+                                ? 'text-emerald-400'
+                                : isUser
+                                ? 'text-stone-500 hover:text-stone-300'
+                                : 'text-stone-400 hover:text-stone-600'
+                            }`}
+                            title={turn.note ? 'Edit note' : 'Add personal note'}
+                            aria-label={turn.note ? 'Edit note' : 'Add personal note'}
+                          >
+                            <StickyNote className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] ${isUser ? 'text-stone-400' : 'text-stone-400'}`}>
-                          {new Date(turn.createdAt || turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      {/* Turn Content */}
+                      {isUser ? (
+                        <p className="text-sm font-serif whitespace-pre-wrap leading-relaxed">
+                          {turn.content}
+                        </p>
+                      ) : (
+                        <div className="text-sm font-sans leading-relaxed text-stone-800 space-y-2">
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-stone-900 mt-2 mb-1">{children}</h3>,
+                              h2: ({ children }) => <h4 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h4>,
+                              h3: ({ children }) => <h5 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h5>,
+                              p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
+                              blockquote: ({ children }) => <blockquote className="border-l-2 border-[#3B7A57] pl-3 italic text-stone-600 my-2">{children}</blockquote>,
+                              strong: ({ children }) => <strong className="font-semibold text-stone-900">{children}</strong>,
+                            }}
+                          >
+                            {turn.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
 
-                        {/* Turn Pin Toggle */}
-                        <button
-                          onClick={() => handleTogglePin(turn.id, turn.isPinned)}
-                          className={`p-1 rounded transition-colors cursor-pointer ${
-                            turn.isPinned
-                              ? 'text-amber-500 bg-amber-900/30'
-                              : isUser
-                              ? 'text-stone-500 hover:text-stone-300'
-                              : 'text-stone-400 hover:text-stone-600'
-                          }`}
-                          title={turn.isPinned ? 'Unpin message' : 'Pin message'}
-                          aria-label={turn.isPinned ? 'Unpin message' : 'Pin message'}
-                        >
-                          <Pin className={`w-3 h-3 ${turn.isPinned ? 'fill-current' : ''}`} />
-                        </button>
+                      {/* Actions on Assistant turns */}
+                      {!isUser && (
+                        <div className="mt-3 pt-2.5 border-t border-stone-100 flex items-center justify-end gap-2 text-stone-400">
+                          <button
+                            onClick={() => onOpenSaveNotebook(turn.content)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs text-stone-600 hover:text-emerald-900 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
+                            title="Save this excerpt to your Notebook"
+                          >
+                            <BookMarked className="w-3.5 h-3.5 text-[#3B7A57]" />
+                            <span className="text-xs font-medium">Save to Notebook</span>
+                          </button>
 
-                        {/* Turn Note Toggle */}
-                        <button
-                          onClick={() => {
-                            setEditingNoteTurnId(editingNoteTurnId === turn.id ? null : turn.id);
-                            setNoteDraft(turn.note || '');
-                          }}
-                          className={`p-1 rounded transition-colors cursor-pointer ${
-                            turn.note
-                              ? 'text-emerald-400'
-                              : isUser
-                              ? 'text-stone-500 hover:text-stone-300'
-                              : 'text-stone-400 hover:text-stone-600'
-                          }`}
-                          title={turn.note ? 'Edit note' : 'Add personal note'}
-                          aria-label={turn.note ? 'Edit note' : 'Add personal note'}
-                        >
-                          <StickyNote className="w-3 h-3" />
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => handleCopyText(turn.id, turn.content)}
+                            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
+                            title="Copy response"
+                          >
+                            {copiedTurnId === turn.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-700" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Attached Note Display */}
+                      {turn.note && editingNoteTurnId !== turn.id && (
+                        <div className="mt-3 p-2.5 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-950 flex items-start gap-2 shadow-2xs">
+                          <StickyNote className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold text-xs text-amber-900 uppercase tracking-wide block">Note</span>
+                            <p className="mt-0.5 whitespace-pre-wrap font-sans text-amber-900/90">{turn.note}</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setEditingNoteTurnId(turn.id);
+                              setNoteDraft(turn.note || '');
+                            }}
+                            className="text-xs font-medium text-amber-800 hover:underline cursor-pointer ml-2"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Inline Note Editor */}
+                      {editingNoteTurnId === turn.id && (
+                        <div className="mt-3 p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2 text-xs">
+                          <span className="font-semibold text-stone-700 block">Personal Note</span>
+                          <textarea
+                            value={noteDraft}
+                            onChange={(e) => setNoteDraft(e.target.value)}
+                            placeholder="Type a reflection note on this message..."
+                            rows={2}
+                            className="w-full bg-white p-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-[#3B7A57] font-sans resize-none text-stone-800"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => { setEditingNoteTurnId(null); setNoteDraft(''); }}
+                              className="px-2.5 py-1 text-xs text-stone-600 hover:text-stone-800 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveNote(turn.id, noteDraft)}
+                              className="px-3 py-1 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs cursor-pointer"
+                            >
+                              Save Note
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Turn Content (Typography division: Serif for user thoughts, Sans for companion) */}
-                    {isUser ? (
-                      <p className="text-sm font-serif whitespace-pre-wrap leading-relaxed">
-                        {turn.content}
-                      </p>
-                    ) : (
-                      <div className="text-sm font-sans leading-relaxed text-stone-800 space-y-2">
-                        <ReactMarkdown
-                          components={{
-                            h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-stone-900 mt-2 mb-1">{children}</h3>,
-                            h2: ({ children }) => <h4 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h4>,
-                            h3: ({ children }) => <h5 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h5>,
-                            p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
-                            ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
-                            blockquote: ({ children }) => <blockquote className="border-l-2 border-emerald-800 pl-3 italic text-stone-600 my-2">{children}</blockquote>,
-                            strong: ({ children }) => <strong className="font-semibold text-stone-900">{children}</strong>,
-                          }}
-                        >
-                          {turn.content}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-
-                    {/* Actions on Assistant turns: Copy & Bookmark to Notebook */}
-                    {!isUser && (
-                      <div className="mt-3 pt-2.5 border-t border-stone-100 flex items-center justify-end gap-2 text-stone-400">
-                        <button
-                          onClick={() => onOpenSaveNotebook(turn.content)}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs text-stone-600 hover:text-emerald-900 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
-                          title="Save this excerpt to your Notebook"
-                        >
-                          <BookMarked className="w-3.5 h-3.5 text-emerald-800" />
-                          <span className="text-[11px] font-medium">Save to Notebook</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleCopyText(turn.id, turn.content)}
-                          className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
-                          title="Copy response"
-                        >
-                          {copiedTurnId === turn.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-700" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Attached Note Display */}
-                    {turn.note && editingNoteTurnId !== turn.id && (
-                      <div className="mt-3 p-2.5 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-stone-800 flex items-start gap-2 shadow-2xs">
-                        <StickyNote className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <span className="font-semibold text-[10px] text-amber-900 uppercase tracking-wide block">Note</span>
-                          <p className="mt-0.5 whitespace-pre-wrap font-sans text-stone-700">{turn.note}</p>
+                    {/* Inline Message Resend on Failure */}
+                    {failedTurnId === turn.id && (
+                      <div className="mt-2 flex items-center justify-between gap-3 p-3 bg-red-50/90 border border-red-200 rounded-xl text-xs text-red-800 shadow-2xs max-w-lg">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                          <span>Unable to send message right now. Your text is safely preserved.</span>
                         </div>
                         <button
-                          onClick={() => {
-                            setEditingNoteTurnId(turn.id);
-                            setNoteDraft(turn.note || '');
-                          }}
-                          className="text-[10px] font-medium text-amber-800 hover:underline cursor-pointer ml-2"
+                          onClick={() => handleResendTurn(turn)}
+                          disabled={isGenerating}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#3B7A57] text-white text-xs font-semibold hover:opacity-95 transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-50"
                         >
-                          Edit
+                          <RefreshCw className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
+                          <span>Resend</span>
                         </button>
-                      </div>
-                    )}
-
-                    {/* Inline Note Editor */}
-                    {editingNoteTurnId === turn.id && (
-                      <div className="mt-3 p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2 text-xs">
-                        <span className="font-semibold text-stone-700 block">Personal Note</span>
-                        <textarea
-                          value={noteDraft}
-                          onChange={(e) => setNoteDraft(e.target.value)}
-                          placeholder="Type a reflection note on this message..."
-                          rows={2}
-                          className="w-full bg-white p-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-emerald-700 font-sans resize-none text-stone-800"
-                        />
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => { setEditingNoteTurnId(null); setNoteDraft(''); }}
-                            className="px-2.5 py-1 text-xs text-stone-600 hover:text-stone-800 cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleSaveNote(turn.id, noteDraft)}
-                            className="px-3 py-1 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg shadow-2xs cursor-pointer"
-                          >
-                            Save Note
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>
+                );
+              })}
 
-                  {/* Inline Message Resend on Failure */}
-                  {failedTurnId === turn.id && (
-                    <div className="mt-2 flex items-center justify-between gap-3 p-3 bg-red-50/90 border border-red-200 rounded-xl text-xs text-red-800 shadow-2xs max-w-lg">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                        <span>Unable to send message right now. Your text is safely preserved.</span>
-                      </div>
-                      <button
-                        onClick={() => handleResendTurn(turn)}
-                        disabled={isGenerating}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#3B7A57] text-white text-xs font-semibold hover:opacity-95 transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-50"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
-                        <span>Resend</span>
-                      </button>
-                    </div>
-                  )}
+              {/* In-Flight Reflection Thought Indicator */}
+              {isGenerating && (
+                <div className="flex items-center gap-3 py-3 px-1">
+                  <div className="w-7 h-7 rounded-lg bg-surface border border-border-hairline flex items-center justify-center text-accent-sage shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-accent-sage animate-ping" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-serif italic text-sm text-text-muted">
+                      Reflecting with you…
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
+              )}
 
-            {/* In-Flight Thinking Indicator */}
-            {isGenerating && (
-              <div className="flex items-start gap-3 animate-pulse">
-                <div className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-emerald-800 shadow-2xs">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div className="bg-white border border-stone-200 rounded-2xl rounded-tl-xs p-4 shadow-2xs space-y-2 max-w-sm">
-                  <div className="h-2.5 bg-stone-200 rounded-full w-48" />
-                  <div className="h-2.5 bg-stone-200 rounded-full w-32" />
-                  <span className="text-[11px] text-stone-500 font-sans italic">
-                    Synthesizing reflection...
+              <div ref={messagesEndRef} />
+            </div>
+          );
+        };
+
+        if (interaction.status === 'concluded') {
+          return (
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row bg-[#FAF9F6]">
+              {/* Left Column (60% on desktop): Chronological Conversation Transcript */}
+              <div className="flex-1 lg:w-3/5 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 border-b lg:border-b-0 lg:border-r border-[#E6E3DC]">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E6E3DC]/60 max-w-2xl mx-auto">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[#6B6B6B] font-sans flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#3B7A57]" />
+                    Chronological Transcript ({turns.length} {turns.length === 1 ? 'turn' : 'turns'})
+                  </span>
+                  <span className="text-xs text-[#6B6B6B] font-sans">
+                    Preserved Historical Record
                   </span>
                 </div>
+                {renderTurnsFeed(true)}
               </div>
-            )}
 
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Composer Bar or Concluded State Banner */}
-      {interaction.status === 'concluded' ? (
-        <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
-          <div className={`mx-auto transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
-            <div className="bg-[#FAF9F6] border border-stone-200 rounded-2xl p-5 text-center space-y-3 shadow-2xs">
-              <div className="flex items-center justify-center gap-2 text-emerald-800 font-semibold text-sm">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>This reflection entry is concluded &amp; synthesized</span>
-              </div>
-              <p className="text-xs text-stone-600 max-w-lg mx-auto font-sans leading-relaxed">
-                {interaction.summary
-                  ? `Summary: "${interaction.summary}"`
-                  : 'Themes and cross-session observations have been linked. Concluded entries are preserved as immutable records.'}
-              </p>
-              {onNewSession && (
-                <button
-                  id="workspace-start-new-reflection-btn"
-                  onClick={onNewSession}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-xl shadow-2xs transition-all cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Start New Reflection</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
-          <div className={`mx-auto space-y-2 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
-            <div className="relative bg-[#FDFBF7] rounded-2xl border border-stone-200 focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/20 transition-all p-3 shadow-2xs">
-              <textarea
-                ref={textareaRef}
-                id="workspace-prompt-textarea"
-                rows={3}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Reflect on your thoughts, ask for clarity, or brainstorm next steps..."
-                className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none resize-none font-sans leading-relaxed"
-                disabled={isGenerating}
-              />
-
-              <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                <span className="text-[11px] text-stone-400 hidden sm:inline">
-                  Shift + Enter for new line
-                </span>
-
-                <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    id="workspace-send-button"
-                    onClick={handleSendMessage}
-                    disabled={!inputText.trim() || isGenerating}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
-                  >
-                    {isGenerating ? (
+              {/* Right Column (40% on desktop): Executive Synthesis Dossier */}
+              <div id="concluded-synthesis-dossier" className="lg:w-2/5 overflow-y-auto p-5 sm:p-7 bg-white space-y-6 shrink-0 shadow-xs">
+                {/* Header & Status */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#DCEEE3] text-[#3B7A57]">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Concluded &amp; Synthesized</span>
+                  </div>
+                  <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#232323] leading-snug">
+                    {interaction.title || 'Executive Reflection Synthesis'}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6B6B] font-sans">
+                    <span>
+                      {interaction.concludedAt 
+                        ? new Date(interaction.concludedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'Concluded'}
+                    </span>
+                    {interaction.locationContext?.name && (
                       <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Reflecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Send</span>
-                        <Send className="w-3.5 h-3.5" />
+                        <span>&middot;</span>
+                        <span className="inline-flex items-center gap-1 text-[#3B7A57]">
+                          <MapPin className="w-3 h-3" />
+                          {interaction.locationContext.name}
+                        </span>
                       </>
                     )}
-                  </button>
+                    {interaction.category && (
+                      <>
+                        <span>&middot;</span>
+                        <span className="capitalize">{interaction.category}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Editorial Synthesis Block (clean quotes) */}
+                <div className="p-4 rounded-xl bg-canvas border border-border-hairline space-y-2 shadow-2xs">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-text-muted font-sans block">
+                    Executive Synthesis
+                  </span>
+                  <p className="font-serif text-sm sm:text-base text-text-primary leading-relaxed italic">
+                    "{cleanSummary || 'Themes and cross-session observations have been linked into your concept graph. Concluded entries are preserved as immutable records.'}"
+                  </p>
+                </div>
+
+                {/* Key Insights / Takeaways if present */}
+                {interaction.keyTakeaways && interaction.keyTakeaways.length > 0 && (
+                  <div className="space-y-2.5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted font-sans flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 text-accent-sage" />
+                      Key Takeaways
+                    </h3>
+                    <ul className="space-y-2">
+                      {interaction.keyTakeaways.map((takeaway, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-text-primary font-sans leading-relaxed">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent-sage shrink-0 mt-2" />
+                          <span>{takeaway}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Qualitative Tags */}
+                {interaction.tags && interaction.tags.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted font-sans flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-accent-sage" />
+                      Qualitative Tags
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {interaction.tags.map(t => (
+                        <span key={t} className="px-2.5 py-1 rounded-md text-xs font-medium bg-canvas border border-border-hairline text-text-muted font-sans">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Immutability Assurance */}
+                <div className="p-3 bg-canvas border border-border-hairline rounded-xl text-xs text-text-muted font-sans space-y-1">
+                  <span className="font-semibold text-text-primary block">Immutable Record</span>
+                  <p>This reflection session is preserved in full. Observations have been extracted and mapped into your Concept Graph.</p>
+                </div>
+
+                {/* Call to Actions */}
+                <div className="pt-4 border-t border-border-hairline space-y-2.5">
+                  {onNewSession && (
+                    <button
+                      id="workspace-start-new-reflection-btn"
+                      onClick={onNewSession}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-accent-sage hover:opacity-95 text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Start New Reflection</span>
+                    </button>
+                  )}
+                  {onNavigateToThemes && (
+                    <button
+                      id="workspace-dossier-view-themes-btn"
+                      onClick={onNavigateToThemes}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border-hairline hover:border-accent-sage text-text-primary hover:text-accent-sage text-xs font-medium transition-all cursor-pointer"
+                    >
+                      <span>Explore Themes &amp; Concept Graph</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        }
+
+        return (
+          <>
+            {/* Center Reflection Turns Scrollable Feed */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
+              {renderTurnsFeed(false)}
+            </div>
+
+            {/* Bottom Composer Bar */}
+            <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
+              <div className={`mx-auto space-y-2 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
+                <div className="relative bg-[#FDFBF7] rounded-2xl border border-stone-200 focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/20 transition-all p-3 shadow-2xs">
+                  <textarea
+                    ref={textareaRef}
+                    id="workspace-prompt-textarea"
+                    rows={3}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Reflect on your thoughts, ask for clarity, or brainstorm next steps..."
+                    className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none resize-none font-sans leading-relaxed"
+                    disabled={isGenerating}
+                  />
+
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+                    <span className="text-xs text-stone-400 hidden sm:inline">
+                      Shift + Enter for new line
+                    </span>
+
+                    <div className="flex items-center gap-2 ml-auto">
+                      <button
+                        id="workspace-send-button"
+                        onClick={handleSendMessage}
+                        disabled={!inputText.trim() || isGenerating}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Reflecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send</span>
+                            <Send className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </main>
   );
 };

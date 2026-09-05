@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Sparkles, 
   X, 
   Search, 
   Compass, 
@@ -12,6 +11,7 @@ import {
   Plus
 } from 'lucide-react';
 import { Entry, Theme } from '../types';
+import { cleanProseSnippet } from '../lib/textUtils';
 
 interface ReflectionsHomeProps {
   entries: Entry[];
@@ -149,7 +149,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                 <Compass className="w-4 h-4" />
               </div>
               <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted flex items-center gap-1.5 font-sans">
+                <span className="text-[13px] uppercase tracking-wider font-semibold text-text-muted flex items-center gap-1.5 font-sans">
                   Daily Reflection Prompt
                 </span>
                 <p className="font-serif text-base sm:text-lg font-medium text-text-primary group-hover:text-accent-sage transition-colors leading-snug">
@@ -181,7 +181,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-accent-sage" />
               <h2 className="text-xs uppercase tracking-wider font-semibold text-text-muted font-sans">
-                Ready for Longitudinal Synthesis
+                Ready for Synthesis
               </h2>
             </div>
             <span className="text-xs text-text-muted font-sans">
@@ -189,16 +189,16 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
             </span>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2">
             {readyThemes.map(theme => (
               <div
                 key={theme.id}
                 onClick={() => onSelectTheme(theme)}
-                className="shrink-0 w-64 sm:w-72 bg-surface border border-border-hairline rounded-xl p-3.5 hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
+                className="shrink-0 w-64 sm:w-72 snap-start bg-surface border border-border-hairline rounded-xl p-3.5 hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-text-muted mb-1 font-sans">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-accent-sage-tint text-accent-sage">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-sage-tint text-accent-sage">
                       {theme.observationCount} observations
                     </span>
                     <span>{formatRelativeDate(theme.updatedAt)}</span>
@@ -206,12 +206,12 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                   <h3 className="font-serif text-sm sm:text-base font-semibold text-text-primary group-hover:text-accent-sage transition-colors line-clamp-1">
                     {theme.title}
                   </h3>
-                  <p className="text-xs text-[#4A4A4A] line-clamp-2 mt-1 leading-relaxed font-sans">
+                  <p className="text-xs text-text-muted line-clamp-2 mt-1 leading-relaxed font-sans">
                     {theme.currentSynthesis || 'Observations accumulated and ready to unpack into trajectory insights.'}
                   </p>
                 </div>
                 <div className="mt-2 text-right">
-                  <span className="text-[11px] font-medium text-accent-sage inline-flex items-center gap-0.5">
+                  <span className="text-xs font-medium text-accent-sage inline-flex items-center gap-0.5">
                     Unpack theme &rarr;
                   </span>
                 </div>
@@ -269,7 +269,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
         {/* Qualitative Tag Filter Chips (if tags exist) */}
         {allTags.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            <span className="text-[11px] text-text-muted uppercase tracking-wider font-semibold font-sans shrink-0 mr-1">
+            <span className="text-[13px] text-text-muted uppercase tracking-wider font-semibold font-sans shrink-0 mr-1">
               Tags:
             </span>
             {selectedTag && (
@@ -305,8 +305,8 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
         </div>
       ) : filteredEntries.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-border-hairline rounded-2xl p-8 bg-surface space-y-3">
-          <div className="w-10 h-10 rounded-full bg-accent-sage-tint text-accent-sage flex items-center justify-center mx-auto">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-full bg-accent-sage-tint text-accent-sage flex items-center justify-center mx-auto shadow-2xs">
+            <Compass className="w-5 h-5" />
           </div>
           <h3 className="font-serif text-lg font-semibold text-text-primary">
             {searchTerm || selectedTag || activeFilter !== 'all'
@@ -327,7 +327,13 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
           </button>
         </div>
       ) : (
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-3.5 space-y-3.5">
+        <div className={
+          filteredEntries.length === 1
+            ? 'max-w-xl mx-auto'
+            : filteredEntries.length === 2
+            ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto'
+            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+        }>
           {filteredEntries.map(entry => {
             const hasLocation = Boolean(entry.locationContext?.name);
             const relativeDate = formatRelativeDate(entry.updatedAt || entry.createdAt);
@@ -337,7 +343,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
               <div
                 key={entry.id}
                 onClick={() => onSelectEntry(entry)}
-                className="break-inside-avoid bg-surface border border-border-hairline rounded-xl p-3.5 md:p-4 hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer flex flex-col text-left group relative"
+                className="bg-surface border border-border-hairline rounded-2xl p-4 md:p-5 hover:border-[#D5D0C7] hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between text-left group relative"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectEntry(entry)}
@@ -345,10 +351,10 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
               >
                 {/* Status Indicator & Header */}
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-1.5 text-[11px] text-text-muted font-sans">
+                  <div className="flex items-center gap-1.5 text-[13px] text-text-muted font-sans">
                     {isActive ? (
-                      <span className="inline-flex items-center gap-1 text-accent-sage font-medium">
-                        <span className="w-2 h-2 rounded-full bg-accent-sage animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 text-accent-sage font-medium">
+                        <span className="w-2 h-2 rounded-full bg-accent-sage ring-2 ring-accent-sage/25 shrink-0" />
                         In Progress
                       </span>
                     ) : (
@@ -376,21 +382,23 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                 </h3>
 
                 {/* 3-4 Sentence Conversation Gist / AI Summary */}
-                <p className="text-xs sm:text-[13px] text-[#4A4A4A] leading-relaxed line-clamp-6 my-2 font-sans">
-                  {entry.summary || (
-                    entry.turns && entry.turns.length > 0
-                      ? entry.turns[entry.turns.length - 1].content
-                      : 'Reflection session in progress. Tap to open and continue dialogue.'
+                <p className="text-xs sm:text-[13px] text-text-primary/80 leading-relaxed line-clamp-6 my-2 font-sans">
+                  {cleanProseSnippet(
+                    entry.summary || (
+                      entry.turns && entry.turns.length > 0
+                        ? entry.turns[entry.turns.length - 1].content
+                        : 'Reflection session in progress. Tap to open and continue dialogue.'
+                    )
                   )}
                 </p>
 
                 {/* Qualitative Tags Chips */}
                 {entry.tags && entry.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1 pt-1.5 border-t border-border-hairline/60">
+                  <div className="flex flex-wrap gap-1.5 mt-1 pt-2 border-t border-border-hairline/60">
                     {entry.tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#F4F3EE] text-[#555] font-sans"
+                        className="inline-block text-xs font-medium px-2 py-0.5 rounded-md bg-[#F4F3EE] text-text-muted font-sans border border-border-hairline/40"
                       >
                         #{tag}
                       </span>

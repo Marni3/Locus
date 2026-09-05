@@ -28,6 +28,11 @@ export function getSampleDemoDataset(userId: string = DEMO_USER_ID): {
         source: 'manual',
       },
       tags: ['Friction', 'Decision'],
+      keyTakeaways: [
+        'Endless build tooling refactoring acted as an emotional shield against vulnerability.',
+        'Shipping requires drawing a definitive scope boundary on secondary features.',
+        'Immediate goal: establish the single core reflection loop with real users.'
+      ],
       summary:
         'Confronted severe creative paralysis around project launch. Realized that endlessly refactoring build tools and staging configs was an emotional buffer against shipping. Decided to define a minimal viable boundary and pause all secondary features.',
       starred: true,

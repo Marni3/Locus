@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Sparkles, 
   Plus, 
   LogOut, 
   Settings, 
@@ -9,6 +8,7 @@ import {
   ArrowLeft,
   ChevronDown
 } from 'lucide-react';
+import { LocusMark } from './LocusMark';
 import { UserProfile } from '../types';
 
 interface NavbarProps {
@@ -51,17 +51,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <div 
               onClick={() => onViewChange('reflections')}
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="flex items-center gap-2.5 cursor-pointer group"
             >
-              <div className="w-8 h-8 rounded-xl bg-accent-sage flex items-center justify-center text-white shadow-xs">
-                <Sparkles className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-accent-sage flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
+                <LocusMark className="w-4 h-4" />
               </div>
-              <div>
+              <div className="flex items-baseline gap-2">
                 <h1 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-text-primary leading-none">
                   Locus
                 </h1>
-                <span className="text-[11px] font-medium text-text-muted font-sans">
-                  Reflective Journal
+                <span className="text-xs font-medium text-text-muted font-sans uppercase tracking-widest hidden sm:inline-block">
+                  Sanctuary
                 </span>
               </div>
             </div>
@@ -154,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <p className="font-semibold text-text-primary truncate">
                     {user.displayName || 'Reflective Journaler'}
                   </p>
-                  <p className="text-[11px] text-text-muted truncate">{user.email}</p>
+                  <p className="text-[13px] text-text-muted truncate">{user.email}</p>
                 </div>
 
                 <button

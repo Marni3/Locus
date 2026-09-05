@@ -5,7 +5,7 @@ import {
   FolderOpen, 
   Search, 
   Trash2, 
-  Sparkles, 
+  Compass, 
   ArrowUpRight, 
   Layers, 
   Edit2
@@ -72,7 +72,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
             <Folder className="w-4 h-4 text-emerald-800" />
             <span>Folders</span>
           </div>
-          <span className="text-[11px] text-stone-500 font-medium">{items.length} saved</span>
+          <span className="text-[13px] text-stone-500 font-medium">{items.length} saved</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto space-y-1">
@@ -88,7 +88,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
               <FolderOpen className="w-3.5 h-3.5 text-stone-400" />
               <span>All Insights</span>
             </div>
-            <span className="text-[10px] text-stone-400">{items.length}</span>
+            <span className="text-[13px] text-stone-400">{items.length}</span>
           </button>
 
           {folders.map((f) => {
@@ -108,7 +108,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
                   <Folder className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                   <span className="truncate">{f}</span>
                 </div>
-                <span className="text-[10px] text-stone-400 shrink-0">{count}</span>
+                <span className="text-[13px] text-stone-400 shrink-0">{count}</span>
               </button>
             );
           })}
@@ -175,7 +175,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
                   >
                     <div className="space-y-3">
                       {/* Top metadata */}
-                      <div className="flex items-center justify-between text-[11px] text-stone-500">
+                      <div className="flex items-center justify-between text-[13px] text-stone-500">
                         <span className="font-semibold text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                           {note.folderName}
                         </span>
@@ -199,7 +199,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
                       {/* Context Hint */}
                       {note.contextHint && (
                         <div className="flex items-start gap-1.5 p-2.5 bg-[#F9F7F2] rounded-xl border border-stone-100 text-xs text-stone-600 leading-relaxed">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                          <Compass className="w-3.5 h-3.5 text-accent-sage shrink-0 mt-0.5" />
                           <span>{note.contextHint}</span>
                         </div>
                       )}
@@ -259,7 +259,7 @@ export const NotebookView: React.FC<NotebookViewProps> = ({
                       {!note.userNote && !isEditing && (
                         <button
                           onClick={() => handleStartEdit(note)}
-                          className="text-[11px] text-stone-400 hover:text-stone-700 font-medium cursor-pointer"
+                          className="text-[13px] text-stone-400 hover:text-stone-700 font-medium cursor-pointer"
                         >
                           + Add Note
                         </button>

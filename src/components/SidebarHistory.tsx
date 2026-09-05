@@ -208,13 +208,13 @@ export const SidebarHistory: React.FC<SidebarHistoryProps> = ({
                   </p>
 
                   {/* Card Footer tags */}
-                  <div className="flex items-center justify-between text-[11px] text-stone-400">
+                  <div className="flex items-center justify-between text-xs text-stone-400">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full">
                         {item.category || 'Personal'}
                       </span>
                       {item.mood && (
-                        <span className="text-[10px] text-stone-500 italic">
+                        <span className="text-xs text-stone-500 italic">
                           {item.mood}
                         </span>
                       )}
@@ -231,7 +231,7 @@ export const SidebarHistory: React.FC<SidebarHistoryProps> = ({
                   </div>
 
                   {deletingId === item.id && (
-                    <div className="mt-2 pt-2 border-t border-rose-100 text-[11px] text-rose-600 flex items-center justify-between">
+                    <div className="mt-2 pt-2 border-t border-rose-100 text-xs text-rose-600 flex items-center justify-between">
                       <span>Click trash icon again to delete.</span>
                       <button
                         onClick={(e) => {

@@ -20,6 +20,7 @@ import { SessionWorkspace } from './components/SessionWorkspace';
 import { ThemesView } from './components/ThemesView';
 import { SettingsDrawer } from './components/SettingsDrawer';
 import { Toast } from './components/Toast';
+import { LocusMark } from './components/LocusMark';
 import { DEMO_USER_ID, getSampleDemoDataset } from './services/demoSimulator';
 
 export default function App() {
@@ -385,8 +386,8 @@ export default function App() {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-sage flex items-center justify-center text-white mx-auto animate-pulse">
-            <span className="font-serif text-lg font-bold">L</span>
+          <div className="w-10 h-10 rounded-xl bg-accent-sage flex items-center justify-center text-white mx-auto shadow-xs">
+            <LocusMark className="w-5 h-5" />
           </div>
           <p className="font-serif text-base text-text-primary">Opening your reflection space...</p>
         </div>
@@ -457,6 +458,7 @@ export default function App() {
             isSidebarOpen={false}
             initialPrompt={initialPrompt}
             onDismissInitialPrompt={() => setInitialPrompt(undefined)}
+            onNavigateToThemes={() => setActiveView('themes')}
           />
         </div>
       )}
@@ -497,7 +499,7 @@ export default function App() {
         message={toastMessage}
         type={toastType}
         onClose={closeToast}
-        onRetry={() => activeEntry && saveEntry(activeEntry)}
+        onRetry={toastType === 'error' && activeEntry ? () => saveEntry(activeEntry) : undefined}
         actionLabel={toastActionLabel}
         onAction={toastOnAction}
         subText={toastSubText}

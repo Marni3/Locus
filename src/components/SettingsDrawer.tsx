@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   X, 
   Settings as SettingsIcon, 
-  Sparkles, 
+  Compass, 
   Tag, 
   BookMarked, 
   ShieldCheck, 
@@ -173,25 +173,25 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
         {/* Tab Strip & Content */}
         <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
           {/* Left Tab List */}
-          <div className="w-full md:w-48 border-b md:border-b-0 md:border-r border-stone-200 bg-[#F9F7F2] p-3 space-y-1 shrink-0">
+          <div className="w-full md:w-48 border-b md:border-b-0 md:border-r border-border-hairline bg-canvas p-3 space-y-1 shrink-0">
             <button
               onClick={() => setActiveTab('persona')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'persona'
-                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Persona &amp; Tone</span>
+              <Compass className="w-3.5 h-3.5 text-accent-sage" />
+              <span>Voice &amp; Tone</span>
             </button>
 
             <button
               onClick={() => setActiveTab('tags')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'tags'
-                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
               }`}
             >
               <Tag className="w-3.5 h-3.5" />
@@ -202,8 +202,8 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               onClick={() => setActiveTab('notebook')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'notebook'
-                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
               }`}
             >
               <BookMarked className="w-3.5 h-3.5" />
@@ -215,8 +215,8 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               onClick={() => setActiveTab('data')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'data'
-                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                             <Check className="w-3.5 h-3.5 text-emerald-700" />
                           )}
                         </div>
-                        <p className="text-[11px] text-stone-500 mt-0.5">{t.desc}</p>
+                        <p className="text-xs text-stone-500 mt-0.5">{t.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -287,7 +287,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     System Prompt &amp; Custom Instructions
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-2">
+                  <p className="text-xs text-stone-500 mb-2">
                     Guide how your companion analyzes, frames insights, and responds to your reflections.
                   </p>
                   <textarea
@@ -307,7 +307,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     Manage Categories &amp; Tags
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-4">
+                  <p className="text-xs text-stone-500 mb-4">
                     This is the single source of truth for categories, keeping the sidebar taxonomy perfectly in sync.
                   </p>
 
@@ -356,7 +356,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     Notebook Automation
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-4">
+                  <p className="text-xs text-stone-500 mb-4">
                     Configure how quotes and takeaways are filed into your personal notebook.
                   </p>
 
@@ -370,7 +370,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                       />
                       <div>
                         <span className="text-xs font-semibold text-stone-800">Auto-Generate Context Hints</span>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
+                        <p className="text-xs text-stone-500 mt-0.5">
                           When saving an excerpt, automatically generate a 1-sentence analytical context note.
                         </p>
                       </div>
@@ -401,7 +401,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     Model &amp; Data Management
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-4">
+                  <p className="text-xs text-stone-500 mb-4">
                     Export your complete journal archive or manage privacy settings.
                   </p>
 
@@ -409,7 +409,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-semibold text-stone-800">Export All Data (JSON)</p>
-                        <p className="text-[11px] text-stone-500">
+                        <p className="text-xs text-stone-500">
                           {allInteractions.length} reflections &bull; {allNotebookItems.length} saved notes
                         </p>
                       </div>
@@ -428,7 +428,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <p className="text-xs font-semibold text-stone-800">30-Day Simulation Dataset</p>
-                        <p className="text-[11px] text-stone-500">
+                        <p className="text-xs text-stone-500">
                           Pre-load 6 multi-turn reflections, 3 themes, and 8 observations to evaluate longitudinal tracking.
                         </p>
                       </div>
@@ -438,9 +438,9 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                             id="settings-load-demo-btn"
                             type="button"
                             onClick={onLoadDemoData}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-sage bg-accent-sage-tint/40 hover:bg-accent-sage-tint rounded-lg border border-accent-sage/30 transition-colors cursor-pointer"
                           >
-                            <Sparkles className="w-3.5 h-3.5" />
+                            <Compass className="w-3.5 h-3.5" />
                             <span>Load Demo</span>
                           </button>
                         )}
@@ -470,7 +470,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     <Shield className="w-4 h-4 text-emerald-800" />
                     <span>Outbound Privacy Sanitizer Active</span>
                   </div>
-                  <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+                  <p className="text-xs text-emerald-900/80 leading-relaxed">
                     Any prompt or reflection sent to external synthesis engines or webhooks is automatically scrubbed of phone numbers, emails, and street addresses before egress. Your original reflections remain intact and unredacted in your private journal.
                   </p>
                 </div>
@@ -480,7 +480,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     Morning Reflection Digest
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-3">
+                  <p className="text-xs text-stone-500 mb-3">
                     Receive a gentle morning summary of recent realizations and open inquiries.
                   </p>
                   <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-2">
@@ -494,7 +494,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                       />
                       <div>
                         <span className="text-xs font-semibold text-stone-800">Email Digest</span>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
+                        <p className="text-xs text-stone-500 mt-0.5">
                           Dispatches daily at 7:00 AM. In development mode, digests log safely to server console.
                         </p>
                       </div>
@@ -507,7 +507,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
                     Zapier / Custom Webhook
                   </label>
-                  <p className="text-[11px] text-stone-500 mb-3">
+                  <p className="text-xs text-stone-500 mb-3">
                     Forward concluded reflection digests to your personal automation endpoint with strict SSRF protection.
                   </p>
                   <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">

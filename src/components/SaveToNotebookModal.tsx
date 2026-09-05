@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, BookMarked, Sparkles, Check, RefreshCw } from 'lucide-react';
+import { X, BookMarked, Compass, Check, RefreshCw } from 'lucide-react';
 import { Interaction, NotebookItem } from '../types';
 
 interface SaveToNotebookModalProps {
@@ -115,7 +115,7 @@ export const SaveToNotebookModal: React.FC<SaveToNotebookModalProps> = ({
             </div>
             <div>
               <h3 className="font-serif-heading text-lg font-bold text-stone-900">Save to Notebook</h3>
-              <p className="text-[11px] text-stone-500">Curate into your high-signal insight collection</p>
+              <p className="text-[13px] text-stone-500">Curate into your high-signal insight collection</p>
             </div>
           </div>
           <button
@@ -149,11 +149,11 @@ export const SaveToNotebookModal: React.FC<SaveToNotebookModalProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-xs font-semibold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-emerald-700" />
+              <Compass className="w-3 h-3 text-accent-sage" />
               <span>AI Context Note</span>
             </label>
             {isGeneratingHint && (
-              <span className="text-[10px] text-stone-400 flex items-center gap-1">
+              <span className="text-[13px] text-stone-400 flex items-center gap-1">
                 <RefreshCw className="w-2.5 h-2.5 animate-spin" />
                 <span>Distilling context...</span>
               </span>
