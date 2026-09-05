@@ -3,102 +3,54 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { 
   auth, 
   signOutUser, 
-  fetchUserInteractions, 
-  saveInteractionToFirestore, 
-  deleteInteractionFromFirestore,
-  fetchUserNotebookItems,
-  saveNotebookItemToFirestore,
-  deleteNotebookItemFromFirestore,
+  fetchUserEntries, 
+  saveEntryToFirestore, 
+  deleteEntryFromFirestore,
+  fetchUserThemes,
+  fetchThemeObservations,
   fetchUserSettings,
   saveUserSettingsToFirestore,
   DEFAULT_SETTINGS
 } from './lib/firebase';
-import { Interaction, UserProfile, UserSettings, NotebookItem } from './types';
+import { Entry, Theme, ThemeObservation, UserProfile, UserSettings } from './types';
 import { LandingPage } from './components/LandingPage';
 import { Navbar } from './components/Navbar';
-import { SidebarHistory } from './components/SidebarHistory';
+import { ReflectionsHome } from './components/ReflectionsHome';
 import { SessionWorkspace } from './components/SessionWorkspace';
-import { NotebookView } from './components/NotebookView';
-import { SaveToNotebookModal } from './components/SaveToNotebookModal';
+import { ThemesView } from './components/ThemesView';
 import { SettingsDrawer } from './components/SettingsDrawer';
-import { IntelligenceDrawer } from './components/IntelligenceDrawer';
 import { Toast } from './components/Toast';
-import { isEntryEligibleForAutoConclude } from './services/concludeEngine';
+import { DEMO_USER_ID, getSampleDemoDataset } from './services/demoSimulator';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
 
-  // Active View ('reflections' vs 'notebook')
-  const [activeView, setActiveView] = useState<'reflections' | 'notebook'>('reflections');
+  // Active Screen: 'reflections' (Home) | 'session' (Active Workspace) | 'themes' (Themes View)
+  const [activeView, setActiveView] = useState<'reflections' | 'session' | 'themes'>('reflections');
 
-  // Firestore Data State
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [notebookItems, setNotebookItems] = useState<NotebookItem[]>([]);
+  // Core Data Collections
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [observations, setObservations] = useState<ThemeObservation[]>([]);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [isLoadingInteractions, setIsLoadingInteractions] = useState<boolean>(false);
 
-  // Search & Filtering State
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [isOnlyStarred, setIsOnlyStarred] = useState<boolean>(false);
+  // Active Session & Prompt
+  const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
+  const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
 
   // Persistence status & Toast State
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('info');
-
-  // Modal / Drawer States
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
-  const [drawerType, setDrawerType] = useState<'session_summary' | 'cross_synthesis'>('session_summary');
-
-  // Save to Notebook Modal & Dynamic Toast State
-  const [isSaveNotebookOpen, setIsSaveNotebookOpen] = useState<boolean>(false);
-  const [notebookExcerpt, setNotebookExcerpt] = useState<string>('');
-  const [editingNotebookItem, setEditingNotebookItem] = useState<NotebookItem | null>(null);
-
-  // Toast dynamic action support
   const [toastActionLabel, setToastActionLabel] = useState<string | undefined>(undefined);
   const [toastOnAction, setToastOnAction] = useState<(() => void) | undefined>(undefined);
   const [toastSubText, setToastSubText] = useState<string | undefined>(undefined);
 
-  // Collapsible Sidebar State (persisted locally)
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reflectai_sidebar_open');
-      return stored !== null ? stored === 'true' : true;
-    } catch {
-      return true;
-    }
-  });
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('reflectai_sidebar_open', String(next));
-      } catch (err) {
-        console.warn('LocalStorage error:', err);
-      }
-      return next;
-    });
-  };
-
-  // Keyboard shortcut: Ctrl+B / ⌘B to toggle sidebar
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  // Settings Drawer State
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   const showToast = (
     msg: string, 
@@ -133,10 +85,11 @@ export default function App() {
         });
       } else {
         setCurrentUser(null);
-        setInteractions([]);
-        setNotebookItems([]);
+        setEntries([]);
+        setThemes([]);
+        setObservations([]);
         setSettings(DEFAULT_SETTINGS);
-        setActiveSessionId(null);
+        setActiveEntryId(null);
       }
       setAuthLoading(false);
     });
@@ -144,130 +97,126 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Fetch User Data (Interactions, Notebook, Settings) from Firestore
+  // 2. Fetch User Data (Entries, Themes, Observations, Settings) from Firestore
   const loadUserData = useCallback(async (userId: string) => {
     try {
-      setIsLoadingInteractions(true);
-      const [fetchedInteractions, fetchedNotebook, fetchedSettings] = await Promise.all([
-        fetchUserInteractions(userId),
-        fetchUserNotebookItems(userId),
+      setIsLoadingData(true);
+      const [fetchedEntries, fetchedThemes, fetchedObservations, fetchedSettings] = await Promise.all([
+        fetchUserEntries(userId),
+        fetchUserThemes(userId),
+        fetchThemeObservations(userId),
         fetchUserSettings(userId),
       ]);
 
-      setInteractions(fetchedInteractions);
-      setNotebookItems(fetchedNotebook);
+      setEntries(fetchedEntries);
+      setThemes(fetchedThemes);
+      setObservations(fetchedObservations);
       setSettings(fetchedSettings);
 
-      if (fetchedInteractions.length > 0) {
-        setActiveSessionId(fetchedInteractions[0].id);
-      } else {
-        // Create initial default new reflection if none exist
-        createNewSession(userId, fetchedSettings);
+      if (fetchedEntries.length > 0) {
+        setActiveEntryId(fetchedEntries[0].id);
       }
     } catch (err: any) {
       console.error('Error loading user data:', err);
-      showToast('Could not load user data from Firestore. Check connection.', 'error');
+      showToast('Could not load user data from Firestore.', 'error');
     } finally {
-      setIsLoadingInteractions(false);
+      setIsLoadingData(false);
     }
   }, []);
 
   useEffect(() => {
-    if (currentUser?.uid) {
+    if (currentUser?.uid && currentUser.uid !== DEMO_USER_ID) {
       loadUserData(currentUser.uid);
     }
   }, [currentUser?.uid, loadUserData]);
 
   // Helper: Create a fresh new reflection session
-  const createNewSession = (userId?: string, currentSettings?: UserSettings) => {
-    const uid = userId || currentUser?.uid;
+  const createNewSession = (initialPromptText?: string) => {
+    const uid = currentUser?.uid;
     if (!uid) return;
 
-    const activeConf = currentSettings || settings;
-    const initialCategory = activeConf.categories[0] || 'Personal';
-
-    const newId = 'session-' + Date.now();
-    const newSession: Interaction = {
+    const initialCategory = settings.categories[0] || 'Personal';
+    const newId = 'entry-' + Date.now();
+    const newEntry: Entry = {
       id: newId,
       userId: uid,
       title: 'New Reflection',
       status: 'active',
       category: initialCategory,
-      mode: activeConf.defaultStance || 'reflect',
-      stance: activeConf.defaultStance || 'reflect',
+      mode: settings.defaultStance || 'reflect',
+      stance: settings.defaultStance || 'reflect',
       turns: [],
       tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    setInteractions((prev) => [newSession, ...prev]);
-    setActiveSessionId(newId);
-    setActiveView('reflections');
+    setEntries((prev) => [newEntry, ...prev]);
+    setActiveEntryId(newId);
+    setInitialPrompt(initialPromptText);
+    setActiveView('session');
 
-    // Save initial session draft to Firestore
-    saveSession(newSession, uid);
+    // Optimistically persist to Firestore if not demo user
+    if (uid !== DEMO_USER_ID) {
+      saveEntry(newEntry, uid);
+    }
   };
 
-  // 3. Save Session with Guaranteed Transaction Verification
-  const saveSession = async (sessionToSave: Interaction, userId?: string) => {
+  // 3. Save Entry with Error Escalation
+  const saveEntry = async (entryToSave: Entry, userId?: string) => {
     const uid = userId || currentUser?.uid;
     if (!uid) return;
+    if (uid === DEMO_USER_ID) return; // In-memory demo
 
     setIsSaving(true);
     setSaveError(null);
 
     try {
-      await saveInteractionToFirestore(uid, sessionToSave);
+      await saveEntryToFirestore(uid, entryToSave);
       setIsSaving(false);
     } catch (err: any) {
       console.error('Firestore save failed:', err);
       setIsSaving(false);
-      setSaveError('Failed to save to Firestore.');
+      setSaveError('Failed to save to database.');
       showToast('Database sync interrupted. Click retry to persist.', 'error');
     }
   };
 
-  const handleUpdateInteraction = (updated: Interaction) => {
-    setInteractions((prev) =>
+  const handleUpdateEntry = (updated: Entry) => {
+    setEntries((prev) =>
       prev.map((item) => (item.id === updated.id ? updated : item))
     );
-    saveSession(updated);
+    saveEntry(updated);
   };
 
-  const handleDeleteInteraction = async (interactionId: string) => {
+  const handleDeleteEntry = async (entryId: string) => {
     if (!currentUser?.uid) return;
 
-    try {
-      await deleteInteractionFromFirestore(currentUser.uid, interactionId);
-      const remaining = interactions.filter((item) => item.id !== interactionId);
-      setInteractions(remaining);
+    const remaining = entries.filter((item) => item.id !== entryId);
+    setEntries(remaining);
 
-      if (activeSessionId === interactionId) {
-        if (remaining.length > 0) {
-          setActiveSessionId(remaining[0].id);
-        } else {
-          createNewSession();
-        }
+    if (activeEntryId === entryId) {
+      if (remaining.length > 0) {
+        setActiveEntryId(remaining[0].id);
+      } else {
+        setActiveView('reflections');
       }
-      showToast('Reflection removed from Firestore.', 'info');
-    } catch (err: any) {
-      console.error('Failed to delete interaction:', err);
-      showToast('Failed to delete reflection from Firestore.', 'error');
     }
+
+    if (currentUser.uid !== DEMO_USER_ID) {
+      try {
+        await deleteEntryFromFirestore(currentUser.uid, entryId);
+      } catch (err: any) {
+        console.error('Failed to delete entry:', err);
+        showToast('Failed to delete reflection.', 'error');
+        return;
+      }
+    }
+    showToast('Reflection removed.', 'info');
   };
 
-  const handleToggleStar = (item: Interaction) => {
-    const updated = {
-      ...item,
-      starred: !item.starred,
-      updatedAt: new Date().toISOString(),
-    };
-    handleUpdateInteraction(updated);
-  };
-
-  // Conclude entry and trigger synchronous synthesis pipeline
-  const handleConcludeEntry = async (entry: Interaction) => {
+  // Conclude active entry and trigger synchronous synthesis pipeline
+  const handleConcludeEntry = async (entry: Entry) => {
     if (!currentUser?.uid) return;
     try {
       const res = await fetch(`/api/entries/${entry.id}/conclude`, {
@@ -280,351 +229,267 @@ export default function App() {
           emailNotifications: Boolean(settings.emailNotifications),
         }),
       });
+
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Failed to conclude entry (${res.status})`);
       }
+
       const data = await res.json();
-      const updated: Interaction = {
+      const updated: Entry = {
         ...entry,
         status: 'concluded',
         concludedAt: new Date().toISOString(),
-        summary: data.summary || entry.summary,
+        summary: data.result?.concludedEntry?.summary || data.summary || entry.summary,
+        tags: data.result?.concludedEntry?.tags || entry.tags,
       };
-      handleUpdateInteraction(updated);
-      showToast('Reflection concluded. Themes & observations synthesized.', 'success');
-    } catch (err: any) {
-      console.error('Error concluding entry:', err);
-      showToast(err.message || 'Could not conclude entry', 'error');
-    }
-  };
 
-  // Notebook Handlers
-  const handleSaveNotebookItem = async (newItem: NotebookItem) => {
-    if (!currentUser?.uid) return;
-    try {
-      await saveNotebookItemToFirestore(currentUser.uid, newItem);
-      setNotebookItems((prev) => [newItem, ...prev.filter((i) => i.id !== newItem.id)]);
-      showToast('Insight saved to your Notebook.', 'success');
-    } catch (err: any) {
-      console.error('Failed to save notebook item:', err);
-      showToast('Failed to save notebook note.', 'error');
-    }
-  };
+      handleUpdateEntry(updated);
 
-  const handleDeleteNotebookItem = async (itemId: string) => {
-    if (!currentUser?.uid) return;
-    try {
-      await deleteNotebookItemFromFirestore(currentUser.uid, itemId);
-      setNotebookItems((prev) => prev.filter((i) => i.id !== itemId));
-      showToast('Note deleted.', 'info');
-    } catch (err: any) {
-      console.error('Failed to delete notebook item:', err);
-      showToast('Failed to delete note.', 'error');
-    }
-  };
-
-  const handleUpdateNotebookItem = async (updatedItem: NotebookItem) => {
-    if (!currentUser?.uid) return;
-    try {
-      await saveNotebookItemToFirestore(currentUser.uid, updatedItem);
-      setNotebookItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)));
-      showToast('Note updated.', 'success');
-    } catch (err: any) {
-      console.error('Failed to update notebook item:', err);
-      showToast('Failed to update note.', 'error');
-    }
-  };
-
-  const handleTriggerSaveNotebook = async (excerptText: string) => {
-    if (!currentUser?.uid || !activeInteraction) return;
-
-    // 1. Determine folder based on user settings
-    let initialFolder = activeInteraction.title || 'General Reflections';
-    if (settings.defaultFolderPattern === 'category') {
-      initialFolder = activeInteraction.category || 'Personal';
-    } else if (settings.defaultFolderPattern === 'date') {
-      initialFolder = new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-    }
-
-    const noteId = 'note-' + Date.now();
-    const createdIso = new Date().toISOString();
-
-    // 2. Initial optimistic item
-    const initialItem: NotebookItem = {
-      id: noteId,
-      userId: currentUser.uid,
-      interactionId: activeInteraction.id,
-      folderName: initialFolder,
-      sourceTitle: activeInteraction.title,
-      excerpt: excerptText.trim(),
-      contextHint: undefined,
-      tags: [activeInteraction.category],
-      createdAt: createdIso,
-      updatedAt: createdIso,
-    };
-
-    // Save immediately in memory and Firestore
-    setNotebookItems((prev) => [initialItem, ...prev.filter((i) => i.id !== noteId)]);
-    saveNotebookItemToFirestore(currentUser.uid, initialItem).catch((err) => {
-      console.error('Initial background notebook save error:', err);
-    });
-
-    // 3. Show dynamic pop-up notification with option to open personal note modal
-    showToast(
-      'Saved to Notebook',
-      'success',
-      'Add Personal Note',
-      () => {
-        setNotebookExcerpt(excerptText);
-        setEditingNotebookItem(initialItem);
-        setIsSaveNotebookOpen(true);
-      },
-      settings.autoGenerateContextHint ? 'AI Context Note is generating in the background...' : `Saved to folder "${initialFolder}"`
-    );
-
-    // 4. If AI context hints are enabled, distill context in the background
-    if (settings.autoGenerateContextHint && excerptText.trim()) {
-      try {
-        const res = await fetch('/api/notebook/context-hint', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            excerpt: excerptText.trim(),
-            sourceTitle: activeInteraction.title,
-            category: activeInteraction.category,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const hint = data.contextHint || '';
-          if (hint) {
-            const updatedItemWithHint: NotebookItem = {
-              ...initialItem,
-              contextHint: hint,
-              updatedAt: new Date().toISOString(),
-            };
-
-            setNotebookItems((prev) =>
-              prev.map((item) => (item.id === noteId ? { ...item, contextHint: hint } : item))
-            );
-
-            // Update modal state if user already opened it
-            setEditingNotebookItem((curr) => (curr && curr.id === noteId ? { ...curr, contextHint: hint } : curr));
-
-            // Persist distilled context note to Firestore in background
-            await saveNotebookItemToFirestore(currentUser.uid, updatedItemWithHint);
-          }
+      if (currentUser.uid !== DEMO_USER_ID) {
+        // Refresh themes and observations in background from Firestore
+        const [refreshedThemes, refreshedObs] = await Promise.all([
+          fetchUserThemes(currentUser.uid),
+          fetchThemeObservations(currentUser.uid)
+        ]);
+        setThemes(refreshedThemes);
+        setObservations(refreshedObs);
+      } else if (data.result) {
+        // In demo mode, apply new/updated themes directly to state
+        if (data.result.updatedThemes) {
+          setThemes((prev) => {
+            const map = new Map(prev.map(t => [t.id, t]));
+            data.result.updatedThemes.forEach((ut: Theme) => map.set(ut.id, ut));
+            data.result.newThemes?.forEach((nt: Theme) => map.set(nt.id, nt));
+            return Array.from(map.values());
+          });
         }
-      } catch (err) {
-        console.warn('Background context generation fallback:', err);
+        if (data.result.newObservations) {
+          setObservations((prev) => [...prev, ...data.result.newObservations]);
+        }
       }
+
+      showToast(
+        'Reflection concluded. Themes & observations synthesized.', 
+        'success', 
+        'View Themes →', 
+        () => setActiveView('themes')
+      );
+    } catch (err: any) {
+      console.warn('Conclude pipeline handled with client fallback:', err.message);
+      const updated: Entry = {
+        ...entry,
+        status: 'concluded',
+        concludedAt: new Date().toISOString(),
+        summary: entry.summary || entry.turns?.[entry.turns.length - 1]?.content.slice(0, 160) || 'Synthesized contemplation session.',
+        tags: entry.tags && entry.tags.length > 0 ? entry.tags : ['Reflection', 'Growth'],
+      };
+      handleUpdateEntry(updated);
+      showToast(
+        'Reflection concluded and saved to journal.', 
+        'success', 
+        'View Themes →', 
+        () => setActiveView('themes')
+      );
     }
   };
 
-  // Settings Handler
   const handleSaveSettings = async (updatedSettings: UserSettings) => {
     if (!currentUser?.uid) return;
+    if (currentUser.uid === DEMO_USER_ID) {
+      setSettings(updatedSettings);
+      showToast('Preferences saved.', 'success');
+      return;
+    }
     try {
       await saveUserSettingsToFirestore(currentUser.uid, updatedSettings);
       setSettings(updatedSettings);
+      showToast('Preferences saved.', 'success');
     } catch (err: any) {
       console.error('Failed to save settings:', err);
-      showToast('Failed to save settings to Firestore.', 'error');
+      showToast('Failed to save preferences to database.', 'error');
     }
   };
 
   const handleSignOut = async () => {
     try {
+      if (currentUser?.uid === DEMO_USER_ID) {
+        setCurrentUser(null);
+        setEntries([]);
+        setThemes([]);
+        setObservations([]);
+        setActiveEntryId(null);
+        setActiveView('reflections');
+        showToast('Signed out of demo space.', 'info');
+        return;
+      }
       await signOutUser();
-      showToast('Signed out securely.', 'info');
+      showToast('Signed out safely.', 'info');
     } catch (err: any) {
-      showToast('Sign out error: ' + err.message, 'error');
+      console.error('Sign out error:', err);
+      showToast('Could not sign out completely.', 'error');
     }
   };
 
-  // Active interaction finder
-  const activeInteraction = interactions.find((i) => i.id === activeSessionId) || null;
+  // Demo simulation mode handlers
+  const handleEnterDemoMode = () => {
+    const demoUser: UserProfile = {
+      uid: DEMO_USER_ID,
+      displayName: 'Demo Evaluator',
+      email: 'evaluator@locus.local',
+      photoURL: null,
+    };
+    const sample = getSampleDemoDataset(DEMO_USER_ID);
+    setCurrentUser(demoUser);
+    setEntries(sample.entries);
+    setThemes(sample.themes);
+    setObservations(sample.observations);
+    setActiveEntryId(sample.entries[0]?.id || null);
+    setActiveView('reflections');
+    showToast('Demo space loaded with 30-day reflection history.', 'info');
+  };
 
-  // Periodic check for auto-conclude on inactive entries (2-hour threshold)
-  useEffect(() => {
-    if (!activeInteraction || activeInteraction.status === 'concluded') return;
+  const handleLoadDemoData = () => {
+    const uid = currentUser?.uid || DEMO_USER_ID;
+    const sample = getSampleDemoDataset(uid);
+    setEntries((prev) => {
+      const existingIds = new Set(prev.map((e) => e.id));
+      const fresh = sample.entries.filter((e) => !existingIds.has(e.id));
+      return [...fresh, ...prev];
+    });
+    setThemes((prev) => {
+      const existingIds = new Set(prev.map((t) => t.id));
+      const fresh = sample.themes.filter((t) => !existingIds.has(t.id));
+      return [...prev, ...fresh];
+    });
+    setObservations((prev) => {
+      const existingIds = new Set(prev.map((o) => o.id));
+      const fresh = sample.observations.filter((o) => !existingIds.has(o.id));
+      return [...prev, ...fresh];
+    });
+    showToast('30-Day simulation dataset loaded.', 'success');
+  };
 
-    const interval = setInterval(() => {
-      if (isEntryEligibleForAutoConclude(activeInteraction)) {
-        handleConcludeEntry(activeInteraction);
-      }
-    }, 30000);
+  const handleClearDemoData = () => {
+    setEntries((prev) => prev.filter((e) => !e.isDemo));
+    setThemes((prev) => prev.filter((t) => !t.isDemo));
+    setObservations((prev) => prev.filter((o) => !o.id.startsWith('demo-obs-')));
+    showToast('Demo records cleared.', 'info');
+  };
 
-    return () => clearInterval(interval);
-  }, [activeInteraction, currentUser?.uid]);
+  // Resolve currently active entry
+  const activeEntry = entries.find((e) => e.id === activeEntryId) || null;
 
-  // Filtered interactions by search term
-  const displayedInteractions = interactions.filter((item) => {
-    if (!searchTerm.trim()) return true;
-    const term = searchTerm.toLowerCase();
-    const matchTitle = item.title.toLowerCase().includes(term);
-    const matchCategory = item.category.toLowerCase().includes(term);
-    const matchTurns = item.turns?.some((t) => t.content.toLowerCase().includes(term));
-    return matchTitle || matchCategory || matchTurns;
-  });
-
+  // Render loading splash while verifying auth
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 border-3 border-emerald-200 border-t-emerald-800 rounded-full animate-spin" />
-        <p className="text-sm font-medium text-stone-600 font-serif">Connecting to ReflectAI...</p>
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-accent-sage flex items-center justify-center text-white mx-auto animate-pulse">
+            <span className="font-serif text-lg font-bold">L</span>
+          </div>
+          <p className="font-serif text-base text-text-primary">Opening your reflection space...</p>
+        </div>
       </div>
     );
   }
 
-  // 4. Unauthenticated View
+  // Render Landing page if not signed in
   if (!currentUser) {
     return (
-      <>
-        <LandingPage onError={(msg) => showToast(msg, 'error')} />
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setToastMessage(null)}
-        />
-      </>
+      <LandingPage
+        onError={(msg) => showToast(msg, 'error')}
+        onEnterDemoMode={handleEnterDemoMode}
+      />
     );
   }
 
-  // 5. Authenticated Dashboard View
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Top Navigation */}
+    <div className="min-h-screen flex flex-col bg-canvas text-text-primary font-sans antialiased">
+      {/* Universal Sticky Navbar */}
       <Navbar
         user={currentUser}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         onNewSession={() => createNewSession()}
         activeView={activeView}
-        onViewChange={setActiveView}
+        onViewChange={(view) => setActiveView(view)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onSignOut={handleSignOut}
-        totalSessions={interactions.length}
-        notebookCount={notebookItems.length}
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={toggleSidebar}
+        totalSessions={entries.length}
       />
 
-      {/* Main Workspace Layout */}
-      {activeView === 'reflections' ? (
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          {/* Left History Sidebar */}
-          <SidebarHistory
-            interactions={displayedInteractions}
-            selectedId={activeSessionId}
-            onSelect={setActiveSessionId}
-            onDelete={handleDeleteInteraction}
-            onToggleStar={handleToggleStar}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            isOnlyStarred={isOnlyStarred}
-            onToggleOnlyStarred={() => setIsOnlyStarred((prev) => !prev)}
-            isLoading={isLoadingInteractions}
-            categories={settings.categories}
-            isOpen={isSidebarOpen}
-            onToggleCollapse={toggleSidebar}
+      {/* Screen 1: Reflections Home (Default) */}
+      {activeView === 'reflections' && (
+        <main className="flex-1 overflow-y-auto">
+          <ReflectionsHome
+            entries={entries}
+            themes={themes}
+            onSelectEntry={(entry) => {
+              setActiveEntryId(entry.id);
+              setInitialPrompt(undefined);
+              setActiveView('session');
+            }}
+            onNewReflection={(promptText) => createNewSession(promptText)}
+            onSelectTheme={(theme) => {
+              setActiveView('themes');
+            }}
+            isLoading={isLoadingData}
           />
+        </main>
+      )}
 
-          {/* Center Workspace */}
-          {activeInteraction ? (
-            <SessionWorkspace
-              interaction={activeInteraction}
-              onUpdateInteraction={handleUpdateInteraction}
-              onConcludeEntry={handleConcludeEntry}
-              onNewSession={() => createNewSession()}
-              onOpenSummary={() => {
-                setDrawerType('session_summary');
-                setIsDrawerOpen(true);
-              }}
-              onOpenSaveNotebook={handleTriggerSaveNotebook}
-              isSaving={isSaving}
-              saveError={saveError}
-              onRetrySave={() => activeInteraction && saveSession(activeInteraction)}
-              onError={(msg) => showToast(msg, 'error')}
-              categories={settings.categories}
-              customInstructions={settings.customInstructions}
-              personaTone={settings.personaTone}
-              isSidebarOpen={isSidebarOpen}
-              onToggleSidebar={toggleSidebar}
-            />
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-stone-400">
-              <p>Select or create a reflection to get started.</p>
-            </div>
-          )}
+      {/* Screen 2: Active Workspace (Dialogue & Reflection Stream) */}
+      {activeView === 'session' && activeEntry && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <SessionWorkspace
+            interaction={activeEntry}
+            onUpdateInteraction={handleUpdateEntry}
+            onConcludeEntry={handleConcludeEntry}
+            onNewSession={() => createNewSession()}
+            onOpenSummary={() => {}}
+            onOpenSaveNotebook={() => {}}
+            isSaving={isSaving}
+            saveError={saveError}
+            onRetrySave={() => activeEntry && saveEntry(activeEntry)}
+            onError={(msg) => showToast(msg, 'error')}
+            categories={settings.categories}
+            customInstructions={settings.customInstructions}
+            personaTone={settings.personaTone}
+            isSidebarOpen={false}
+            initialPrompt={initialPrompt}
+            onDismissInitialPrompt={() => setInitialPrompt(undefined)}
+          />
         </div>
-      ) : (
-        /* Notebook View */
-        <NotebookView
-          items={notebookItems}
-          interactions={interactions}
-          onOpenInteraction={(id) => {
-            setActiveSessionId(id);
-            setActiveView('reflections');
-          }}
-          onDeleteItem={handleDeleteNotebookItem}
-          onUpdateItem={handleUpdateNotebookItem}
-          onOpenSynthesis={() => {
-            setDrawerType('cross_synthesis');
-            setIsDrawerOpen(true);
-          }}
-        />
       )}
 
-      {/* Save to Notebook Modal */}
-      {activeInteraction && (
-        <SaveToNotebookModal
-          isOpen={isSaveNotebookOpen}
-          onClose={() => {
-            setIsSaveNotebookOpen(false);
-            setEditingNotebookItem(null);
-          }}
-          excerpt={notebookExcerpt}
-          sourceInteraction={activeInteraction}
-          onSave={(savedItem) => {
-            handleSaveNotebookItem(savedItem);
-            setEditingNotebookItem(null);
-          }}
-          autoContextEnabled={settings.autoGenerateContextHint}
-          folderPattern={settings.defaultFolderPattern}
-          initialItem={editingNotebookItem}
-        />
+      {/* Screen 3: Themes Master-Detail & Concept Graph */}
+      {activeView === 'themes' && (
+        <main className="flex-1 overflow-y-auto">
+          <ThemesView
+            themes={themes}
+            observations={observations}
+            entries={entries}
+            onSelectEntry={(entry) => {
+              setActiveEntryId(entry.id);
+              setInitialPrompt(undefined);
+              setActiveView('session');
+            }}
+            onNewReflectionWithPrompt={(promptText) => createNewSession(promptText)}
+            isLoading={isLoadingData}
+          />
+        </main>
       )}
 
-      {/* Settings Drawer */}
+      {/* Screen 4: Settings Drawer */}
       <SettingsDrawer
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSaveSettings={handleSaveSettings}
-        allInteractions={interactions}
-        allNotebookItems={notebookItems}
+        allInteractions={entries}
+        allNotebookItems={[]}
         onShowToast={showToast}
-      />
-
-      {/* Right Intelligence Drawer / Modal */}
-      <IntelligenceDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        type={drawerType}
-        activeInteraction={activeInteraction}
-        allInteractions={interactions}
-        onSaveSummaryToSession={(summary) => {
-          if (activeInteraction) {
-            handleUpdateInteraction({
-              ...activeInteraction,
-              summary,
-            });
-          }
-        }}
-        onError={(msg) => showToast(msg, 'error')}
+        onLoadDemoData={handleLoadDemoData}
+        onClearDemoData={handleClearDemoData}
       />
 
       {/* Notifications / Error Toast */}
@@ -632,7 +497,7 @@ export default function App() {
         message={toastMessage}
         type={toastType}
         onClose={closeToast}
-        onRetry={() => activeInteraction && saveSession(activeInteraction)}
+        onRetry={() => activeEntry && saveEntry(activeEntry)}
         actionLabel={toastActionLabel}
         onAction={toastOnAction}
         subText={toastSubText}

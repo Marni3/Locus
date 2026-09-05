@@ -4,10 +4,11 @@ import { signInWithGoogle } from '../lib/firebase';
 
 interface LandingPageProps {
   onSignInSuccess?: () => void;
+  onEnterDemoMode?: () => void;
   onError: (errorMsg: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMode }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -41,24 +42,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
           </div>
         </div>
 
-        <button
-          id="header-signin-btn"
-          onClick={handleGoogleSignIn}
-          disabled={isAuthenticating}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-medium transition-all shadow-xs disabled:opacity-50 cursor-pointer"
-        >
-          {isAuthenticating ? (
-            <>
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              <span>Connecting...</span>
-            </>
-          ) : (
-            <>
-              <span>Sign In with Google</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
+        <div className="flex items-center gap-3">
+          {onEnterDemoMode && (
+            <button
+              id="header-demo-btn"
+              onClick={onEnterDemoMode}
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-medium transition-all shadow-2xs cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Demo Mode</span>
+            </button>
           )}
-        </button>
+
+          <button
+            id="header-signin-btn"
+            onClick={handleGoogleSignIn}
+            disabled={isAuthenticating}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-medium transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          >
+            {isAuthenticating ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In with Google</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Hero & Content */}
@@ -113,6 +127,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError }) => {
             <span>Sign in with Google</span>
             <ArrowRight className="w-4 h-4 text-emerald-200 group-hover:translate-x-1 transition-transform" />
           </button>
+
+          {onEnterDemoMode && (
+            <button
+              id="hero-demo-mode-btn"
+              onClick={onEnterDemoMode}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-white hover:bg-stone-50 text-stone-800 font-medium text-base transition-all border border-stone-300 shadow-2xs hover:shadow-xs cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-700" />
+              <span>Explore Demo Space</span>
+            </button>
+          )}
         </div>
 
         {/* Feature Cards Grid */}

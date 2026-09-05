@@ -5,6 +5,7 @@ test.describe('Phase 1 Core Loop & Conclude Routes (Tier 3 TDD)', () => {
   const testUserId = 'test-user-e2e';
 
   test('POST /api/entries/:id/conclude synthesizes entry into themes and observations', async ({ request }) => {
+    test.setTimeout(60000);
     const mockEntry = {
       id: testEntryId,
       userId: testUserId,

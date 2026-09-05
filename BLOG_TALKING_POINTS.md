@@ -141,11 +141,47 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 6. Potential Article / Blog Post Titles & Hooks
+---
+
+## 7. Mobile-First Calm Architecture & The Google Keep Metaphor
+
+### The Paradox: Mobile-First Discipline for a Desktop Web App
+* **The Temptation**: When building a rich, contemplative workspace with split master-detail views and interactive SVG graphs, developers naturally design for 1440px desktop screens first, cramming multiple panels, rails, and sidebars side-by-side.
+* **The Discipline**: We enforced **Mobile-First Design** as a core architectural constraint:
+  * Phone viewports ($< 768\text{px}$) force absolute information prioritization and touch targets $\ge 44\text{px}$.
+  * By solving the mobile experience first, desktop becomes a progressive enhancement (e.g. 2-column masonry on mobile scaling smoothly to 4-column on desktop; single-panel detail on mobile scaling to 35%/65% split master-detail on desktop).
+  * If a journaling interface feels cramped or chaotic on a phone, no amount of desktop white space will fix its underlying cognitive load.
+
+### The "Smart Google Keep" Paradigm for Reflections Home
+* **The Insight**: Reflections are episodic conversations, but browsing them as endless chat bubbles creates cognitive fatigue.
+* **The Solution**: On the home canvas, reflections are rendered as Google Keep-style masonry cards. Each card acts as an intellectual snapshot:
+  * **Title in Source Serif 4**: Editorial, literary framing of the thought.
+  * **Spatial & Temporal Anchor**: Location pill (`MapPin`) and relative date stamp (`2d ago`).
+  * **3–4 Sentence Gist**: The core psychological takeaway or breakthrough, synthesized by AI or distilled from the opening turn.
+  * **Qualitative Tag Badges**: `#Breakthrough`, `#Decision`, `#Friction`, `#Reflective`.
+* **The Interaction**: The card gives you the gist at a glance. Tapping any card seamlessly unfolds the full multi-turn conversational stream in the workspace.
+
+### The Concept Graph: An Intellectual Solar System
+* **Moving Beyond Linear Lists**: Themes aren't just rows in a database table—they form a constellation of recurring questions.
+* **The Radial SVG Model**: Mode B of the Themes view visualizes the user's mind as a radial solar system:
+  * Center core hub: `YOU` (the self / reflective sanctuary).
+  * Radial orbital vectors radiating out to Theme satellite nodes.
+  * Node radii scale dynamically with observation density ($r = \min(38, 16 + \text{count} \times 4)$).
+  * Clicking any satellite node activates an orbital pulse ring and floats a dossier drawer with rolling synthesis and "Unpack Trajectory" triggers.
+
+### The Evaluator Experience: Zero-Barrier Demo Sandbox
+* **The Cold-Start Flaw in AI Evaluations**: An app designed for "longitudinal pattern tracking over weeks" cannot be meaningfully evaluated on day one by an empty account. A new user opens the app and sees "No entries yet."
+* **The Solution**: We built an authentic, self-contained 30-day simulation dataset (`src/services/demoSimulator.ts`) with 6 multi-turn reflections, 3 themes, and 8 discrete observations with real place markers.
+* **The UX**: Anyone—an evaluator, designer, or prospective user—can click `[ 🚀 Explore Demo Space ]` from the landing page or load it in Settings. Within 100 milliseconds, they are exploring an authentic personal history, inspecting concept graphs, and testing unpack engines with zero auth barriers or synthetic boilerplate.
+
+---
+
+## 8. Potential Article / Blog Post Titles & Hooks
 1. **"Vibecoding with Intent: How OOUX Saved Our AI App from Architectural Chaos"** (Software Architecture & AI Pair Programming)
 2. **"Objects Over Screens: Why the Best AI Workflows Start with an Ontology, Not a Figma Wireframe"** (Product Design & OOUX)
 3. **"The Anti-Dashboard: Why Your Journal Shouldn't Be a Jira Board"** (Product Design & UX)
 4. **"How to Build an LLM App That Won't Leak Your Secrets: 5 Threat Zones in Practice"** (App Security & AI Privacy)
-5. **"We Accidentally Spent 30 Minutes Debugging an API Key That Already Worked"** (Developer Humor & Node.js Internals)
+5. **"The Google Keep Metaphor for LLM Chats: Turning Conversational Clutter into Digestible Cards"** (UI Architecture & Mobile-First Design)
 6. **"The Rule of One Accent: Designing Calm Computing Interfaces with Tailwind v4 & Source Serif"** (Design Systems & CSS)
 7. **"Beyond Chatbots: Tracking Long-Term Intellectual Trajectories with Firestore Vector Search & Gemini"** (Architecture & AI Engineering)
+8. **"Why We Put a 30-Day Simulated Brain into Our Dev Build"** (Developer Experience & Evaluator Onboarding)

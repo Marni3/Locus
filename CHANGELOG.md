@@ -4,6 +4,47 @@ All notable changes, architectural decisions, schema modifications, and design s
 
 ---
 
+## [2026-09-05]
+
+### Added
+- **Phase 3: Screen Architecture & Impeccable Mobile-First Polish**:
+  - **Screen 1: Reflections Home ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
+    - Mobile-first 2-column masonry vertical card grid (`columns-2 md:columns-3 lg:columns-4 gap-3.5 space-y-3.5 break-inside-avoid`).
+    - Google Keep-style note cards featuring Source Serif 4 titles, spatial context badges (`MapPin`), relative timestamps, 3–4 sentence conversation gist/summary, and qualitative tags (`#Breakthrough`, `#Friction`, `#Decision`, etc.).
+    - Daily Reflection Prompt Banner rotating 7 contemplations, dismissible via `localStorage`, with one-tap entry into active reflection.
+    - "Ready for Longitudinal Synthesis" horizontal ribbon surfacing themes with $\ge 2$ accumulated observations for immediate unpacking.
+    - Real-time search and multi-tag filtering across titles, summaries, locations, and qualitative tags.
+  - **Screen 2: Active Workspace Refinements ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Typography division strictly applied: User thoughts rendered in `Source Serif 4` on calm `#F2EFEB` bubbles; companion insights rendered in `Inter` sans-serif on clean `#FFFFFF` cards.
+    - Floating inspiration contemplation chip when launched directly from the Daily Prompt banner.
+    - Message egress resilience: captures failed network/endpoint turns, informs user with calm toast, and offers inline `[ 🔄 Resend ]` with zero buffer loss.
+  - **Screen 3: Themes Split Master-Detail & Concept Graph ([src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx))**:
+    - Segmented view toggle between `[ Timeline ]` and `[ Concept Graph ]`.
+    - **Mode A (Timeline Master-Detail)**: 35% left rail of active themes + 65% right reading canvas with current rolling synthesis and chronological observation feed featuring entry backlinks and spatial markers.
+    - **Mode B (Concept Graph)**: Scalable SVG radial force visualization with center "YOU" core hub, orbital link vectors, and theme satellite nodes sized dynamically by observation count.
+    - Integrated Phase 2 "Unpack Further" engine (`/api/themes/:id/unpack`) directly in both views with full modal dossier and exploration paths.
+  - **Screen 4: Settings Drawer Polish ([src/components/SettingsDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SettingsDrawer.tsx))**:
+    - Added 30-Day simulation dataset management (load/clear demo records on demand).
+    - Outbound Privacy notice and live SSRF Webhook validator with defensive internal IP blocking.
+  - **Zero-Barrier Evaluator Demo Sandbox ([src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts))**:
+    - 6 authentically staged chronological reflections across 30 days, 3 persistent themes, and 8 discrete observations with spatial context.
+    - Interactive `[ 🚀 Explore Demo Space ]` buttons in hero and navbar on [LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx).
+  - **End-to-End Automated Verification Suite ([tests/e2e/screens.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/screens.spec.ts))**:
+    - 4 comprehensive Playwright tests asserting full flows across mobile (393px) and desktop (1280px) viewports.
+    - Automated screenshot capture of all 4 screens (`screen1_reflections_home_desktop.png`, `screen1_reflections_home_mobile.png`, `screen2_session_workspace.png`, `screen3_themes_timeline.png`, `screen3_themes_concept_graph.png`, `screen4_settings_drawer.png`).
+
+### Changed
+- **Unified Full-Stack App Routing ([src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx))**:
+  - Replaced legacy sidebar navigation with responsive segmented top bar (`Reflections` vs `Themes`).
+  - Added seamless demo mode state management and conclusion-to-theme transitions.
+  - Enhanced conclude error handling with client-side synthesis fallback for offline/demo robustness.
+- **Universal Header ([src/components/Navbar.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Navbar.tsx))**:
+  - Updated with Locus branding, `#3B7A57` `+ New Reflection` CTA, and clean user profile popover.
+- **Design Tokens & Fonts ([index.html](file:///c:/Users/reyna/OneDrive/Documents/Locus/index.html), [src/index.css](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/index.css))**:
+  - Registered `Source Serif 4` and `Inter` via Google Fonts and Tailwind `@theme` CSS tokens.
+
+---
+
 ## [2026-09-04]
 
 ### Added

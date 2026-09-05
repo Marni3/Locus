@@ -47,6 +47,8 @@ interface SessionWorkspaceProps {
   personaTone?: string;
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
+  initialPrompt?: string;
+  onDismissInitialPrompt?: () => void;
 }
 
 const STANCES: { id: ReflectionMode; label: string; icon: any; desc: string }[] = [
@@ -74,6 +76,8 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   personaTone,
   isSidebarOpen = true,
   onToggleSidebar,
+  initialPrompt,
+  onDismissInitialPrompt,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -86,6 +90,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   const [mood, setMood] = useState(interaction.mood || '');
   const [mode, setMode] = useState<ReflectionMode>(interaction.mode || 'reflect');
   const [copiedTurnId, setCopiedTurnId] = useState<string | null>(null);
+  const [failedTurnId, setFailedTurnId] = useState<string | null>(null);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
@@ -346,9 +351,71 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
         updatedAt: new Date().toISOString(),
       };
 
+      setFailedTurnId(null);
       onUpdateInteraction(finalInteraction);
     } catch (err: any) {
       console.error('Reflection request error:', err);
+      setFailedTurnId(newTurn.id);
+      onError(err.message || 'Could not reach reflection service. Your thought is saved.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleResendTurn = async (failedTurn: InteractionTurn) => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
+    try {
+      const allTurns = interaction.turns || [];
+      const turnIndex = allTurns.findIndex(t => t.id === failedTurn.id);
+      const historyToSend = turnIndex !== -1 ? allTurns.slice(0, turnIndex + 1) : allTurns;
+
+      const response = await fetch('/api/reflect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: historyToSend.map((t) => ({
+            role: t.role,
+            content: t.content,
+          })),
+          mode,
+          category,
+          mood: mood || undefined,
+          customInstructions,
+          personaTone,
+        }),
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error || `Reflection retry failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const modelContent = data.response;
+
+      const modelTimestamp = new Date().toISOString();
+      const modelTurn: InteractionTurn = {
+        id: 'turn-' + (Date.now() + 1),
+        entryId: interaction.id,
+        role: 'model',
+        content: modelContent,
+        timestamp: modelTimestamp,
+        createdAt: modelTimestamp,
+      };
+
+      const finalInteraction: Interaction = {
+        ...interaction,
+        turns: [...allTurns, modelTurn],
+        updatedAt: new Date().toISOString(),
+      };
+
+      setFailedTurnId(null);
+      onUpdateInteraction(finalInteraction);
+    } catch (err: any) {
+      console.error('Reflection retry error:', err);
+      setFailedTurnId(failedTurn.id);
       onError(err.message || 'Could not reach reflection service. Please try again.');
     } finally {
       setIsGenerating(false);
@@ -419,7 +486,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   const turns = interaction.turns || [];
 
   return (
-    <main className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-[#FAF9F6] overflow-hidden">
+    <main id="session-workspace-container" className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-[#FAF9F6] overflow-hidden">
       {/* Workspace Header */}
       <div className="px-4 sm:px-6 py-3.5 bg-white border-b border-stone-200 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex-1 min-w-0 space-y-1">
@@ -734,8 +801,38 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               </p>
             </div>
 
+            {/* Floating Inspiration Chip if launched from daily prompt */}
+            {initialPrompt && (
+              <div className="p-4 bg-[#DCEEE3]/40 border border-[#3B7A57]/30 rounded-2xl text-left space-y-2 relative group mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider font-semibold text-[#3B7A57] flex items-center gap-1.5 font-sans">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Daily Reflection Inspiration
+                  </span>
+                  {onDismissInitialPrompt && (
+                    <button
+                      onClick={onDismissInitialPrompt}
+                      className="p-1 text-stone-400 hover:text-stone-600 rounded-md cursor-pointer"
+                      title="Dismiss prompt"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <p className="font-serif text-sm sm:text-base text-stone-900 italic leading-snug">
+                  "{initialPrompt}"
+                </p>
+                <button
+                  onClick={() => setInputText(initialPrompt)}
+                  className="text-xs text-[#3B7A57] font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
+                >
+                  Use this contemplation as your starter &rarr;
+                </button>
+              </div>
+            )}
+
             {/* Prompt Starter Pills */}
-            <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
               {[
                 'What made today feel productive or draining?',
                 'I am torn between two choices and want to weigh trade-offs.',
@@ -769,19 +866,19 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                       isSidebarOpen ? 'max-w-2xl' : 'max-w-3xl'
                     } ${
                       isUser
-                        ? 'bg-stone-900 text-stone-100 rounded-br-xs'
-                        : 'bg-white border border-stone-200 text-stone-900 rounded-bl-xs'
+                        ? 'bg-[#F2EFEB] border border-[#E6E3DC] text-[#232323] rounded-br-xs'
+                        : 'bg-white border border-[#E6E3DC] text-[#232323] rounded-bl-xs'
                     }`}
                   >
                     {/* Role Header */}
                     <div className="flex items-center justify-between gap-4 mb-2">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase">
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase font-sans">
                         {isUser ? (
-                          <span className="text-emerald-300">You &bull; Reflection</span>
+                          <span className="text-[#3B7A57]">You &bull; Reflection</span>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-emerald-800">
+                          <div className="flex items-center gap-1.5 text-[#3B7A57]">
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span>ReflectAI Companion</span>
+                            <span>Reflection Companion</span>
                           </div>
                         )}
                         {turn.isPinned && (
@@ -932,6 +1029,24 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Inline Message Resend on Failure */}
+                  {failedTurnId === turn.id && (
+                    <div className="mt-2 flex items-center justify-between gap-3 p-3 bg-red-50/90 border border-red-200 rounded-xl text-xs text-red-800 shadow-2xs max-w-lg">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                        <span>Unable to send message right now. Your text is safely preserved.</span>
+                      </div>
+                      <button
+                        onClick={() => handleResendTurn(turn)}
+                        disabled={isGenerating}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#3B7A57] text-white text-xs font-semibold hover:opacity-95 transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
+                        <span>Resend</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

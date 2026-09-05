@@ -25,6 +25,8 @@ interface SettingsDrawerProps {
   allInteractions: Interaction[];
   allNotebookItems: NotebookItem[];
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+  onLoadDemoData?: () => void;
+  onClearDemoData?: () => void;
 }
 
 const TONES: { id: PersonaTone; label: string; desc: string }[] = [
@@ -50,6 +52,8 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   allInteractions,
   allNotebookItems,
   onShowToast,
+  onLoadDemoData,
+  onClearDemoData,
 }) => {
   const [activeTab, setActiveTab] = useState<'persona' | 'tags' | 'notebook' | 'data' | 'integrations'>('persona');
   const [formState, setFormState] = useState<UserSettings>(settings);
@@ -416,6 +420,42 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         <Download className="w-3.5 h-3.5" />
                         <span>Export Archive</span>
                       </button>
+                    </div>
+                  </div>
+
+                  {/* 30-Day Simulation Dataset for Evaluation */}
+                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-stone-800">30-Day Simulation Dataset</p>
+                        <p className="text-[11px] text-stone-500">
+                          Pre-load 6 multi-turn reflections, 3 themes, and 8 observations to evaluate longitudinal tracking.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {onLoadDemoData && (
+                          <button
+                            id="settings-load-demo-btn"
+                            type="button"
+                            onClick={onLoadDemoData}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Load Demo</span>
+                          </button>
+                        )}
+                        {onClearDemoData && (
+                          <button
+                            id="settings-clear-demo-btn"
+                            type="button"
+                            onClick={onClearDemoData}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Clear</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
