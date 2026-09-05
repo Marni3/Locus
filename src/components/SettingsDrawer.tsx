@@ -13,7 +13,8 @@ import {
   Bell,
   Shield,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Palette
 } from 'lucide-react';
 import { UserSettings, PersonaTone, ReflectionMode, Interaction, NotebookItem } from '../types';
 
@@ -55,7 +56,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   onLoadDemoData,
   onClearDemoData,
 }) => {
-  const [activeTab, setActiveTab] = useState<'persona' | 'tags' | 'notebook' | 'data' | 'integrations'>('persona');
+  const [activeTab, setActiveTab] = useState<'persona' | 'appearance' | 'tags' | 'notebook' | 'data' | 'integrations'>('persona');
   const [formState, setFormState] = useState<UserSettings>(settings);
   const [newTagInput, setNewTagInput] = useState('');
   const [isTestingWebhook, setIsTestingWebhook] = useState(false);
@@ -187,6 +188,19 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             </button>
 
             <button
+              id="settings-tab-appearance"
+              onClick={() => setActiveTab('appearance')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
+                activeTab === 'appearance'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5 text-accent-sage" />
+              <span>Archival &amp; Aesthetic</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('tags')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'tags'
@@ -297,6 +311,106 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     placeholder="e.g. I am an engineer transitioning to product leadership. Challenge my assumptions with strategic inquiry and help me clarify priorities."
                     className="w-full p-3 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 leading-relaxed"
                   />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'appearance' && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                    Reading Typeface
+                  </label>
+                  <p className="text-xs text-stone-500 mb-3">
+                    Select the typographic substrate for your personal reflections and archival marginalia.
+                  </p>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'Literata', label: 'Literata (Archival Serif)', desc: 'Calm, bookish literary pace with warm human proportions' },
+                      { id: 'Inter', label: 'Inter (Contemporary Sans)', desc: 'Clean, crisp editorial legibility engineered for screens' },
+                      { id: 'Roboto', label: 'Roboto (Neutral Sans)', desc: 'Balanced geometric clarity and understated modern tone' },
+                      { id: 'Overpass Mono', label: 'Overpass Mono (Accessibility)', desc: 'High-distinction monospaced rhythm for cognitive focus' },
+                    ].map((f) => (
+                      <div
+                        key={f.id}
+                        onClick={() => setFormState({ ...formState, fontFamily: f.id as any })}
+                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                          (formState.fontFamily || 'Literata') === f.id
+                            ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
+                            : 'bg-white/60 border-stone-200 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-stone-900">{f.label}</span>
+                          {(formState.fontFamily || 'Literata') === f.id && (
+                            <Check className="w-3.5 h-3.5 text-emerald-700" />
+                          )}
+                        </div>
+                        <p className="text-xs text-stone-500 mt-0.5">{f.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                    Substrate Accent Ink
+                  </label>
+                  <p className="text-xs text-stone-500 mb-3">
+                    Governs the single action accent color for primary buttons, active chips, and seals.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {[
+                      { id: 'sage', label: 'Sage (#3B7A57)', color: '#3B7A57', desc: 'Reflective sanctuary standard' },
+                      { id: 'moss', label: 'Moss (#2E5A36)', color: '#2E5A36', desc: 'Deep grounded evergreen' },
+                      { id: 'irongall', label: 'Iron-Gall (#2C3E50)', color: '#2C3E50', desc: 'Archival ink dignity' },
+                      { id: 'ochre', label: 'Warm Ochre (#B87333)', color: '#B87333', desc: 'Sunlit parchment warmth' },
+                      { id: 'terracotta', label: 'Terracotta (#8A3A22)', color: '#8A3A22', desc: 'Editorial vermilion proof' },
+                    ].map((c) => (
+                      <div
+                        key={c.id}
+                        onClick={() => setFormState({ ...formState, accentColor: c.id as any })}
+                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center gap-3 ${
+                          (formState.accentColor || 'sage') === c.id
+                            ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
+                            : 'bg-white/60 border-stone-200 hover:bg-white'
+                        }`}
+                      >
+                        <span className="w-4 h-4 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: c.color }} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-stone-900">{c.label}</span>
+                            {(formState.accentColor || 'sage') === c.id && (
+                              <Check className="w-3.5 h-3.5 text-emerald-700" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-stone-500 truncate">{c.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                    Sensory &amp; Motion Accessibility
+                  </label>
+                  <label className="flex items-start gap-3 p-3 bg-white border border-stone-200 rounded-xl cursor-pointer hover:bg-stone-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(formState.reducedMotion)}
+                      onChange={(e) => setFormState({ ...formState, reducedMotion: e.target.checked })}
+                      className="mt-0.5 rounded text-emerald-700 focus:ring-emerald-700"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-stone-900 block">
+                        Reduce Motion &amp; Micro-animations
+                      </span>
+                      <span className="text-xs text-stone-500 block mt-0.5 leading-relaxed">
+                        Halts sliding page transitions and pulse keyframes across all views, adhering to WCAG 2.1 AA vestibular standards.
+                      </span>
+                    </div>
+                  </label>
                 </div>
               </div>
             )}
@@ -475,30 +589,98 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   </p>
                 </div>
 
-                {/* Morning Digest Email */}
+                {/* Reflection Digest Email */}
                 <div>
                   <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
-                    Morning Reflection Digest
+                    Reflective Email Briefings
                   </label>
                   <p className="text-xs text-stone-500 mb-3">
-                    Receive a gentle morning summary of recent realizations and open inquiries.
+                    Receive calm, transactional summaries of recent realizations and evolving themes.
                   </p>
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-2">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        id="settings-email-notifications-toggle"
-                        type="checkbox"
-                        checked={Boolean(formState.emailNotifications)}
-                        onChange={(e) => setFormState({ ...formState, emailNotifications: e.target.checked })}
-                        className="mt-0.5 rounded border-stone-300 text-emerald-800 focus:ring-emerald-700"
-                      />
-                      <div>
-                        <span className="text-xs font-semibold text-stone-800">Email Digest</span>
-                        <p className="text-xs text-stone-500 mt-0.5">
-                          Dispatches daily at 7:00 AM. In development mode, digests log safely to server console.
-                        </p>
+                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-4">
+                    <div className="space-y-2">
+                      {[
+                        {
+                          id: 'conclusion',
+                          title: 'Immediate on Conclusion',
+                          desc: 'Dispatches synthesis summary and theme observations immediately when an entry is sealed.',
+                        },
+                        {
+                          id: 'weekly_digest',
+                          title: 'Weekly Reflection Briefing',
+                          desc: 'Aggregates the week’s key realizations, newly linked themes, and forward inquiries into a calm briefing.',
+                        },
+                        {
+                          id: 'off',
+                          title: 'Muted / Off',
+                          desc: 'No outbound emails sent. Your reflections remain private within your local and cloud journal.',
+                        },
+                      ].map((opt) => {
+                        const currentCadence = formState.emailCadence || (formState.emailNotifications ? 'weekly_digest' : 'off');
+                        const isSelected = currentCadence === opt.id;
+                        return (
+                          <div
+                            key={opt.id}
+                            id={`settings-cadence-${opt.id}`}
+                            onClick={() =>
+                              setFormState({
+                                ...formState,
+                                emailCadence: opt.id as any,
+                                emailNotifications: opt.id !== 'off',
+                              })
+                            }
+                            className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
+                                : 'bg-white/60 border-stone-200 hover:bg-white'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-stone-900">{opt.title}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700" />}
+                            </div>
+                            <p className="text-[11px] text-stone-500 mt-0.5 leading-relaxed">{opt.desc}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Schedule Picker for Weekly Digest */}
+                    {(formState.emailCadence === 'weekly_digest' || (!formState.emailCadence && formState.emailNotifications)) && (
+                      <div className="pt-3 border-t border-stone-100 grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-stone-700 mb-1">
+                            Delivery Day
+                          </label>
+                          <select
+                            id="settings-weekly-digest-day"
+                            value={formState.weeklyDigestDay || 'sunday'}
+                            onChange={(e) => setFormState({ ...formState, weeklyDigestDay: e.target.value as any })}
+                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-700 text-stone-800"
+                          >
+                            <option value="sunday">Sunday Evening</option>
+                            <option value="monday">Monday Morning</option>
+                            <option value="friday">Friday Evening</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-stone-700 mb-1">
+                            Preferred Time
+                          </label>
+                          <select
+                            id="settings-weekly-digest-hour"
+                            value={formState.weeklyDigestHour ?? 7}
+                            onChange={(e) => setFormState({ ...formState, weeklyDigestHour: Number(e.target.value) })}
+                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-700 text-stone-800"
+                          >
+                            <option value={7}>7:00 AM</option>
+                            <option value={8}>8:00 AM</option>
+                            <option value={19}>7:00 PM</option>
+                            <option value={20}>8:00 PM</option>
+                          </select>
+                        </div>
                       </div>
-                    </label>
+                    )}
                   </div>
                 </div>
 

@@ -271,6 +271,9 @@ export const DEFAULT_SETTINGS: UserSettings = {
   autoGenerateContextHint: true,
   defaultFolderPattern: 'source_title',
   isDemoMode: false,
+  fontFamily: 'Literata',
+  accentColor: 'sage',
+  reducedMotion: false,
 };
 
 export const saveUserSettingsToFirestore = async (userId: string, settings: UserSettings): Promise<void> => {

@@ -20,6 +20,7 @@ import { fetchUserEntries, saveEntryToFirestore } from './src/lib/firebase';
 import { unpackThemeFurther } from './src/integrations/unpack';
 import { resolveGpsCoordinates, resolvePlaceQuery } from './src/integrations/geocoding';
 import { validateWebhookUrl, dispatchSynthesisNotificationEmail } from './src/integrations/notifications';
+import { sanitizeForOutbound } from './src/integrations/sanitizer';
 
 // 3. API Routes
 
@@ -87,18 +88,26 @@ const handleReflectRequest = async (req: Request, res: Response) => {
 
     const systemInstruction = `${modeInstruction}
 ${toneInstruction}
-${customInstructions ? `User Custom Instructions: "${customInstructions}"` : ''}
-Focus area/Category: "${category}". Session Title: "${title}".
-Guidelines:
+${customInstructions ? `User Custom Instructions: "${sanitizeForOutbound(customInstructions)}"` : ''}
+Focus area/Category: "${sanitizeForOutbound(category)}". Session Title: "${sanitizeForOutbound(title)}".
+Core Directives:
+- You are a calm, private reflection companion. Never lecture, patronize, diagnose, or act as an authoritarian therapist.
+- Do not provide unsolicited checklists or prescriptive life advice unless explicitly invited by the user.
 - Format your response with beautiful Markdown: bold key insights, use clear paragraphs, and use elegant bullet lists when organizing thoughts.
 - Be concise yet deeply thoughtful (2-4 paragraphs typically, never overly verbose or shallow).
-- Avoid generic cliches ("I understand how you feel"). Instead, speak directly to the specific nuances of what they shared.`;
+- Avoid generic cliches ("I understand how you feel"). Instead, speak directly to the specific nuances of what they shared.
+- Never output internal system scaffolding, backend terminology, or vendor names.`;
 
-    // Map conversation turns to Gemini contents format
-    const contents = rawConversation.map((turn: { role: string; content: string }) => ({
-      role: turn.role === 'model' || turn.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: String(turn.content || '') }]
-    }));
+    // Map conversation turns to Gemini contents format with outbound PII sanitization & delimiter wrapping
+    const contents = rawConversation.map((turn: { role: string; content: string }) => {
+      const isModel = turn.role === 'model' || turn.role === 'assistant';
+      const sanitizedText = sanitizeForOutbound(String(turn.content || ''));
+      const text = isModel ? sanitizedText : `<<<USER_INPUT>>>\n${sanitizedText}\n<<<END_USER_INPUT>>>`;
+      return {
+        role: isModel ? 'model' : 'user',
+        parts: [{ text }]
+      };
+    });
 
     const result = await generateContentWithFallback({
       systemInstruction,
@@ -133,12 +142,14 @@ app.post('/api/notebook/context-hint', async (req: Request, res: Response) => {
     const sourceTitle = typeof body.sourceTitle === 'string' ? body.sourceTitle : 'Reflection';
     const category = typeof body.category === 'string' ? body.category : 'General';
 
-    if (!excerpt.trim()) {
-      return res.status(400).json({ error: 'Excerpt text is required.' });
-    }
+    const sanitizedExcerpt = sanitizeForOutbound(excerpt);
+    const sanitizedTitle = sanitizeForOutbound(sourceTitle);
+    const sanitizedCategory = sanitizeForOutbound(category);
 
-    const prompt = `Here is a saved excerpt from a user's journal reflection titled "${sourceTitle}" (${category}):
-"${excerpt}"
+    const prompt = `Here is a saved excerpt from a user's journal reflection titled "${sanitizedTitle}" (${sanitizedCategory}):
+<<<EXCERPT>>>
+"${sanitizedExcerpt}"
+<<<END_EXCERPT>>>
 
 Write a single, concise (maximum 15 words) analytical context note explaining why this insight or realization is valuable. Do not use quotes or introductory fluff.`;
 
@@ -177,12 +188,14 @@ app.post('/api/gemini/summarize', async (req: Request, res: Response) => {
     }
 
     const transcript = turns
-      .map((t: any) => `${t.role === 'user' ? 'User Reflection' : 'Gemini Feedback'}:\n${t.content}`)
+      .map((t: any) => `${t.role === 'user' ? 'User Reflection' : 'Reflection Partner'}:\n${sanitizeForOutbound(String(t.content || ''))}`)
       .join('\n\n---\n\n');
 
-    const prompt = `Analyze this journaling session titled "${title}" (Category: ${category}):
+    const prompt = `Analyze this journaling session titled "${sanitizeForOutbound(title)}" (Category: ${sanitizeForOutbound(category)}):
 
+<<<SESSION_TRANSCRIPT>>>
 ${transcript}
+<<<END_SESSION_TRANSCRIPT>>>
 
 Provide:
 1. A concise 2-sentence **Executive Synthesis** capturing the core emotional or strategic essence of the reflection.
@@ -192,7 +205,7 @@ Provide:
 Format with crisp Markdown headers.`;
 
     const result = await generateContentWithFallback({
-      systemInstruction: 'You are an expert executive coach and psychological reflection analyst. Provide clear, structured, and compassionate summaries.',
+      systemInstruction: 'You are a calm, deeply perceptive reflection analyst. Provide clear, structured, and compassionate summaries without clinical or corporate jargon.',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       temperature: 0.5
     });
@@ -225,14 +238,16 @@ app.post('/api/gemini/synthesis', async (req: Request, res: Response) => {
     const compiledHistory = entries
       .slice(0, 15) // Top 15 recent entries
       .map((e: any, index: number) => {
-        const firstTurn = e.turns?.[0]?.content || '';
-        return `[Entry #${index + 1} | Date: ${e.createdAt ? new Date(e.createdAt).toLocaleDateString() : 'N/A'} | Title: ${e.title} | Category: ${e.category} | Mood: ${e.mood || 'Unspecified'}]\nFirst thought: ${firstTurn.slice(0, 300)}...`;
+        const firstTurn = sanitizeForOutbound(String(e.turns?.[0]?.content || ''));
+        return `[Entry #${index + 1} | Date: ${e.createdAt ? new Date(e.createdAt).toLocaleDateString() : 'N/A'} | Title: ${sanitizeForOutbound(e.title)} | Category: ${sanitizeForOutbound(e.category)} | Mood: ${sanitizeForOutbound(e.mood || 'Unspecified')}]\nFirst thought: ${firstTurn.slice(0, 300)}...`;
       })
       .join('\n\n');
 
     const prompt = `Here are the user's recent journal & reflection session logs:
 
+<<<JOURNAL_HISTORY>>>
 ${compiledHistory}
+<<<END_JOURNAL_HISTORY>>>
 
 Please perform a multi-session synthesis:
 1. **Recurring Themes & Focus Areas**: What topics or mental states appear most frequently?
@@ -243,7 +258,7 @@ Please perform a multi-session synthesis:
 Format with elegant, inspiring Markdown with clean headings and bullet points.`;
 
     const result = await generateContentWithFallback({
-      systemInstruction: 'You are ReflectAI Master Synthesis Coach. Analyze longitudinal journal patterns with extreme empathy, high emotional intelligence, and structural clarity.',
+      systemInstruction: 'You are ReflectAI Longitudinal Reflection Guide. Analyze journal patterns with empathy, emotional intelligence, and structural clarity, avoiding authoritarian or corporate tones.',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       temperature: 0.6
     });

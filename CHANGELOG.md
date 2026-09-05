@@ -7,6 +7,57 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-05]
 
 ### Added
+- **Master Architectural Refactor — Locus Strata (Option B: Hybrid Model)**:
+  - **The Active Sanctuary & Conversational Companion ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+    - Retained real-time conversational reflection across 4 cognitive stances (`reflect`, `brainstorm`, `actionable`, `mindful`).
+    - Terminology shift: completely transitioned from "Pinning" to "Bookmarking" passages with dedicated analytical notes.
+    - Added persistent IndexedDB draft synchronization (`offlineSync.ts`) and explicit `[ Conclude & Seal Page ]` action.
+  - **The Strata Margin Layer & Sealed Reader ([src/components/EntryReaderWithStrata.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/EntryReaderWithStrata.tsx), [src/services/strataService.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/strataService.ts))**:
+    - Concluded reflections are permanently immutable (`bodySealedAt`), routing to a 2-column desktop archival reader ($34\text{rem}$ reading column + $18\text{rem}$ recessed margin gutter).
+    - Enabled marginalia annotation (`Stratum` model) stamped with exact temporal distance (`written 94 days later`) and 5 semantic ink stances (`correction`, `confirmation`, `question`, `grief`, `gratitude`).
+    - Enforced strict AI Margin Policy: the AI remains 100% silent in the margins; strata are vector-embedded to track perspective shifts without conversational intrusion.
+  - **The Return Daily Archivist Loop ([src/components/TheReturnView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/TheReturnView.tsx), [src/services/returnRouter.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/returnRouter.ts))**:
+    - Created daily single-entry re-reading surface backed by 4 explainable heuristics (`anniversary`, `unresolved`, `contradiction`, `dormant`).
+    - Contradiction matching compares divergent emotional stances between past entries and invites user to write in the margin with zero AI prose generation.
+  - **Archival Dignity & Keep-Style Masonry Preservation ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
+    - Preserved Google Keep-style responsive cards on Reflections Home.
+    - Added `Courier Prime` stratum count badges (`3 strata · +94d`), bookmark ribbon badges, and a dedicated "Bookmarked" filter tab.
+  - **Dedicated Bookmarks Drawer ([src/components/BookmarksDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/BookmarksDrawer.tsx))**:
+    - Built dual-mode bookmark reader (Chronological feed vs Grouped by Reflection) with instant search, quote copying, and direct entry jump.
+  - **Interactive Guided Walkthrough Controller ([src/components/WalkthroughOverlay.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/WalkthroughOverlay.tsx), [src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
+    - Upgraded walkthrough overlay with dual display modes: full archival focus modal and compact floating pill (`#walkthrough-minimized-pill`) allowing unobstructed navigation during the tour.
+    - Added tranquil first-run welcome banner on Reflections Home (`#first-run-tour-banner`) with immediate tour trigger (`#banner-start-tour-btn`) and localStorage dismissal tracking.
+    - Added comprehensive Playwright E2E test ([tests/e2e/interactive-walkthrough.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/interactive-walkthrough.spec.ts)) validating the entire 8-stage interactive user journey.
+  - **Authentic 30-Day Simulation Dataset Realism ([src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts), [src/services/strataService.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/strataService.ts))**:
+    - Pre-seeded `isBookmarked: true` and reflective analytical notes across `demo-entry-1`, `demo-entry-2`, and `demo-entry-4`.
+    - Auto-seeded multi-layer demo strata in memory store (`demo-entry-1` +94d correction, +120d confirmation; `demo-entry-2` +23d gratitude) demonstrating temporal distance and semantic ink without manual user typing.
+    - Added explicit `openThreads` on `demo-entry-1` to immediately demonstrate The Return's explainable `unresolved` heuristic.
+  - **Reflective Email Notification Scheduling in Settings ([src/components/SettingsDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SettingsDrawer.tsx), [src/types.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/types.ts))**:
+    - Replaced binary toggle with delivery cadence selector (`Immediate on Conclusion`, `Weekly Reflection Briefing`, `Muted / Off`).
+    - Added scheduling controls for delivery day (`Sunday`, `Monday`, `Friday`) and preferred time (`7:00 AM`, `8:00 AM`, `7:00 PM`, `8:00 PM`).
+  - **Comprehensive Verification Suite (116 Tests Passing)**:
+    - 14 Vitest unit suites (93 tests passing): `strata-delta.test.ts`, `return-router.test.ts`, `no-fake-ai.test.ts`.
+    - 23 Playwright E2E tests (23 passing): `interactive-walkthrough.spec.ts`, `strata-margins.spec.ts`, `the-return.spec.ts`, `walkthrough-tour.spec.ts`, `screens.spec.ts`, `core-loop.spec.ts`, `integrations.spec.ts`, `smoke.spec.ts`.
+
+### Changed
+- **Zero-Fake-AI Hardening ([src/services/synthesis.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/synthesis.ts))**:
+  - Deleted all simulated template strings returning fake AI insights on Gemini failure; errors are escalated honestly with retry affordances.
+- **Phase 4 — Internal Prompts Audit & System Instruction Hardening ([docs/INTERNAL_PROMPTS_AUDIT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/INTERNAL_PROMPTS_AUDIT.md), [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts))**:
+  - Catalogued all 8 system instructions, user prompt templates, and reflection generators across the application into a comprehensive audit document.
+  - Hardened `/api/reflect`:
+    - Enclosed user turns within security boundary delimiters (`<<<USER_INPUT>>>`) to mitigate OWASP LLM prompt injection risks.
+    - Added outbound PII sanitization pass (`sanitizeForOutbound`) prior to Gemini egress.
+    - Calibrated tone directives: explicitly prohibited lecturing, patronizing, clinical diagnosing, or authoritarian advice-giving.
+  - Hardened `/api/gemini/summarize`:
+    - Purged explicit vendor leak (`Gemini Feedback` $\rightarrow$ `Reflection Partner`) per Locus Software Standard 5.
+    - Wrapped transcripts with `<<<SESSION_TRANSCRIPT>>>` delimiters.
+    - Reframed persona from corporate "expert executive coach" to "calm, deeply perceptive reflection analyst".
+  - Hardened `/api/gemini/synthesis`:
+    - Reframed persona from "Master Synthesis Coach" to "Longitudinal Reflection Guide".
+    - Wrapped history with `<<<JOURNAL_HISTORY>>>` delimiters and applied PII sanitization.
+  - Hardened `/api/notebook/context-hint`:
+    - Enclosed user excerpts within `<<<EXCERPT>>>` delimiters with PII sanitization.
+
 - **Phase 3.6 - Pass 2: Adaptive Grid Density, Calibrated Stillness & Universal Sparkle Eradication**:
   - **Adaptive Grid Density & Centered Reading Dignity ([src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx))**:
     - Eliminated the 65% dead white space bug where multi-column CSS (`columns-2 md:columns-3 lg:columns-4`) forced low reflection counts (1–2 cards) into the far-left columns while leaving the rest of the canvas empty.

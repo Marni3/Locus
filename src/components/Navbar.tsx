@@ -6,7 +6,9 @@ import {
   MessageSquare,
   Layers,
   ArrowLeft,
-  ChevronDown
+  ChevronDown,
+  Bookmark,
+  HelpCircle
 } from 'lucide-react';
 import { LocusMark } from './LocusMark';
 import { UserProfile } from '../types';
@@ -19,6 +21,9 @@ interface NavbarProps {
   activeView: 'reflections' | 'themes' | 'session';
   onViewChange: (view: 'reflections' | 'themes') => void;
   onOpenSettings: () => void;
+  onOpenBookmarks?: () => void;
+  onOpenTour?: () => void;
+  bookmarkCount?: number;
   onSignOut: () => void;
   totalSessions?: number;
 }
@@ -29,6 +34,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeView,
   onViewChange,
   onOpenSettings,
+  onOpenBookmarks,
+  onOpenTour,
+  bookmarkCount,
   onSignOut,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -110,6 +118,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <div className="h-5 w-px bg-border-hairline mx-0.5 hidden sm:block"></div>
+
+          {/* Bookmarks Trigger */}
+          {onOpenBookmarks && (
+            <button
+              id="navbar-open-bookmarks-btn"
+              onClick={onOpenBookmarks}
+              className="relative p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
+              title="Saved Bookmarks"
+              aria-label="Open Saved Bookmarks"
+            >
+              <Bookmark className="w-4 h-4" />
+              {typeof bookmarkCount === 'number' && bookmarkCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-sage" />
+              )}
+            </button>
+          )}
+
+          {/* Guided Tour Trigger */}
+          {onOpenTour && (
+            <button
+              id="navbar-open-tour-btn"
+              onClick={onOpenTour}
+              className="p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
+              title="Guided Tour"
+              aria-label="Open Guided Tour"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Settings Trigger */}
           <button

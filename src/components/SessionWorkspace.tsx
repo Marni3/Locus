@@ -17,7 +17,8 @@ import {
   MoreVertical,
   Plus,
   PanelLeftOpen,
-  Pin,
+  Bookmark,
+  BookmarkCheck,
   Clock,
   CheckCircle2,
   StickyNote,
@@ -440,10 +441,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     setTimeout(() => setCopiedTurnId(null), 2000);
   };
 
-  const handleTogglePin = async (turnId: string, currentPinned?: boolean) => {
-    const newPinned = !currentPinned;
+  const handleToggleBookmark = async (turnId: string, currentBookmarked?: boolean) => {
+    const newBookmarked = !currentBookmarked;
     const updatedTurns = turns.map((t) =>
-      t.id === turnId ? { ...t, isPinned: newPinned } : t
+      t.id === turnId ? { ...t, isBookmarked: newBookmarked, isPinned: newBookmarked } : t
     );
     const updatedInteraction: Interaction = {
       ...interaction,
@@ -456,10 +457,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
       await fetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPinned: newPinned, userId: interaction.userId }),
+        body: JSON.stringify({ isBookmarked: newBookmarked, isPinned: newBookmarked, userId: interaction.userId }),
       });
     } catch (err) {
-      console.error('Failed to toggle pin:', err);
+      console.error('Failed to toggle bookmark:', err);
     }
   };
 
@@ -724,7 +725,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               }}
               disabled={isConcluding}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs transition-all cursor-pointer disabled:opacity-50"
-              title="Conclude this entry and synthesize insights into persistent Themes"
+              title="Conclude and seal this reflection. Once sealed, you can write in the margins."
             >
               {isConcluding ? (
                 <>
@@ -734,7 +735,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               ) : (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Conclude Entry</span>
+                  <span>Conclude & Seal</span>
                 </>
               )}
             </button>
@@ -893,10 +894,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                               <span>Reflection Companion</span>
                             </div>
                           )}
-                          {turn.isPinned && (
-                            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-900">
-                              <Pin className="w-2.5 h-2.5 fill-current" />
-                              <span>Pinned</span>
+                          {(turn.isBookmarked || turn.isPinned) && (
+                            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-xs font-medium bg-[#DCEEE3] text-[#3B7A57]">
+                              <Bookmark className="w-2.5 h-2.5 fill-current" />
+                              <span>Bookmarked</span>
                             </span>
                           )}
                         </div>
@@ -906,20 +907,20 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                             {new Date(turn.createdAt || turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
 
-                          {/* Turn Pin Toggle */}
+                          {/* Turn Bookmark Toggle */}
                           <button
-                            onClick={() => handleTogglePin(turn.id, turn.isPinned)}
+                            onClick={() => handleToggleBookmark(turn.id, Boolean(turn.isBookmarked || turn.isPinned))}
                             className={`p-1 rounded transition-colors cursor-pointer ${
-                              turn.isPinned
-                                ? 'text-amber-500 bg-amber-900/30'
+                              turn.isBookmarked || turn.isPinned
+                                ? 'text-[#3B7A57] bg-[#DCEEE3]/60'
                                 : isUser
                                 ? 'text-stone-500 hover:text-stone-300'
                                 : 'text-stone-400 hover:text-stone-600'
                             }`}
-                            title={turn.isPinned ? 'Unpin message' : 'Pin message'}
-                            aria-label={turn.isPinned ? 'Unpin message' : 'Pin message'}
+                            title={turn.isBookmarked || turn.isPinned ? 'Remove bookmark' : 'Bookmark this realization'}
+                            aria-label={turn.isBookmarked || turn.isPinned ? 'Remove bookmark' : 'Bookmark this realization'}
                           >
-                            <Pin className={`w-3 h-3 ${turn.isPinned ? 'fill-current' : ''}`} />
+                            <Bookmark className={`w-3 h-3 ${turn.isBookmarked || turn.isPinned ? 'fill-current' : ''}`} />
                           </button>
 
                           {/* Turn Note Toggle */}

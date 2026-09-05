@@ -139,9 +139,8 @@ ${transcript}
 
     return text.trim();
   } catch (err: any) {
-    console.warn('Gemini summary generation failed (quota/network), using local fallback summary:', err.message);
-    const firstUserTurn = turns.find((t) => t.role === 'user')?.content || entry.title;
-    return `Reflection on "${entry.title}": ${firstUserTurn.slice(0, 150)}${firstUserTurn.length > 150 ? '...' : ''}`;
+    console.warn('Gemini summary generation failed (quota/network):', err.message);
+    throw new Error('Summary synthesis unavailable due to service limits. Please retry when connection is restored.');
   }
 }
 
@@ -338,23 +337,12 @@ export async function concludeAndSynthesizeEntry(entry: Entry): Promise<Synthesi
         });
         return parseSynthesisResolutionResponse(text);
       } catch (err: any) {
-        console.warn('Gemini theme resolution failed (quota/network), using local fallback theme matching:', err.message);
-        const existing = params.candidateThemes?.[0];
-        if (existing) {
-          return {
-            matchedThemes: [{ themeId: existing.id, observationText: params.summary }],
-            newThemes: [],
-          };
-        }
+        console.warn('Gemini theme resolution unavailable (quota/network):', err.message);
+        // Do not fabricate synthetic themes or observations when the model fails.
+        // Return empty theme updates; the entry is preserved safely without synthetic delusion.
         return {
           matchedThemes: [],
-          newThemes: [
-            {
-              title: params.locationContext?.name ? `${params.locationContext.name} Reflections` : 'Reflective Journey & Growth',
-              currentSynthesis: params.summary,
-              initialObservationText: params.summary,
-            }
-          ],
+          newThemes: [],
         };
       }
     },

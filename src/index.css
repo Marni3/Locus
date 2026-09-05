@@ -1,19 +1,50 @@
 @import "tailwindcss";
 
 @theme {
-  --font-serif: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-serif: 'Literata', 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-leaf: 'Literata', 'Source Serif 4', Georgia, serif;
+  --font-quote: 'Newsreader', 'Literata', Georgia, serif;
+  --font-ui: 'Archivo', 'Inter', sans-serif;
+  --font-stamp: 'Courier Prime', 'Overpass Mono', monospace;
   
   --color-canvas: #FAF9F6;
   --color-surface: #FFFFFF;
   --color-accent-sage: #3B7A57;
   --color-accent-sage-tint: #DCEEE3;
   --color-border-hairline: #E6E3DC;
-  --color-text-primary: #232323;
-  --color-text-muted: #6B6B6B;
+  --color-text-primary: #191813;
+  --color-text-muted: #5A5648;
+
+  /* Archival Ink & Substrate Tokens */
+  --color-paper: #FAF9F6;
+  --color-paper-deep: #EAE6DC;
+  --color-leaf: #FFFFFF;
+  --color-ink: #191813;
+  --color-ink-muted: #5A5648;
+  --color-irongall: #2C3A4F;
+  --color-vermilion: #8A3A22;
+  --color-moss: #3B5540;
+  --color-rule: #DCD7CD;
 }
 
 @layer base {
+  :root {
+    --paper: #FAF9F6;
+    --paper-deep: #EAE6DC;
+    --leaf: #FFFFFF;
+    --ink: #191813;
+    --ink-muted: #5A5648;
+    --irongall: #2C3A4F;
+    --vermilion: #8A3A22;
+    --moss: #3B5540;
+    --rule: #DCD7CD;
+    --font-leaf: 'Literata', 'Source Serif 4', Georgia, serif;
+    --font-quote: 'Newsreader', 'Literata', Georgia, serif;
+    --font-ui: 'Archivo', 'Inter', sans-serif;
+    --font-stamp: 'Courier Prime', 'Overpass Mono', monospace;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: var(--color-canvas);
@@ -26,6 +57,30 @@
 
   .font-sans {
     font-family: var(--font-sans);
+  }
+
+  .font-leaf {
+    font-family: var(--font-leaf);
+    font-optical-sizing: auto;
+  }
+
+  .font-quote {
+    font-family: var(--font-quote);
+    font-optical-sizing: auto;
+  }
+
+  .font-ui {
+    font-family: var(--font-ui);
+  }
+
+  .font-stamp {
+    font-family: var(--font-stamp);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--irongall, #2C3A4F);
+    outline-offset: 2px;
   }
 }
 
@@ -69,5 +124,45 @@
   animation-fill-mode: backwards;
   transform-origin: center center;
   will-change: transform, opacity;
+}
+
+/* Accessibility: Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-water-ripple {
+    animation: none !important;
+    opacity: 0.05 !important;
+  }
+}
+
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion ::before,
+.reduce-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+.reduce-motion .animate-water-ripple {
+  animation: none !important;
+  opacity: 0.05 !important;
+}
+
+.reduce-motion *, .reduce-motion ::before, .reduce-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .animate-water-ripple {
+  animation: none !important;
+  opacity: 0.05 !important;
 }
 

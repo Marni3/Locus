@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { 
   auth, 
@@ -21,14 +21,20 @@ import { ThemesView } from './components/ThemesView';
 import { SettingsDrawer } from './components/SettingsDrawer';
 import { Toast } from './components/Toast';
 import { LocusMark } from './components/LocusMark';
+import { BookmarksDrawer } from './components/BookmarksDrawer';
+import { EntryReaderWithStrata } from './components/EntryReaderWithStrata';
+import { TheReturnView } from './components/TheReturnView';
+import { WalkthroughOverlay } from './components/WalkthroughOverlay';
+import { selectReturnCandidate } from './services/returnRouter';
 import { DEMO_USER_ID, getSampleDemoDataset } from './services/demoSimulator';
+import { ReturnCandidate } from './types';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
 
-  // Active Screen: 'reflections' (Home) | 'session' (Active Workspace) | 'themes' (Themes View)
-  const [activeView, setActiveView] = useState<'reflections' | 'session' | 'themes'>('reflections');
+  // Active Screen: 'reflections' | 'session' | 'themes' | 'reader' | 'return'
+  const [activeView, setActiveView] = useState<'reflections' | 'session' | 'themes' | 'reader' | 'return'>('reflections');
 
   // Core Data Collections
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -40,6 +46,11 @@ export default function App() {
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
+
+  // Bookmarks, Return & Walkthrough State
+  const [isBookmarksOpen, setIsBookmarksOpen] = useState<boolean>(false);
+  const [returnCandidate, setReturnCandidate] = useState<ReturnCandidate | null>(null);
+  const [isWalkthroughOpen, setIsWalkthroughOpen] = useState<boolean>(false);
 
   // Persistence status & Toast State
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -73,6 +84,31 @@ export default function App() {
     setToastOnAction(undefined);
     setToastSubText(undefined);
   };
+
+  // 0. Dynamic Archival Appearance & Accessibility Settings
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.reducedMotion) {
+      root.classList.add('reduce-motion');
+    } else {
+      root.classList.remove('reduce-motion');
+    }
+
+    const accents: Record<string, string> = {
+      sage: '#3B7A57',
+      moss: '#2E5A36',
+      irongall: '#2C3E50',
+      ochre: '#B87333',
+      terracotta: '#8A3A22'
+    };
+    if (settings.accentColor && accents[settings.accentColor]) {
+      root.style.setProperty('--accent-sage', accents[settings.accentColor]);
+    }
+
+    if (settings.fontFamily) {
+      root.style.setProperty('--font-reading', settings.fontFamily);
+    }
+  }, [settings.reducedMotion, settings.accentColor, settings.fontFamily]);
 
   // 1. Auth Listener
   useEffect(() => {
@@ -241,11 +277,13 @@ export default function App() {
         ...entry,
         status: 'concluded',
         concludedAt: new Date().toISOString(),
+        bodySealedAt: new Date().toISOString(),
         summary: data.result?.concludedEntry?.summary || data.summary || entry.summary,
         tags: data.result?.concludedEntry?.tags || entry.tags,
       };
 
       handleUpdateEntry(updated);
+      setActiveEntryId(entry.id);
 
       if (currentUser.uid !== DEMO_USER_ID) {
         // Refresh themes and observations in background from Firestore
@@ -270,28 +308,42 @@ export default function App() {
         }
       }
 
-      showToast(
-        'Reflection concluded. Themes & observations synthesized.', 
-        'success', 
-        'View Themes →', 
-        () => setActiveView('themes')
-      );
+      setActiveView('reader');
+      showToast('The page is set. You can now write in the margins.', 'success');
     } catch (err: any) {
       console.warn('Conclude pipeline handled with client fallback:', err.message);
       const updated: Entry = {
         ...entry,
         status: 'concluded',
         concludedAt: new Date().toISOString(),
-        summary: entry.summary || entry.turns?.[entry.turns.length - 1]?.content.slice(0, 160) || 'Synthesized contemplation session.',
-        tags: entry.tags && entry.tags.length > 0 ? entry.tags : ['Reflection', 'Growth'],
+        bodySealedAt: new Date().toISOString(),
+        summary: entry.summary || 'Reflection concluded.',
+        tags: entry.tags && entry.tags.length > 0 ? entry.tags : ['Reflection'],
       };
       handleUpdateEntry(updated);
-      showToast(
-        'Reflection concluded and saved to journal.', 
-        'success', 
-        'View Themes →', 
-        () => setActiveView('themes')
-      );
+      setActiveEntryId(entry.id);
+      setActiveView('reader');
+      showToast('The page is set. Synthesis unavailable offline.', 'info');
+    }
+  };
+
+  const bookmarkCount = useMemo(() => {
+    let count = 0;
+    entries.forEach((e) => {
+      (e.turns || []).forEach((t) => {
+        if (t.isBookmarked || t.isPinned) count++;
+      });
+    });
+    return count;
+  }, [entries]);
+
+  const handleOpenTheReturn = () => {
+    const candidate = selectReturnCandidate(entries);
+    if (candidate) {
+      setReturnCandidate(candidate);
+      setActiveView('return');
+    } else {
+      showToast('No past reflections ready for The Return yet.', 'info');
     }
   };
 
@@ -411,9 +463,12 @@ export default function App() {
       <Navbar
         user={currentUser}
         onNewSession={() => createNewSession()}
-        activeView={activeView}
+        activeView={activeView === 'reader' || activeView === 'return' ? 'reflections' : activeView}
         onViewChange={(view) => setActiveView(view)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenBookmarks={() => setIsBookmarksOpen(true)}
+        onOpenTour={() => setIsWalkthroughOpen(true)}
+        bookmarkCount={bookmarkCount}
         onSignOut={handleSignOut}
         totalSessions={entries.length}
       />
@@ -427,12 +482,19 @@ export default function App() {
             onSelectEntry={(entry) => {
               setActiveEntryId(entry.id);
               setInitialPrompt(undefined);
-              setActiveView('session');
+              if (entry.status === 'concluded') {
+                setActiveView('reader');
+              } else {
+                setActiveView('session');
+              }
             }}
             onNewReflection={(promptText) => createNewSession(promptText)}
             onSelectTheme={(theme) => {
               setActiveView('themes');
             }}
+            onOpenTheReturn={handleOpenTheReturn}
+            onOpenBookmarks={() => setIsBookmarksOpen(true)}
+            onStartTour={() => setIsWalkthroughOpen(true)}
             isLoading={isLoadingData}
           />
         </main>
@@ -463,6 +525,33 @@ export default function App() {
         </div>
       )}
 
+      {/* Screen 2.5: Concluded Entry Reader & Strata Margins */}
+      {activeView === 'reader' && activeEntry && (
+        <EntryReaderWithStrata
+          entry={activeEntry}
+          onBack={() => setActiveView('reflections')}
+          onViewThemes={() => setActiveView('themes')}
+          onNewReflection={() => createNewSession()}
+          onUpdateEntry={handleUpdateEntry}
+        />
+      )}
+
+      {/* Screen 2.6: The Return (Daily Archivist Loop) */}
+      {activeView === 'return' && returnCandidate && (
+        <TheReturnView
+          candidate={returnCandidate}
+          onWriteInMargin={(entry) => {
+            setActiveEntryId(entry.id);
+            setActiveView('reader');
+          }}
+          onDismiss={() => setActiveView('reflections')}
+          onSelectOtherEntry={(otherId) => {
+            setActiveEntryId(otherId);
+            setActiveView('reader');
+          }}
+        />
+      )}
+
       {/* Screen 3: Themes Master-Detail & Concept Graph */}
       {activeView === 'themes' && (
         <main className="flex-1 overflow-y-auto">
@@ -473,13 +562,41 @@ export default function App() {
             onSelectEntry={(entry) => {
               setActiveEntryId(entry.id);
               setInitialPrompt(undefined);
-              setActiveView('session');
+              if (entry.status === 'concluded') {
+                setActiveView('reader');
+              } else {
+                setActiveView('session');
+              }
             }}
             onNewReflectionWithPrompt={(promptText) => createNewSession(promptText)}
             isLoading={isLoadingData}
           />
         </main>
       )}
+
+      {/* Drawer: Bookmarks */}
+      <BookmarksDrawer
+        isOpen={isBookmarksOpen}
+        onClose={() => setIsBookmarksOpen(false)}
+        entries={entries}
+        onSelectEntry={(entry) => {
+          setActiveEntryId(entry.id);
+          if (entry.status === 'concluded') {
+            setActiveView('reader');
+          } else {
+            setActiveView('session');
+          }
+        }}
+        onRemoveBookmark={(entryId, turnId) => {
+          const entry = entries.find((e) => e.id === entryId);
+          if (entry && entry.turns) {
+            const updatedTurns = entry.turns.map((t) =>
+              t.id === turnId ? { ...t, isBookmarked: false, isPinned: false } : t
+            );
+            handleUpdateEntry({ ...entry, turns: updatedTurns });
+          }
+        }}
+      />
 
       {/* Screen 4: Settings Drawer */}
       <SettingsDrawer
@@ -492,6 +609,19 @@ export default function App() {
         onShowToast={showToast}
         onLoadDemoData={handleLoadDemoData}
         onClearDemoData={handleClearDemoData}
+      />
+
+      {/* Interactive Guided Walkthrough */}
+      <WalkthroughOverlay
+        isOpen={isWalkthroughOpen}
+        onClose={() => setIsWalkthroughOpen(false)}
+        onStartSampleReflection={(sampleText) => {
+          createNewSession(sampleText);
+          setActiveView('session');
+        }}
+        onOpenThemes={() => setActiveView('themes')}
+        onOpenReturn={handleOpenTheReturn}
+        onOpenBookmarks={() => setIsBookmarksOpen(true)}
       />
 
       {/* Notifications / Error Toast */}

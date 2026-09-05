@@ -16,6 +16,8 @@ export interface Entry {
   title: string;
   createdAt: string;
   concludedAt?: string;
+  bodySealedAt?: string;          // Proof of immutability
+  bodyHash?: string;              // SHA-256 hash of sealed transcript
   status: EntryStatus;
   summary?: string;
   locationContext?: EntryLocation | null;
@@ -28,7 +30,11 @@ export interface Entry {
   starred?: boolean;
   isDemo?: boolean;
   updatedAt?: string;
-  turns?: Message[]; // In-memory or fetched conversational turns
+  stratumCount?: number;          // Denormalized count of margin notes
+  lastReturnedAt?: string | null; // For The Return scheduling
+  returnCount?: number;
+  openThreads?: string[];         // Open threads marked during reflection
+  turns?: Message[];              // In-memory or fetched conversational turns
 }
 
 export interface Message {
@@ -38,16 +44,64 @@ export interface Message {
   role: 'user' | 'ai' | 'model';
   content: string;
   timestamp: string;
-  createdAt?: string; // alias for backwards compatibility
-  isPinned?: boolean;
-  note?: string;
+  createdAt?: string;             // alias for backwards compatibility
+  isBookmarked?: boolean;         // Current canonical field
+  isPinned?: boolean;             // Backwards-compatible alias
+  note?: string;                  // User analytical note
+  status?: 'pending' | 'sent' | 'failed';
+}
+
+// Strata Margin Layer (Marginalia on Concluded Entries)
+export type StratumStance = 'correction' | 'confirmation' | 'question' | 'grief' | 'gratitude';
+
+export interface StratumAnchor {
+  turnId?: string;                // Specific turn anchored, or null for whole entry
+  startOffset: number;
+  endOffset: number;
+  quotedText: string;
+}
+
+export interface Stratum {
+  id: string;
+  entryId: string;
+  userId: string;
+  parentStratumId?: string | null;// Depth 2-3 (note on a note)
+  anchor?: StratumAnchor | null;  // Text selection in entry
+  bodyMarkdown: string;           // Immutable once saved
+  depth: 1 | 2 | 3;
+  daysLater: number;              // Elapsed days since entry conclusion
+  stance: StratumStance;
+  createdAt: string;
+  sealedAt: string;
+  isDemo?: boolean;
+}
+
+// The Return (Daily Archivist Surface)
+export type ReturnReason = 
+  | 'anniversary'    // "Written 1 year ago today"
+  | 'unresolved'     // "You left an open thread here"
+  | 'contradiction'  // "A later entry says the opposite of this"
+  | 'recurrence'     // "Fifth entry under this theme"
+  | 'dormant';       // "Not revisited in 6 months"
+
+export interface ReturnCandidate {
+  entry: Entry;
+  strata: Stratum[];
+  reason: ReturnReason;
+  evidence: string;               // e.g. "Written 1 year ago today · 2 strata"
+  contradictingEntry?: {
+    id: string;
+    title: string;
+    date: string;
+    excerpt: string;
+  };
 }
 
 export interface Theme {
   id: string;
   userId: string;
   title: string;
-  currentSynthesis: string; // rolling 2-3 sentences
+  currentSynthesis: string;       // rolling 2-3 sentences
   observationCount: number;
   createdAt: string;
   updatedAt: string;
@@ -62,7 +116,9 @@ export interface ThemeObservation {
   themeId: string;
   observationText: string;
   timestamp: string;
-  locationSnapshot?: string; // e.g. "Home Office" at observation time
+  sourceType?: 'entry_conclusion' | 'stratum_annotation'; // Provenance
+  stratumId?: string;             // Linked stratum if applicable
+  locationSnapshot?: string;      // e.g. "Home Office" at observation time
   isDemo?: boolean;
 }
 
@@ -96,6 +152,12 @@ export interface UserSettings {
   isDemoMode?: boolean;
   webhookUrl?: string;
   emailNotifications?: boolean;
+  emailCadence?: 'conclusion' | 'weekly_digest' | 'off';
+  weeklyDigestDay?: 'sunday' | 'monday' | 'friday';
+  weeklyDigestHour?: number;
+  fontFamily?: 'Literata' | 'Inter' | 'Roboto' | 'Overpass' | 'Overpass Mono';
+  accentColor?: 'sage' | 'moss' | 'irongall' | 'ochre' | 'terracotta';
+  reducedMotion?: boolean;
 }
 
 export interface UserProfile {

@@ -72,7 +72,7 @@ test.describe('Phase 3.5 Screen Architecture & Verification Suite', () => {
     await saveDualScreenshot(page, 'screen1_reflections_home_mobile.png', false);
   });
 
-  test('2. Screen 2: Concluded Split View (Transcript Left, Executive Synthesis Dossier Right)', async ({ page }) => {
+  test('2. Screen 2: Concluded Sealed Reader (Transcript Left, Strata Margins Right)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.goto('/');
 
@@ -80,41 +80,39 @@ test.describe('Phase 3.5 Screen Architecture & Verification Suite', () => {
     await page.locator('#hero-demo-mode-btn').click();
     await page.waitForSelector('#nav-tab-reflections');
 
-    // Click on the first concluded reflection card to open session
+    // Click on the first concluded reflection card to open sealed reader
     const firstCard = page.locator('div[role="button"][aria-label^="Reflection:"]').first();
     await firstCard.click();
 
-    // Verify Session Workspace elements
-    const sessionWorkspace = page.locator('#session-workspace-container');
-    await expect(sessionWorkspace).toBeVisible();
+    // Verify Sealed Reader & Margins elements
+    await expect(page.locator('text=The Page is Set · Immutable')).toBeVisible();
+    await expect(page.locator('text=The Margins')).toBeVisible();
 
-    // Concluded Split View verification:
-    // Left pane (60%): Reflection Turns Stream
-    const userBubbles = page.locator('div[id^="turn-"] .font-serif');
+    // Left pane: Reading Turns Stream
+    const userBubbles = page.locator('[id^="reader-turn-"]');
     await expect(userBubbles.first()).toBeVisible();
 
-    // Right pane (40%): Executive Synthesis Dossier
-    const execSynthesis = page.locator('text=Executive Synthesis');
-    await expect(execSynthesis).toBeVisible();
+    // Right pane: Margins Gutter with Temporal Stamps & Write Note CTA
+    const marginGutter = page.locator('aside');
+    await expect(marginGutter).toBeVisible();
+    await expect(page.locator('button:has-text("Write Note")')).toBeVisible();
 
-    const keyTakeaways = page.locator('text=Key Takeaways');
-    await expect(keyTakeaways).toBeVisible();
-
-    const immutableRecord = page.locator('text=Immutable Record');
-    await expect(immutableRecord).toBeVisible();
-
-    const newReflectionBtn = page.locator('#workspace-start-new-reflection-btn');
-    await expect(newReflectionBtn).toBeVisible();
-
-    const viewThemesBtn = page.locator('#workspace-dossier-view-themes-btn');
-    await expect(viewThemesBtn).toBeVisible();
-
-    // Verify back navigation button to reflections
-    const backBtn = page.locator('button[aria-label="Return to Reflections Canvas"]');
-    await expect(backBtn).toBeVisible();
-
-    // Capture Session Workspace Concluded Split View screenshot
+    // Capture Sealed Reader screenshot
     await saveDualScreenshot(page, 'screen2_session_workspace.png', true);
+
+    // Return to Reflections Home
+    const backBtn = page.locator('button:has-text("Reflections")').first();
+    await backBtn.click();
+    await expect(page.locator('#nav-tab-reflections')).toBeVisible();
+
+    // Open an Active Reflection Workspace via New Reflection
+    const newReflBtn = page.locator('#navbar-new-reflection-btn');
+    await newReflBtn.click();
+
+    // Verify Active Session Workspace elements
+    const sessionWorkspace = page.locator('#session-workspace-container');
+    await expect(sessionWorkspace).toBeVisible();
+    await expect(page.locator('button:has-text("Conclude & Seal")')).toBeVisible();
   });
 
   test('3. Screen 3: Themes Timeline & Hybrid Concept Graph (Physics, Pills, Sub-Graph Drill-Down)', async ({ page }) => {

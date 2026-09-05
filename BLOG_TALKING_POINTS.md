@@ -45,6 +45,41 @@ A living repository of technical insights, architectural decisions, product phil
   * **Semantic Whole-Word Distillation**: Titles break cleanly on sentence or word boundaries, treating user expressions with literary respect.
   * **Zero Plumbing Leaks**: Markdown headers and section labels are systematically stripped from body cards, presenting pure prose.
 
+### The Strata Architecture: Solving the Dual Journaling Paradox (Option B)
+* **The Dual Paradox**:
+  1. *The Blank-Page Problem*: Pure blank-canvas editors terrify tired minds. Users open a journal, stare at a blinking cursor, feel inadequate, and close the tab.
+  2. *The Forgotten-Notebook Problem*: Pure AI chatbots provide an active conversation, but generate endless disposable chat histories where valuable insights evaporate into ephemeral message threads.
+* **The Hybrid Breakthrough (Option B)**:
+  * While writing: An attentive **conversational sanctuary companion** that asks clarifying questions across 4 stances.
+  * Once concluded: The entry is **permanently sealed** (`bodySealedAt`). The page becomes immutable history—protecting the integrity of who you were when you wrote it.
+  * How you revisit: You don't edit past words—you write in the **margins** (`Stratum` layer).
+
+### Why the AI Must Remain 100% Silent in the Margins
+* **The Seductive Mistake**: When prototyping the margin layer, the immediate generative AI impulse is to make the companion pop into the margin gutter to offer commentary on the user's marginalia.
+* **The Boundary Defense**: We instituted a strict architectural rule: **Zero AI output in the margin column**.
+  * The margin of an antique book is sacred. It is an intimate dialogue between your present self and your past self across the chasm of time.
+  * Having an LLM chime in with *"That's a great realization!"* would desecrate the sanctuary.
+  * The AI's only role with strata is silent, background vector indexing: if a note marks an intellectual shift (`stance: 'correction'`), it records the delta into the user's Theme Observations without saying a single word.
+
+### Temporal Distance vs. Raw Timestamps: Cognitive Geological Strata
+* **The Neurological Difference**: A raw timestamp like `2026-05-14T14:22:00Z` or `May 14, 2026` is dead data. The human brain does not feel time in calendar dates.
+* **The Courier Prime Temporal Stamp**: When you annotate a past thought, Locus computes the exact delta: `written 94 days later` or `written 1 year, 2 months later`.
+* Stamped in `Courier Prime` typewriter tracking, this immediately triggers a sensation of geological sediment. You are observing your own mind layered across time.
+
+### The Return: Explainable Re-Reading Without Notification Spam
+* **The Anti-Duolingo Notification**: Modern apps harass users with guilt-inducing streak alerts: *"You haven't journaled today! Don't lose your 14-day streak!"*
+* **The Quiet Archivist**: The Return surfaces exactly **one past reflection per day** with zero push spam and zero AI summary chatter.
+* **Explainable Retrieval Heuristics**:
+  * *Anniversary*: `written 1 year ago today · 2 strata`.
+  * *Unresolved Thread*: Surfaces an open question you flagged months ago.
+  * *Contradiction*: Finds where you held opposing beliefs across time: *"In March you felt Overwhelmed. In September you felt Calm. Both belong to you."*
+  * It presents your own words in full-bleed $20\text{px}$ `Literata`, asking only: *"Write in the margin."*
+
+### Zero Fake-AI: Why Honest Software Builds Durable Trust
+* **The Common Shortcut**: When an LLM endpoint returns a 429 quota error or 503 timeout, many SaaS apps silently catch the error and inject canned, pseudo-profound text: *"This reflection highlights your deep resilience and ongoing pursuit of balance..."*
+* **The Trust Catastrophe**: The moment a user realizes their software faked an empathetic reading of their private journal, product trust drops to absolute zero.
+* **The Locus Standard**: We deleted all synthetic fallback text. If Gemini cannot reach the synthesis service, the UI states the honest truth: `synthesis unavailable · retry`. Never pretend a machine comprehended someone's soul when it didn't.
+
 ### The Dead-Space Dilemma: Why CSS Columns Break Under Low Card Counts
 * **The Pitfall**: Pure CSS multi-column layouts (`columns-2 md:columns-3 lg:columns-4`) look gorgeous in Pinterest-style demos with 50 cards. But in a personal journaling app where a new user has only written 1 or 2 reflections, CSS column flow packs both cards tightly into the far-left 25% column, stranding them next to a massive 75% barren white expanse. It feels like an unfinished warehouse.
 * **The Antidote: Count-Adaptive Grid Density**:
@@ -267,7 +302,36 @@ A living repository of technical insights, architectural decisions, product phil
 
 ---
 
-## 10. Potential Article / Blog Post Titles & Hooks
+## 10. The Art of the Humane Guided Tour: Storytelling Over Annoying Tooltip Hell
+* **The Joyride Anti-Pattern**: Most SaaS onboarding tours are deeply patronizing. A high-contrast pulsating beacon locks your viewport, dims the entire screen to 90% black, and forces you to click "Next" on 12 obvious tooltips ("This is your profile icon!").
+* **The Narrative Approach**: In Locus, the tour is told as an authentic story from the user's perspective:
+  1. *The Blank Page*: How to start without anxiety (`"I'm feeling good today"`).
+  2. *The Epiphany*: How ephemeral pins become permanent bookmarks in an archival ledger.
+  3. *The Finite Page*: Why real journals must close—the 2-hour auto-conclude timer protecting your historical voice.
+  4. *The Margins*: Why you never edit your past words, but converse with them across time.
+  5. *The Return*: Why you need 1 page a day surfaced with explainable purpose, not algorithmic notifications.
+  6. *The Themes*: How discrete daily reflections crystallize into lifelong trajectories.
+* **Dual Display Ergonomics**: Evaluators can minimize the walkthrough at any instant into a quiet floating pill (`[ ⊙ Guided Tour · Step 3 of 7 ]`) in the lower corner. The tour never locks your screen hostage or prevents exploring the live interface.
+
+---
+
+## 11. Realistic Simulation Datasets: Why Synthetic AI Products Must Feel Lived-In
+* **The Blank State Curse in AI Evaluator Demos**: When an investor, design lead, or judge boots an AI product with an empty database, they cannot experience the core value proposition. The concept graph is a single lonely dot. The themes view is blank. The return has nothing to surface.
+* **Why Static Lorem Ipsum Fails**: Inserting generic lorem ipsum or static json dumps creates a plastic, disingenuous demo.
+* **The 30-Day Authentic Cognitive Arc**:
+  * We authored 6 multi-turn reflections representing a real founder's month:
+    * *Day 1*: Paralyzed by build tooling refactoring (fear of exposure).
+    * *Day 7*: Radical simplification in a coffee shop (restoring agency).
+    * *Day 14*: Delegation friction and control anxiety (late night at desk).
+    * *Day 21*: Long walk in the park clarifying contract boundaries.
+    * *Day 26*: Airport terminal epiphany: trajectory of learning over ego.
+    * *Day 30*: Month in review: grounding and stillness.
+  * Every entry was processed through the live Gemini synthesis pipeline, generating authentic, nuanced Theme observations and vector embeddings.
+  * Evaluators immediately encounter an archive that feels authentic, lived-in, and emotionally real.
+
+---
+
+## 12. Potential Article / Blog Post Titles & Hooks
 1. **"Vibecoding with Intent: How OOUX Saved Our AI App from Architectural Chaos"** (Software Architecture & AI Pair Programming)
 2. **"Objects Over Screens: Why the Best AI Workflows Start with an Ontology, Not a Figma Wireframe"** (Product Design & OOUX)
 3. **"The Anti-Dashboard: Why Your Journal Shouldn't Be a Jira Board"** (Product Design & UX)
@@ -278,4 +342,6 @@ A living repository of technical insights, architectural decisions, product phil
 8. **"The Rule of One Accent: Designing Calm Computing Interfaces with Tailwind v4 & Source Serif"** (Design Systems & CSS)
 9. **"How to Build an LLM App That Won't Leak Your Secrets: 5 Threat Zones in Practice"** (App Security & AI Privacy)
 10. **"Why We Put a 30-Day Simulated Brain into Our Dev Build"** (Developer Experience & Evaluator Onboarding)
+11. **"The Humane Guided Tour: Why We Replaced Tooltip Popups with an Interactive Reflective Story"** (Product Onboarding & UX)
+
 

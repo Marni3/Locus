@@ -470,157 +470,115 @@ Centered Sanctuary Portal Card (Desktop 1080px × 640px)
 
 ---
 
-## 🛠️ Phase 4: Polish, Authentic Month-Long Simulation & Demo Sandbox
+## 🏛️ Phase 3.7: Locus Strata Architecture (Hybrid Model, Sealed Reader, Marginalia & The Return) `[COMPLETED & VERIFIED]`
 
 ### Objective
-Connect the new "Try Demo" portal gateway to the authentic 30-day simulation dataset, build the 3-step non-blocking Guided Walkthrough Tour overlay, add weekly email notification preferences to Settings, and execute human prompt evaluation and security audits.
+Incorporate the comprehensive "Strata" architectural refactor into the core product, transitioning Locus from a purely conversational tool into an archival journal where active sessions are intimate conversational sanctuaries and concluded entries become permanently sealed, immutable records annotated through marginalia stamped with temporal distance.
 
-### Technical Implementation Details
+### The Four Architectural Strata Pillars:
+1. **The Active Sanctuary (Conversational Companion)**:
+   - Real-time, multi-turn reflective dialogue across 4 stances (`Reflective Mirror`, `Idea Spark`, `Action Blueprint`, `Mindful Unpack`).
+   - Renamed ephemeral "Pin" to permanent **"Bookmark"** (`isBookmarked: boolean`) with dedicated ribbon icon and analytical notes.
+   - Dedicated [`BookmarksDrawer.tsx`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/BookmarksDrawer.tsx) supporting Chronological and Grouped-by-Reflection views, search, quote copying, and direct entry jump.
+   - Offline IndexedDB sync buffer (`src/lib/offlineSync.ts`) with `beforeunload` warning and inline resend affordance on failure.
+2. **The Strata Layer (Marginalia & Immutability)**:
+   - Concluded entries become strictly immutable with cryptographic hash and `bodySealedAt` proof.
+   - 2-column desktop reader ([`EntryReaderWithStrata.tsx`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/EntryReaderWithStrata.tsx)) featuring a $34\text{rem}$ centered reading column and an $18\text{rem}$ recessed margin gutter.
+   - Margin notes (`Stratum`) stamped with Courier Prime temporal distance (`written 94 days later`) and 5 semantic ink stances (`correction`, `confirmation`, `question`, `grief`, `gratitude`).
+   - **Silent AI Margin Policy**: The AI remains 100% silent in the margin column; margin notes are vector-embedded to update Theme observations without conversational intrusion.
+3. **The Return (Daily Archivist Loop)**:
+   - A dedicated daily surface ([`TheReturnView.tsx`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/TheReturnView.tsx)) presenting **one past entry** selected by explainable heuristics (`anniversary`, `unresolved`, `contradiction`, `dormant`) via [`returnRouter.ts`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/returnRouter.ts).
+   - Zero AI commentary; simply presents the past reflection, relevant strata, contradiction comparison banner if applicable, and an invitation: `[ Write in the margin ]`.
+4. **Archival Dignity & Tactile Keep Cards**:
+   - Retains the tactile Google Keep masonry cards on [`ReflectionsHome.tsx`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx) with count badges (`3 strata · +94d`), bookmark ribbons, and The Return banner.
+   - Archival typography system (`Literata`, `Courier Prime`, `Archivo`, `Roboto`, `Overpass Mono`) and 5 substrate accent inks (`sage`, `moss`, `irongall`, `ochre`, `terracotta`).
+   - Sensory & motion accessibility toggle (`reducedMotion`) adhering to WCAG 2.1 AA vestibular standards.
+   - Zero Fake-AI: Elimination of synthetic fallback strings in [`synthesis.ts`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/synthesis.ts) in favor of honest error recovery.
 
-#### 1. Evaluator Demo Mode & Guided Tour Sequence
-- **Direct Handshake**: Clicking `[Try Demo Space]` from the Centered Sanctuary Portal:
-  1. Initializes the authentic 30-day chronological simulation dataset in memory/Firestore.
-  2. Transitions into `ReflectionsHome`.
-  3. Automatically mounts the **Guided Walkthrough Tour** (`src/components/WalkthroughOverlay.tsx`).
-- **Guided Walkthrough Tour (`src/components/WalkthroughOverlay.tsx`)**:
-  - Non-blocking, calm 3-step tour overlay:
-    - **Step 1 (Reflections Home)**: Explaining episodic reflections, the Google Keep-style masonry notes, and the "Ready for Synthesis" ribbon.
-    - **Step 2 (Active Workspace)**: Highlighting Source Serif 4 user prose, companion insights, message turn pinning, and the 2-hour auto-conclude timer.
-    - **Step 3 (Themes & Concept Graph)**: Demonstrating the Spiral Petal Bloom, observation trajectory arrows, and deep theme unpacking.
-  - Can be dismissed, minimized, or re-launched anytime from the Navbar or Settings Drawer.
-- **User-Scoped Isolation**:
-  - All records tagged with `isDemo: true`.
-  - A clean `[Exit Demo Mode / Clear Sample Data]` button removes all demo records in 1 click without affecting real user reflections.
-
-#### 2. Authentic 30-Day Simulation Dataset (`src/services/demoSimulator.ts`)
-- Rather than loading static pre-baked JSON, we author **6 authentic multi-turn reflections** staged across a 30-day timeline with evolving perspectives and spatial contexts:
-  - **Day 1 (Home Office)**: Overwhelm and paralysis around launching a major project; feeling scattered.
-  - **Day 7 (Coffee Shop)**: Breakout ideas on simplifying the architecture; momentum returning.
-  - **Day 14 (Late Night, Desk)**: Friction delegating tasks to teammates; fear of quality loss.
-  - **Day 21 (Weekend Walk, Park)**: Realization that micromanagement is the root cause of fatigue; deciding on clear interface boundaries.
-  - **Day 26 (Airport Terminal)**: Strategy session; framing the project trajectory as iterative learning rather than all-or-nothing.
-  - **Day 30 (Home Office)**: Reflection on the past month; noticing how anxiety shifted into execution clarity.
-- **Genuinely Run Through Gemini**:
-  - The simulator runs these entries through the real synthesis pipeline.
-  - Gemini organically matches, updates, and creates Themes (e.g. *Creative Crossroads*, *Engineering Leadership*, *Rhythm & Burnout*) and generates real, nuanced Observation deltas.
-  - Demonstrates genuine longitudinal trajectory to evaluators with 100% authenticity!
-
-#### 3. Mobile Viewport Optimization
-- Collapsible mobile navigation drawer with touch targets $\ge 44\text{px}$.
-- Split Themes view collapses to full-width master list with slide-in detail screen on mobile.
-
-#### 4. Guided Walkthrough Overlay (`src/components/WalkthroughOverlay.tsx`)
-- 3-step non-blocking tour on first login:
-  - Step 1: Welcome & Option to click `[Enter Demo Mode]` or `[Start Fresh Entry]`.
-  - Step 2: Highlighting turn Pinning and Notes in the chat stream.
-  - Step 3: Explaining how Themes and Observations track longitudinal growth.
-
-#### 5. Email Notification System Expansion (Resend)
-Flesh out the email notification architecture beyond immediate entry conclusion alerts:
-- **Weekly Reflection Digest**:
-  - Automatically aggregate the week's key realizations, newly linked Theme observations, and forward inquiries into a calm weekly briefing.
-- **Configurable Cadence & Schedule in Settings**:
-  - Allow users to customize notification preferences in **Settings ➔ Integrations & Alerts**:
-    - Preferred delivery cadence: `Immediate on Conclusion`, `Weekly Digest`, or `Muted / Off`.
-    - Customizable delivery day of the week (e.g. Sunday evening or Monday morning) and preferred hour.
-- **Resend Production Domain Authentication**:
-  - Transition from sandbox `onboarding@resend.dev` to custom domain verification (DKIM, SPF records in DNS) for production transactional delivery.
-
-#### 6. Manual Checking & Human Evaluation of Internal Prompts
-A comprehensive, hands-on human evaluation of all system instructions and internal prompts across the application:
-- **Scope of Evaluated Prompts**:
-  1. **Conversational Stance Prompts**: Reflective Mirror, Idea Spark, Action Blueprint, and Mindful Unpack in `src/services/gemini.ts`.
-  2. **Entry Summarization Prompt**: Single-session essence extraction in `src/services/synthesis.ts`.
-  3. **Theme Matching & Resolution Prompt**: Vector candidate cluster evaluation vs. new theme proposal in `src/services/synthesis.ts`.
-  4. **Deep Theme Unpack Prompt**: Outline and thesis synthesis for long-term longitudinal trajectories.
-- **Human Evaluation Rubric & Criteria**:
-  - [ ] **Empathetic & Non-Prescriptive Tone**: Responses must never lecture, judge, diagnose, or act as an authoritarian therapist.
-  - [ ] **Zero Vendor / Plumbing Leaks**: Prompts must strictly prohibit outputting "Gemini", "Firestore", "LLM", or technical scaffolding.
-  - [ ] **Deterministic Schema Adherence**: Verify that model JSON outputs match schema types 100% of the time without truncation.
-  - [ ] **Cognitive Framing & Reflection Depth**: Evaluate whether questions open up genuine reflective exploration rather than shallow summaries.
-
-#### 7. Deep Security Audit (5 Threat Zones & Dependency Review)
-A rigorous, systematic audit verifying full adherence to Locus Software Standards and OWASP LLM Top 10:
-- **Threat Zone 1 (Input Surfaces)**:
-  - Validate Express request body size limit (10MB ceiling).
-  - Verify JSON schema sanitization on all endpoints.
-  - Run fixture tests confirming outbound PII regex scrub catches all high-risk tokens prior to Gemini / Webhook egress.
-- **Threat Zone 2 (Planning & Reasoning)**:
-  - Audit prompt injection defense: verify that untrusted user transcripts are wrapped in delimiter blocks (`<<<USER_INPUT>>>`) and isolated from system directives.
-- **Threat Zone 3 (Tool & API Execution)**:
-  - Audit Webhook SSRF validation: verify DNS resolution blocks private/internal IPs (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`, `169.254.169.254`), enforces HTTPS, and forbids HTTP redirects.
-
-#### 8. Conversational Egress Resilience & Inline Message Resend (Locus Software Standard 4)
-- **Zero Data Loss Guarantee**: If an outbound reflection turn fails (network drop, API quota limit, 500 error):
-  - Catch the failure at the message dispatcher layer without resetting state or clearing the user's message input buffer.
-  - Mark the specific user message turn with `status: 'failed'`.
-  - Render a calm inline banner and single-accent `[ 🔄 Resend ]` action directly below the failed message.
-  - User can click `[ 🔄 Resend ]` to immediately re-dispatch the exact message turn without having to re-type their thoughts.
-- **Threat Zone 4 (Memory & State)**:
-  - Audit Firestore security rules: verify absolute user isolation (`request.auth.uid == userId`) and zero cross-tenant access.
-  - Audit Demo Sandbox: verify `isDemo: true` records can be wiped in a single transaction without orphaned documents.
-- **Threat Zone 5 (Inter-System Communication)**:
-  - Audit client SPA bundle: verify zero API keys or secrets in `dist/client/assets/` (`import.meta.env` audit).
-  - Audit backend logs: verify zero user journal content or authorization tokens in stdout/stderr.
-- **Dependency Vulnerability Scan**:
-  - Run `npm audit` and confirm 0 high or critical vulnerabilities.
-
-### Testing & Verification Plan
-- **Simulation Test (`tests/e2e/demo-simulation.spec.ts`)**:
-  - Trigger "Enter Demo Mode".
-  - Assert that all 6 entries process cleanly and generate 3–4 coherent Themes with multiple dated Observations.
-  - Click `[Unpack Further]` on a generated Theme and assert a structured thesis and outline is returned.
-  - Click `[Exit Demo Mode]` and assert all demo items are completely wiped from the evaluator's account.
-- **Responsive Test (`tests/e2e/mobile.spec.ts`)**:
-  - Run Playwright mobile emulation (iPhone 14 / Pixel 7 viewports: 375x667, 412x915). Assert zero horizontal scrollbar and clean tap interactions.
-- **Human Prompt Sign-off**:
-  - Manual review document signed off confirming all prompt templates pass the evaluation rubric.
-- **Security Audit Sign-off**:
-  - Audit matrix verified covering all 5 Threat Zones and `npm audit` passing cleanly.
-
-### Impeccable Design & Feedback Checkpoint
-- Run `$impeccable adapt` to inspect small-viewport layout stability.
-- Run `$impeccable doctor` to confirm zero drift in design artifacts.
+### Verification Gate (Phase 3.7) `[PASSED]`:
+- `npm run lint` (`tsc --noEmit`): **0 errors**.
+- `npm run test:unit`: **93/93 unit tests passed** (including `strata-delta.test.ts`, `return-router.test.ts`, `no-fake-ai.test.ts`).
+- `npm run test:e2e`: **22/22 Playwright tests passed** (including `strata-margins.spec.ts`, `the-return.spec.ts`, `screens.spec.ts`, `core-loop.spec.ts`).
+- Production build: `npm run build` bundled successfully.
+- Detailed report published: [`docs/DEVELOPMENT_REVIEW_REPORT.md`](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/DEVELOPMENT_REVIEW_REPORT.md).
+- Prompts audited: [`docs/INTERNAL_PROMPTS_AUDIT.md`](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/INTERNAL_PROMPTS_AUDIT.md).
 
 ---
 
-## 🚀 Phase 5: Production Readiness, Security Review & Deployment
+## 🛠️ Phase 4: Interactive Guided Walkthrough, Demo Dataset Realism & Final Polish `[IN PROGRESS]`
 
 ### Objective
-Execute the production build, run threat modeling review, generate submission documentation, and deploy the application to Cloud Run.
+Complete the interactive Guided Walkthrough Tour driving across the application as an authentic story from the user's perspective, pre-populate the 30-day simulation dataset with bookmarks and strata margins, expand email notification scheduling in Settings, and execute end-to-end user journey verification.
 
 ### Technical Implementation Details
-1. **Production Bundling**:
-   - Run `npm run build`: Vite bundles client SPA (`dist/client`), Esbuild bundles Express server (`dist/server.cjs`).
-   - Validate production startup: `npm run start` running on `http://localhost:3000`.
-2. **Security & Threat Model Audit**:
-   - Verify all 5 Threat Zones per Locus Software Standards:
-     - Input Surfaces: Sanitizer scrubs outbound PII; body limit capped at 10MB.
-     - Planning & Reasoning: System prompts separate untrusted user transcript from instructions.
-     - Tool Execution: Webhooks protected by DNS IP resolution and strict SSRF blocking.
-     - Memory & State: Firestore user rules enforce owner-bound isolation (`request.auth.uid == userId`).
-     - Inter-System Communication: API keys read dynamically from environment variables/Secret Manager; zero secrets in client bundle.
-3. **Production Documentation**:
-   - Generate production `README.md` covering: Architecture diagram, Core Object Model, Security mitigations writeup (outbound PII, SSRF, data minimization, sandboxed demo mode), and Cloud Run deployment instructions.
 
-### User Actions & External Services Required
-- [ ] **Google Cloud Run Deployment**:
-  ```bash
-  gcloud run deploy locus-reflectai \
-    --source . \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --set-env-vars="NODE_ENV=production" \
-    --update-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest"
-  ```
+#### 1. Interactive Guided Walkthrough Engine (`src/components/WalkthroughOverlay.tsx` & `src/App.tsx`)
+Rather than an isolated static modal popup, the guided walkthrough operates as an **interactive, contextual floating controller** that actively drives the user across the live application:
+- **Story Progression (8 Stages)**:
+  1. **Stage 1 (Reflections Home)**: Introduces the canvas, explaining how thoughts are saved as tactile Google Keep cards. Prompts the user: *"Let's begin by writing a brief reflection."* Action: `[ Start Guided Reflection → ]` (opens fresh session).
+  2. **Stage 2 (Active Workspace & Scripted Input)**: In `SessionWorkspace`, explains how the conversational companion assists without diagnosing. Provides sample prompt: `"I'm feeling good today"`. Action: `[ Send "I'm feeling good today" ]` (types into input, submits, and waits for AI response).
+  3. **Stage 3 (Companion Insight & Bookmarking)**: Spotlights the Bookmark ribbon on the generated response. Explains: *"Meaningful epiphanies emerge during reflection. Bookmark them into your permanent ledger."* Action: `[ Bookmark Insight & Open Drawer → ]`.
+  4. **Stage 4 (Bookmarks Drawer & Finite Pages)**: Opens `BookmarksDrawer`. Explains Chronological vs. Grouped-by-Reflection views. Explains the core philosophy: *"Like a real journal, entries in Locus have an end. You can conclude manually, or Locus will seal the entry for you after 2 hours. Once sealed, summaries and themes are synthesized."* Action: `[ Conclude & Seal Entry → ]`.
+  5. **Stage 5 (Sealed Reader & Strata Margins)**: Navigates to `EntryReaderWithStrata`. Explains that the text is now permanently immutable (`bodySealedAt`). Highlights the $18\text{rem}$ margin gutter, Courier Prime temporal distance stamps (`written 94 days later`), and the 5 semantic ink stances. Action: `[ Meet The Return → ]`.
+  6. **Stage 6 (The Return: Daily Archivist)**: Navigates to `TheReturnView`. Explains how Locus surfaces 1 past entry per day on anniversaries, unresolved threads, or contradictions—offering zero AI chatter and simply inviting the user to write in the margin. Action: `[ Explore Themes → ]`.
+  7. **Stage 7 (Longitudinal Themes: Timeline)**: Navigates to `ThemesView`. Shows how episodic reflections crystallize into persistent themes over weeks. Explains the chronological Observation trajectory feed. Action: `[ Switch to Concept Graph → ]`.
+  8. **Stage 8 (Concept Graph & Unpack Further)**: Toggles into the Concept Graph (spiral bloom constellation). Shows how clicking a theme reveals satellite observations, and demonstrates the `[ Unpack Further ]` button generating a thesis and structured outline. Action: `[ Complete Tour & Enter Sanctuary ]`.
+- **First-Run Triggering & Dismissibility**:
+  - Welcome Banner on `ReflectionsHome.tsx` for new users / demo space: *"New to Locus? Take the 2-minute reflective tour."*
+  - Automatically offers the tour on first visit unless previously dismissed (tracked via `localStorage.getItem('locus_walkthrough_seen')`).
+  - Non-blocking: Can be minimized, skipped, or re-launched anytime from Navbar or Settings.
 
-### Testing & Verification Plan
-- **End-to-End Live Verification**:
-  - Perform live click-through on deployed Cloud Run URL.
-  - Verify Google Sign-in on production domain (authorized domains configured in Firebase Console).
-  - Test end-to-end Entry conclusion and Theme synthesis on live server.
+#### 2. Authentic 30-Day Simulation Dataset Realism (`src/services/demoSimulator.ts` & `src/services/strataService.ts`)
+Polish the seed data so the evaluator immediately experiences a lived-in, authentic archive:
+- **Pre-seeded Bookmarks**: Tag key realizations on `demo-entry-1` (Paralysis Around Scope), `demo-entry-2` (Architectural Simplicity), and `demo-entry-4` with `isBookmarked: true` and reflective user notes.
+- **Pre-seeded Strata Margins**:
+  - `demo-entry-1`: Stratum 1 (+94d, stance: `correction`, *"Shipping the minimal core loop was the best decision we made. Tooling perfection was pure procrastination."*).
+  - `demo-entry-1`: Stratum 2 (+120d, stance: `confirmation`, *"The core loop held up in production with 0 regressions."*).
+  - `demo-entry-2`: Stratum 1 (+23d, stance: `gratitude`, *"Still grateful for eliminating the auxiliary microservices."*).
+- **Unresolved Open Threads & Contradictions**:
+  - Add explicit `openThreads` (e.g. *"Should we ship the web companion first or wait for native mobile?"*) and `bodySealedAt` on `demo-entry-1` to immediately trigger The Return's explainable `unresolved` evidence.
 
-### Final Verification Gate (Phase 5)
-- All automated Playwright suites pass (0 failures).
-- Production build runs cleanly with 0 TypeScript errors.
-- Threat modeling compliance verified and signed off.
+#### 3. Email Notification Cadence & Scheduling in Settings (`src/components/SettingsDrawer.tsx`)
+Expand notification settings beyond a simple binary toggle:
+- **Delivery Cadence**:
+  - `Immediate on Conclusion`: Dispatches synthesis summary upon sealing an entry.
+  - `Weekly Reflection Briefing`: Aggregates the week's key realizations and Theme updates into a Sunday/Monday briefing.
+  - `Muted / Off`: Disables outbound email digests.
+- **Schedule Customization**:
+  - Day of the week dropdown (`Sunday`, `Monday`, `Friday`).
+  - Delivery hour picker (e.g., 7:00 AM, 8:00 PM).
+
+#### 4. Automated E2E Verification (`tests/e2e/interactive-walkthrough.spec.ts`)
+- Scripted Playwright test running through all 8 stages of the interactive walkthrough:
+  - Assert welcome banner triggers tour.
+  - Assert navigation to workspace and typing of `"I'm feeling good today"`.
+  - Assert companion response generates and bookmark spotlight appears.
+  - Assert bookmark drawer opens and displays bookmarked turn.
+  - Assert concluding entry transitions to Sealed Reader with margins.
+  - Assert navigation to The Return and Themes view.
+  - Assert Concept Graph toggle and Unpack Further button presence.
+  - Assert completion returns cleanly to Reflections Home.
+
+---
+
+## 🚀 Phase 5: Production Readiness, Security Review & Final Git Delivery `[PENDING]`
+
+### Objective
+Finalize production bundling, complete documentation, execute clean git commit and push, and verify Cloud Run deployment readiness.
+
+### Technical Implementation Details
+1. **Production Bundling & Quality Gate**:
+   - `npm run lint` (`tsc --noEmit`): 0 errors.
+   - `npm run test:unit`: 100% passing.
+   - `npm run test:e2e`: 100% passing.
+   - `npm run build`: Production client (`dist/index.html`) and Express server (`dist/server.cjs`) bundled.
+2. **Security & Threat Model Sign-off (5 Threat Zones)**:
+   - Sanitizer scrubs outbound PII before LLM / webhook egress.
+   - System instructions isolated from user transcript delimiters (`<<<USER_INPUT>>>`).
+   - Webhook URLs protected by strict DNS IP resolution and SSRF blocking.
+   - Firestore rules guarantee owner-bound user isolation (`request.auth.uid == userId`).
+   - Zero hardcoded credentials or API keys in client SPA bundle or git history.
+3. **Repository Delivery**:
+   - Stage all modified and untracked files cleanly.
+   - Author comprehensive commit: `feat: implement interactive guided walkthrough, demo dataset realism, settings cadence, and strata architecture`.
+   - Push to `origin/main`.

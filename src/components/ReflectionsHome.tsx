@@ -8,7 +8,8 @@ import {
   ArrowRight, 
   Star, 
   Layers,
-  Plus
+  Plus,
+  Bookmark
 } from 'lucide-react';
 import { Entry, Theme } from '../types';
 import { cleanProseSnippet } from '../lib/textUtils';
@@ -19,6 +20,9 @@ interface ReflectionsHomeProps {
   onSelectEntry: (entry: Entry) => void;
   onNewReflection: (initialPrompt?: string) => void;
   onSelectTheme: (theme: Theme) => void;
+  onOpenTheReturn?: () => void;
+  onOpenBookmarks?: () => void;
+  onStartTour?: () => void;
   isLoading?: boolean;
 }
 
@@ -38,11 +42,22 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
   onSelectEntry,
   onNewReflection,
   onSelectTheme,
+  onOpenTheReturn,
+  onOpenBookmarks,
+  onStartTour,
   isLoading = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'concluded' | 'starred'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'concluded' | 'active' | 'bookmarked' | 'starred'>('all');
+
+  const [isTourBannerDismissed, setIsTourBannerDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('locus_tour_banner_dismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // Daily prompt rotation based on day of year
   const dailyPrompt = useMemo(() => {
@@ -110,6 +125,10 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
       if (activeFilter === 'active' && entry.status !== 'active') return false;
       if (activeFilter === 'concluded' && entry.status !== 'concluded') return false;
       if (activeFilter === 'starred' && !entry.starred) return false;
+      if (activeFilter === 'bookmarked') {
+        const hasBookmark = (entry.turns || []).some(t => t.isBookmarked || t.isPinned);
+        if (!hasBookmark) return false;
+      }
 
       return true;
     });
@@ -133,6 +152,57 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
 
   return (
     <div className="min-h-full bg-canvas text-text-primary px-3.5 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto space-y-6">
+      {/* 0. First-Run Guided Tour Banner */}
+      {!isTourBannerDismissed && onStartTour && (
+        <div 
+          id="first-run-tour-banner"
+          className="relative overflow-hidden bg-[#FAF8F5] border border-[#3B7A57]/30 rounded-2xl p-4 sm:p-5 shadow-2xs hover:border-[#3B7A57]/50 transition-all animate-fade-in"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <span className="w-8 h-8 rounded-xl bg-accent-sage-tint/80 text-accent-sage flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 border border-accent-sage/20">
+                ⊙
+              </span>
+              <div className="space-y-0.5">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-accent-sage font-sans flex items-center gap-1.5">
+                  Welcome to Locus
+                </span>
+                <h3 className="font-serif text-sm sm:text-base font-semibold text-text-primary">
+                  Experience how daily reflections crystallize into permanent themes
+                </h3>
+                <p className="text-xs text-text-muted leading-relaxed font-sans max-w-xl">
+                  Take the interactive 2-minute walkthrough to explore conversational reflection, bookmarked epiphanies, the sealed margin reader, and longitudinal concept graphs.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <button
+                id="banner-start-tour-btn"
+                onClick={onStartTour}
+                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-accent-sage hover:bg-[#2E5A36] rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <span>Take Guided Tour</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => {
+                  setIsTourBannerDismissed(true);
+                  try {
+                    localStorage.setItem('locus_tour_banner_dismissed', 'true');
+                  } catch {}
+                }}
+                className="p-1.5 text-text-muted hover:text-text-primary rounded-lg transition-colors cursor-pointer"
+                title="Dismiss banner"
+                aria-label="Dismiss banner"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Daily Journaling Prompt Banner */}
       {!isPromptDismissed && (
         <div 
@@ -246,7 +316,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
 
           {/* Status Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            {(['all', 'concluded', 'active', 'starred'] as const).map(tab => (
+            {(['all', 'concluded', 'active', 'bookmarked', 'starred'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveFilter(tab)}
@@ -260,11 +330,41 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                   <span className="inline-flex items-center gap-1">
                     <Star className="w-3 h-3 fill-current" /> Starred
                   </span>
+                ) : tab === 'bookmarked' ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Bookmark className="w-3 h-3 fill-current" /> Bookmarked
+                  </span>
                 ) : tab}
               </button>
             ))}
           </div>
         </div>
+
+        {/* The Return Daily Revisit Banner if concluded entries exist */}
+        {onOpenTheReturn && entries.some(e => e.status === 'concluded') && (
+          <div 
+            onClick={onOpenTheReturn}
+            className="p-3.5 sm:p-4 rounded-xl bg-[#FFFFFF] border border-[#DCD7CD] hover:border-[#8A3A22] shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#8A3A22]/10 text-[#8A3A22] flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-ui text-xs sm:text-sm font-bold uppercase tracking-wider text-[#191813] group-hover:text-[#8A3A22] transition-colors">
+                  The Return · Re-read One Page
+                </h4>
+                <p className="font-stamp text-xs text-[#5A5648]">
+                  Surfacing one past reflection to revisit and write in the margins
+                </p>
+              </div>
+            </div>
+            <span className="font-ui text-xs font-semibold text-[#8A3A22] group-hover:underline flex items-center gap-1 shrink-0 ml-2">
+              <span className="hidden sm:inline">Open</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        )}
 
         {/* Qualitative Tag Filter Chips (if tags exist) */}
         {allTags.length > 0 && (
@@ -371,12 +471,19 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                     )}
                   </div>
 
-                  {entry.starred && (
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {(entry.turns || []).some(t => t.isBookmarked || t.isPinned) && (
+                      <span title="Contains bookmarked realizations">
+                        <Bookmark className="w-3.5 h-3.5 text-[#3B7A57] fill-[#3B7A57]" />
+                      </span>
+                    )}
+                    {entry.starred && (
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    )}
+                  </div>
                 </div>
 
-                {/* Title (Source Serif 4) */}
+                {/* Title (Literata / Source Serif 4) */}
                 <h3 className="font-serif text-sm sm:text-base font-semibold text-text-primary tracking-tight leading-snug group-hover:text-accent-sage transition-colors">
                   {entry.title || 'Untitled Reflection'}
                 </h3>
@@ -392,10 +499,10 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                   )}
                 </p>
 
-                {/* Qualitative Tags Chips */}
-                {entry.tags && entry.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-1 pt-2 border-t border-border-hairline/60">
-                    {entry.tags.map(tag => (
+                {/* Stratum count & Qualitative Tags Chips */}
+                <div className="flex items-center justify-between gap-1.5 mt-2 pt-2 border-t border-border-hairline/60">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {entry.tags && entry.tags.map(tag => (
                       <span
                         key={tag}
                         className="inline-block text-xs font-medium px-2 py-0.5 rounded-md bg-[#F4F3EE] text-text-muted font-sans border border-border-hairline/40"
@@ -404,7 +511,13 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                       </span>
                     ))}
                   </div>
-                )}
+
+                  {(entry.stratumCount || 0) > 0 && (
+                    <span className="font-stamp text-[10px] px-1.5 py-0.5 rounded bg-[#EAE6DC] text-[#191813] font-semibold shrink-0">
+                      {entry.stratumCount} {entry.stratumCount === 1 ? 'stratum' : 'strata'}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
