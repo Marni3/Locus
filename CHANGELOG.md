@@ -2,6 +2,32 @@
 
 All notable changes, architectural decisions, schema modifications, and design system updates for **Locus (ReflectAI)** are documented in this file, grouped by date.
 
+## [2026-09-06]
+
+### Added
+- **Student Persona Demo Dataset Realignment ([Locus-Demo-Data-Brief.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/Locus-Demo-Data-Brief.md), [Locus-Demo-Agent-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/Locus-Demo-Agent-Plan.md))**:
+  - **15-Entry Chronological Student Archive**: Created authentic 4-week narrative archive of a first-year university student adjusting to college life away from home.
+  - **Organically Evolved Longitudinal Themes**: Produced 8 persistent themes and 21 observations through live Gemini AI execution, including *The Strain of Environmental Anonymity* (2 obs), *Home as Unnegotiated Sanctuary* (9 obs), *Grace in Beginner's Mind* (2 obs), *Vulnerability as Collaborative Bridge* (3 obs), *Agency in Economic Friction* (1 obs), *Sanctuary of the Unobserved Laboratory* (2 obs), *The Recursive Loop of Healing* (1 obs), and *The Architecture of Self-Projection* (1 obs).
+  - **Preserved Previous Founder Dataset**: Safely archived the previous 6-entry founder dataset in [src/services/demoSimulator.founder.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.founder.ts).
+  - **Historical Timestamp Override**: Extended [src/services/synthesis.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/synthesis.ts) and [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts) so explicit historical timestamps on entries and observations are preserved rather than overwritten by server `Date.now()`.
+  - **Automated Chronological Seeder Engine ([scripts/seed-student-demo.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/scripts/seed-student-demo.ts))**: Built autonomous runner script executing entries in strict narrative order ($N+1$ waits for $N$ to conclude and synthesize) with natural 1–4 sentence diary-voice turns.
+  - **All 7 Technical Checkpoints Verified ([docs/DEMO_DATA_RUN_REPORT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/DEMO_DATA_RUN_REPORT.md))**:
+    1. Multi-theme extraction on Entry 1 and Entry 15.
+    2. Non-linear emotional relapse dip on Entry 10 (Friday night stairwell crying).
+    3. Outbound PII sanitization on Entry 6 (`555-0148` scrubbed prior to Gemini egress).
+    4. Selective geocoding opt-in on Entry 14 during weekend trip home (`Suburban Chicago, IL`).
+    5. Singleton orphan theme on Entry 11 (Calvino reflection).
+    6. Bookmark-worthy epiphany turn on Entry 12 with analytical note.
+    7. Unpack Further enabled live across multiple themes with $\ge 2$ observations.
+  - **Dynamic Relative Timestamps ([scripts/finalize-demo-dataset.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/scripts/finalize-demo-dataset.ts))**: Transformed compiled dataset in [src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts) to use `subDays(days)` so reflections are always temporally anchored relative to the user's current session date without heavy 3072-dimensional vector bundle bloat.
+
+### Changed
+- **Balanced Multi-Turn Dialogue Dataset ([src/services/demoSimulator.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/demoSimulator.ts))**:
+  - Balanced the 15-entry archive into 8 rich multi-turn conversational exchanges (Entries 1, 2, 5, 6, 9, 10, 12, 15 with 6–8 alternating turns) and 7 streamlined episodic journal reflections (Entries 3, 4, 7, 8, 11, 13, 14 with 2 turns), mirroring authentic daily human rhythm.
+  - Updated `ThemeObservation` texts for multi-turn entries to explicitly showcase how the AI companion's inquiries and reframings (e.g., chemical notation as compressed shortcuts, separating exam scores from self-worth, and dropping defensive pretense) catalyzed the user's breakthroughs.
+- Updated [tests/e2e/screens.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/screens.spec.ts) search query from `'Paralysis'` to `'Invisible Cities'` to validate search filter against the new student dataset.
+- Updated [src/services/strataService.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/strataService.ts) to seed demo strata anchored to student entries `demo-entry-1` (+27d correction, +21d confirmation) and `demo-entry-5` (+15d gratitude).
+
 ---
 
 ## [2026-09-05]

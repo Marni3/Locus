@@ -55,7 +55,7 @@ test.describe('Phase 3.5 Screen Architecture & Verification Suite', () => {
 
     // Test Search Filter
     const searchInput = page.locator('input[placeholder*="Search reflections"]');
-    await searchInput.fill('Paralysis');
+    await searchInput.fill('Invisible Cities');
     await page.waitForTimeout(300);
     const filteredCount = await cards.count();
     expect(filteredCount).toBe(1);

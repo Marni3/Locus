@@ -318,16 +318,34 @@ A living repository of technical insights, architectural decisions, product phil
 ## 11. Realistic Simulation Datasets: Why Synthetic AI Products Must Feel Lived-In
 * **The Blank State Curse in AI Evaluator Demos**: When an investor, design lead, or judge boots an AI product with an empty database, they cannot experience the core value proposition. The concept graph is a single lonely dot. The themes view is blank. The return has nothing to surface.
 * **Why Static Lorem Ipsum Fails**: Inserting generic lorem ipsum or static json dumps creates a plastic, disingenuous demo.
-* **The 30-Day Authentic Cognitive Arc**:
-  * We authored 6 multi-turn reflections representing a real founder's month:
-    * *Day 1*: Paralyzed by build tooling refactoring (fear of exposure).
-    * *Day 7*: Radical simplification in a coffee shop (restoring agency).
-    * *Day 14*: Delegation friction and control anxiety (late night at desk).
-    * *Day 21*: Long walk in the park clarifying contract boundaries.
-    * *Day 26*: Airport terminal epiphany: trajectory of learning over ego.
-    * *Day 30*: Month in review: grounding and stillness.
-  * Every entry was processed through the live Gemini synthesis pipeline, generating authentic, nuanced Theme observations and vector embeddings.
-  * Evaluators immediately encounter an archive that feels authentic, lived-in, and emotionally real.
+* **The Evolution: From Founder Arc to the 15-Entry Student Persona Archive**:
+  * *The Original Founder Arc*: 6 entries capturing early-stage startup anxiety, delegation friction, and focus recovery (safely preserved in `src/services/demoSimulator.founder.ts`).
+  * *The 15-Entry Student Transition Archive*: A 4-week, deeply authentic chronological journey (September 1–28) following a first-year university student navigating independence away from home:
+    * *Week 1 (Arrival Shock & Sensory Overload)*: Move-in exhaustion, 400-person amphitheater anonymity, roommate friction with Sarah, alone with cold dining hall pasta, Sunday grounding call with Mom.
+    * *Week 2 (The Academic & Financial Crucible)*: Shock of a 48% Chemistry quiz, awkward TA office hours with Dr. Chen, grocery budget anxiety ($14 left until Friday), late-night library study group breakthrough with Sarah.
+    * *Week 3 (The Relapse Dip & Solitary Anchor)*: Midnight instant noodles with Sarah (epiphany bookmark), 2am campus radio shift finding solitude in the studio booth, the non-linear relapse dip (feeling like an impostor despite recent progress), late-night solo read of Calvino's *Invisible Cities* in the stacks (orphan singleton node).
+    * *Week 4 (Integration & Emerging Agency)*: Chem Quiz 2 recovery (78%), Sunday dinner with parents noticing personal change, final one-month longitudinal synthesis.
+* **Multi-Turn Live Gemini Companion Interactions**:
+  * Every entry was executed turn-by-turn through the live Gemini API in a real 6–8 turn dialogue loop (User → AI → User → AI).
+  * System instructions dynamically adapted to the entry's reflective stance (`reflect`, `brainstorm`, `actionable`, `mindful`).
+  * Each turn accumulated into Gemini's multi-turn conversational context, producing genuine, nuanced empathetic mirrors rather than pre-canned responses.
+* **Synchronous Live Synthesis Pipeline & Emergent Themes**:
+  * Running the 15 entries sequentially ($N+1$ synthesized after $N$ concluded) generated **8 emergent longitudinal themes** and **21 discrete observations**:
+    1. *The Strain of Environmental Anonymity* (2 obs)
+    2. *Home as Unnegotiated Sanctuary* (9 obs)
+    3. *Grace in Beginner's Mind* (2 obs)
+    4. *Vulnerability as Collaborative Bridge* (3 obs)
+    5. *Agency in Economic Friction* (1 obs)
+    6. *Sanctuary of the Unobserved Laboratory* (2 obs)
+    7. *The Recursive Loop of Healing* (1 obs — emerged from the Week 3 relapse dip)
+    8. *The Architecture of Self-Projection* (1 obs — emerged from the Calvino reading)
+* **Client Bundle Optimization: The 550KB Vector Stripping Breakthrough**:
+  * Storing raw 3072-dimensional float arrays from `@google/genai` embeddings inside client demo simulator files bloated bundle sizes by over 500KB and added 24,000 lines of JSON floats.
+  * *The Realization*: The client UI and concept graph physics calculate layout topology using graph adjacency, theme observation connections, and counts—not client-side vector cosine math (which lives on the server).
+  * Stripping raw vector arrays while preserving all semantic links and metadata compressed the demo dataset from 25,900 lines down to 1,316 lines (~64KB), yielding instantaneous zero-lag demo loading.
+* **Model Fallback Ladder in the Wild: Catching 404 Deprecations**:
+  * During high-volume batch generation, `gemini-2.5-flash` returned `404 Not Found: models/gemini-2.5-flash is no longer available to new users`.
+  * Because our architecture uses the resilient `MODEL_FALLBACK_LADDER` catching recoverable errors (`404`, `429`, `503`), the engine automatically pivoted to `gemini-3.5-flash-lite` without crashing the seeder.
 
 ---
 
@@ -343,5 +361,6 @@ A living repository of technical insights, architectural decisions, product phil
 9. **"How to Build an LLM App That Won't Leak Your Secrets: 5 Threat Zones in Practice"** (App Security & AI Privacy)
 10. **"Why We Put a 30-Day Simulated Brain into Our Dev Build"** (Developer Experience & Evaluator Onboarding)
 11. **"The Humane Guided Tour: Why We Replaced Tooltip Popups with an Interactive Reflective Story"** (Product Onboarding & UX)
+12. **"Simulating 30 Days of College Life: Using Live LLM Dialogue to Test Long-Term Memory Graphs"** (AI Architecture & Evaluation)
 
 

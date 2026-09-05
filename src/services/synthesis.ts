@@ -235,7 +235,7 @@ export async function executeSynthesisPipeline(
     candidateThemes,
   });
 
-  const now = new Date().toISOString();
+  const now = entry.concludedAt || entry.createdAt || new Date().toISOString();
 
   // 5. Build concluded entry
   const concludedEntry: Entry = {

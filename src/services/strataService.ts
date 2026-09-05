@@ -203,16 +203,16 @@ export function getSampleDemoStrata(entryId: string, userId: string = 'demo-eval
         entryId: 'demo-entry-1',
         userId,
         anchor: {
-          startOffset: 12,
-          endOffset: 88,
-          quotedText: 'rewrite configuration files and reorganizing my workspace, but I have not written a line of core logic',
+          startOffset: 0,
+          endOffset: 104,
+          quotedText: 'I walked into Chemistry today and there were literally 400 people in one amphitheater. I felt completely invisible.',
         },
-        bodyMarkdown: 'Notice how whenever I fear user rejection, I invent technical debt to solve. The friction was never the bundler; it was fear of being seen.',
+        bodyMarkdown: 'Looking back from week 4, the 400-person lecture hall is just a normal Tuesday now. The panic felt absolute, but it was just move-in shock.',
         depth: 1,
-        daysLater: 42,
+        daysLater: 27,
         stance: 'correction',
-        createdAt: subDays(15),
-        sealedAt: subDays(15),
+        createdAt: subDays(1),
+        sealedAt: subDays(1),
         isDemo: true,
       },
       {
@@ -220,34 +220,39 @@ export function getSampleDemoStrata(entryId: string, userId: string = 'demo-eval
         entryId: 'demo-entry-1',
         userId,
         parentStratumId: 'stratum-demo-1-1',
-        bodyMarkdown: 'Two months later: this rule held. Shipping the core loop first eliminated 80% of our anxiety.',
+        anchor: {
+          startOffset: 0,
+          endOffset: 84,
+          quotedText: 'My roommate Sarah seems nice, but she has already blasted music without headphones',
+        },
+        bodyMarkdown: 'Sarah playing music without headphones ended up being the easiest thing in the world to resolve once we stopped performing and actually talked over instant noodles.',
         depth: 2,
-        daysLater: 94,
+        daysLater: 21,
         stance: 'confirmation',
-        createdAt: subDays(2),
-        sealedAt: subDays(2),
+        createdAt: subDays(7),
+        sealedAt: subDays(7),
         isDemo: true,
       },
     ];
   }
 
-  if (entryId === 'demo-entry-2') {
+  if (entryId === 'demo-entry-5') {
     return [
       {
-        id: 'stratum-demo-2-1',
-        entryId: 'demo-entry-2',
+        id: 'stratum-demo-5-1',
+        entryId: 'demo-entry-5',
         userId,
         anchor: {
           startOffset: 0,
-          endOffset: 54,
-          quotedText: 'Cut two redundant backend workers and unified the pipeline synchronously',
+          endOffset: 53,
+          quotedText: 'Got back our first Chem quiz today. Forty-eight percent.',
         },
-        bodyMarkdown: 'Was this architectural purity or exhaustion? Be honest with whether simplicity was earned or rushed.',
+        bodyMarkdown: 'The 48% felt like a permanent verdict on my intelligence. It was actually the single best thing that happened this month—it forced me to meet Priya and walk into Professor Chen office hours.',
         depth: 1,
-        daysLater: 60,
-        stance: 'question',
-        createdAt: subDays(8),
-        sealedAt: subDays(8),
+        daysLater: 15,
+        stance: 'gratitude',
+        createdAt: subDays(5),
+        sealedAt: subDays(5),
         isDemo: true,
       },
     ];
@@ -261,10 +266,10 @@ export function getSampleDemoStrata(entryId: string, userId: string = 'demo-eval
  */
 export function seedDemoStrata(userId: string = 'demo-evaluator'): Stratum[] {
   const e1 = getSampleDemoStrata('demo-entry-1', userId);
-  const e2 = getSampleDemoStrata('demo-entry-2', userId);
+  const e5 = getSampleDemoStrata('demo-entry-5', userId);
   memoryStrata.set('demo-entry-1', e1);
-  memoryStrata.set('demo-entry-2', e2);
-  return [...e1, ...e2];
+  memoryStrata.set('demo-entry-5', e5);
+  return [...e1, ...e5];
 }
 
 // Auto-seed for demo mode

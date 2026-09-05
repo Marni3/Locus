@@ -290,6 +290,10 @@ app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
     }
 
     entry.id = entryId;
+    if (typeof body.overrideTimestamp === 'string') {
+      entry.concludedAt = body.overrideTimestamp;
+      if (!entry.createdAt) entry.createdAt = body.overrideTimestamp;
+    }
     const result = await concludeAndSynthesizeEntry(entry);
 
     // Non-blocking email dispatch if user requested notifications
