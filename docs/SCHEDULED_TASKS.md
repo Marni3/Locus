@@ -12,18 +12,19 @@ Even when Antigravity IDE or the local machine is powered off, this file preserv
 **Command / Trigger to Say to Antigravity**:
 > *"Good morning! Let's execute Phase 5: write the project README and perform the final project audit."*
 
-### Phase 5 Deliverables
-1. **Comprehensive Project README (`README.md`)**:
-   - **Project Overview**: Core philosophy, the "Anti-Dashboard for the Mind", longitudinal intellectual trajectories, finite sealed pages, and Strata marginalia.
-   - **Tech Stack & Architecture**: React 19, TypeScript, TailwindCSS v4, Express 4, Vite 6, Cloud Firestore, Firebase Auth, Google GenAI SDK (`@google/genai`).
-   - **Core Features & How They Were Integrated**:
-     - *Conversational Session Workspace*: Cognitive stances, multi-turn reflective companion, bookmarks.
-     - *Strata Margin Layer*: Sealed immutable pages, temporal distance stamps, 5 semantic ink stances (`correction`, `confirmation`, `question`, `grief`, `gratitude`).
-     - *Looking Back (Daily Archivist Loop)*: Explainable provenance heuristics (anniversaries, temporal distance, contradictions).
-     - *Themes Constellation & Concept Graph*: Vector similarity clustering, live physics simulation, sub-graph drill-downs, Unpack Further essays.
-     - *Third-Party Integrations*: Google Maps Geocoding with coordinate minimization, send-time SSRF-hardened webhooks, development email mock dispatcher.
-   - **Security & Privacy Architecture (5 Threat Zones)**: Outbound PII redaction gate (`src/lib/sanitizer.ts`), prompt delimiter isolation, webhook IP range blocking, and Firestore user isolation.
-   - **Developer Setup & Testing Instructions**: Dev startup (`npm run dev`), build (`npm run build`), unit tests (`npm run test:unit`), Playwright E2E tests (`npx playwright test`).
+### Phase 5 Deliverables & Morning Focus
+1. **Detailed README Flow & Architecture Drafting**:
+   - **Collaborative Flow Draft**: First prompt the user to review and collaborate on drafting a more detailed, customized flow and narrative structure for the README before authoring.
+   - **Comprehensive Technical Sections**:
+     - *Project Overview*: The "Anti-Dashboard for the Mind", longitudinal intellectual trajectories, finite sealed pages, and Strata marginalia.
+     - *Tech Stack & Architecture*: React 19, TypeScript, TailwindCSS v4, Express 4, Vite 6, Cloud Firestore, Firebase Auth, Google GenAI SDK (`@google/genai`).
+     - *Core Features & How They Were Integrated*: Conversational Session Workspace, Strata Margins, Looking Back provenance loop, Themes Constellation & Concept Graph, Geocoding minimization, and send-time SSRF-hardened webhooks.
+     - *Security Architecture (5 Threat Zones)*: Outbound PII redaction gate, prompt delimiter isolation, webhook IP range blocking, and Firestore user isolation.
+     - *Setup & Verification Instructions*: Startup commands, unit tests, Playwright E2E suites, and production bundling.
+2. **Intentional Archival Dark Mode**:
+   - Design and integrate an intentional, calm dark mode system (soothing charcoal and deep obsidian archival ink tones rather than harsh black or glaring neon).
+   - Preserve the strict **Rule of One Accent** (`#3B7A57` / `#2E5A36`) and typographic dignity across all reading cards, Strata margins, and session workspaces.
+   - Add a dark mode toggle to the Settings Drawer and universal Navbar with system preference persistence (`localStorage` / `UserSettings`).
 
 ---
 
