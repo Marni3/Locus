@@ -359,15 +359,22 @@ Screen 3: Themes Master-Detail & Graph (/themes)
 
 ### Technical Implementation Details
 1. **Screen 1: Reflections Home (`src/components/ReflectionsHome.tsx`)**:
+   - **Mobile-First Architecture**:
+     - Designed from the ground up for phone viewports ($< 768\text{px}$) using touch-optimized targets ($\ge 44\text{px}$), single-thumb navigation, and progressive enhancement scaling to wide desktop screens.
    - **Daily Journaling Prompt Banner**:
      - A dismissible, tranquil banner prominently positioned at the top of the feed with an inspiring daily contemplation (e.g., *"What is one decision you are avoiding because you already know the answer?"*).
      - Clicking the banner automatically initiates a New Reflection, carrying the daily prompt as a floating inspiration chip above the writing area that gently dissolves as soon as the user writes their first reflection turn.
    - **Hero Strip**: Dismissible card highlighting latest ready Theme (`observationCount >= 2`).
-   - **Collapsible "Ready for Synthesis" section**: horizontal scrolling ribbon.
-   - **Entry Card Grid with Multi-Tag Support**:
-     - Cards rendered with Source Serif 4 title, date, duration, mood chip, and location badge.
-     - Single accent `+ Start Entry` action.
-     - **Calm Qualitative Auto-Tagging**: During entry conclusion synthesis, Gemini automatically tags the entry with 1–3 qualitative thematic/emotional tags (`#Reflective`, `#Breakthrough`, `#Decision`, `#Friction`) stored in `entry.tags: string[]`, replacing reductive 1–10 numeric ratings with rich, filterable qualitative dimensions.
+   - **Collapsible "Ready for Synthesis" section**: Horizontal scrolling ribbon.
+   - **Google Keep-Style 2-Column Masonry Card Grid**:
+     - **Layout**: 2-column vertical masonry grid on mobile (`columns-2 gap-3 space-y-3`), scaling to 3 columns on tablet and 4 columns on large desktop (`md:columns-3 lg:columns-4 gap-4 space-y-4`).
+     - **Card Anatomy (Smart Minimalist Keep Note)**:
+       - **Title**: Source Serif 4 (`font-serif text-sm font-semibold text-primary tracking-tight leading-snug`).
+       - **Metadata**: Subtle location pill (`📍 Coffee Shop, Balanga`) and relative date hint (`Yesterday`, `2h ago`).
+       - **Conversation Gist**: 3–4 sentence synthesized AI summary in readable Inter (`text-xs text-[#4A4A4A] leading-relaxed line-clamp-6`). Gives the user immediate cognitive recall at a glance without having to open the chat.
+       - **Qualitative Tags**: Minimalist chips (`#Breakthrough`, `#Decision`, `#Friction`, `#Reflective`) in soft `#F4F3EE` tint.
+     - **Interaction**: Tapping any card opens/unfolds the full multi-turn conversational transcript in `SessionWorkspace`.
+     - **Action**: Single accent `#3B7A57` `+ Start Reflection` floating/header action.
 2. **Screen 2: Active Workspace (`src/components/SessionWorkspace.tsx`)**:
    - Source Serif 4 user bubbles (`#F2EFEB`), Inter AI bubbles (`#FFFFFF`).
    - Message-level inline hover toolbar: Pin toggle (`isPinned`), Note popover, and Copy.
