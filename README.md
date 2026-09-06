@@ -68,13 +68,13 @@ Locus is built as a unified full-stack application designed to run as a single c
 
 I used the **Google Gen AI Academy Evaluation Criteria** as our compass during architecture and development, treating each pillar as a real engineering constraint rather than a post-hoc checklist:
 
-### 1. Authenticity (Originality & Custom-Built Concept)
+### 1. Authenticity
 - **Rethinking the Domain with OOUX**: Instead of cloning a standard chat app, I mapped the reflective domain into concrete, lifecycled objects using **Sophia Prater's Object-Oriented UX (OOUX)** framework: *Entries*, *Messages*, *Themes*, and *Theme Observations*.
 - **The Strata Marginalia Layer**: Following feedback from **Ben Garcia**, concluded entries seal into an immutable historical reading view with editable margins, preserving the unvarnished authenticity of original thoughts while leaving space for future editorial notes.
 - **Organic Longitudinal Synthesis**: Rather than creating flat tags or task lists, Gemini continuously synthesizes entries into evolving intellectual trajectories with discrete observations and vector embeddings.
 - **Authentic Student Persona Archive**: To test the engine under realistic conditions, we avoided canned dummy cards and generated a 15-entry chronological archive of a first-year college student adjusting to campus life, with non-linear emotional relapses, cross-entry theme synthesis, and genuine voice.
 
-### 2. Usability (Intuitive Design, Accessibility & Craft)
+### 2. Usability 
 - **Exorcising AI Design Clichés with Impeccable**: I used **Impeccable** to audit visual hierarchy and deliberately eliminate generic "AI app" tropes—no glowing purple gradients, no floating sci-fi cards, and no low-contrast gray text.
 - **Rule of One Accent**: Muted sage green (`#3B7A57` daylight / `#4E9B71` dark) is reserved strictly for interactive and actionable elements.
 - **Dual-Palette Substrates**: 
@@ -84,7 +84,7 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
 - **Native Voice-to-Text Dictation**: A built-in microphone composer allows hands-free stream of consciousness dictation without breaking cognitive flow.
 - **Interactive Concept Graph**: Liquid spring physics with phyllotaxis spiral blooming allows you to touch and drag themes, watching observations orbit their parent trajectories dynamically.
 
-### 3. Stability (Zero-Crash Engineering & Fault Tolerance)
+### 3. Stability 
 - **6-Tier Gemini Fallback Ladder**: To handle API rate limits, model deprecations, and upstream cloud hiccups gracefully, all generative AI calls pass through an automatic model fallback ladder:
   $$\text{gemini-3.5-flash} \longrightarrow \text{gemini-3.6-flash} \longrightarrow \text{gemini-2.5-flash} \longrightarrow \text{gemini-3.5-flash-lite} \longrightarrow \text{gemini-3.1-flash-lite} \longrightarrow \text{gemini-flash-latest}$$
 - **Defensive Payload Ingestion**: Strict ordering guarantees (body parsers before routes), null-safe destructuring, and undefined-stripping ensure Firestore never rejects database writes.
@@ -94,7 +94,7 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
   - **28 Playwright E2E Tests**: Validating user journeys, graph physics, dark mode switches, and automated visual regressions.
   - **22-Screen Automated Visual Audit Pipeline (`npm run audit:screens`)**: Automatically captures high-resolution screenshots of all 11 core screens across both light and dark modes.
 
-### 4. Security (Data Protection & Secure Cloud Infrastructure)
+### 4. Security
 - **Server-Side Authentication Enforcement**: Following an IDOR audit raised by a security-conscious reviewer (Ben Garcia), all protected API endpoints now require a verified Firebase ID token before processing. The `requireAuth` Express middleware (`src/middleware/auth.ts`) validates tokens against Google Identity Toolkit with a 5-minute in-memory cache to minimize latency, rather than simply trusting a `userId` parameter from the client body.
 - **IDOR Safeguards**: Mutation endpoints (`conclude entry`, `pin/note a message`) validate that the requesting user owns the target resource — blocking any attempt to modify another user's data even if a valid token is presented.
 - **Authenticated API Client**: A shared `apiFetch` wrapper (`src/lib/api.ts`) automatically injects the current Firebase ID token (or demo token) as a `Bearer` header on every client-to-server call, ensuring auth is never accidentally omitted.
