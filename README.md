@@ -51,7 +51,7 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
 - **Outbound PII Gate**: All outgoing reflection text is scrubbed for phone numbers, emails, and physical addresses before reaching external AI or embedding APIs. Your raw, unredacted thoughts stay safely inside your private storage.
 - **SSRF-Protected Webhooks**: The notification dispatcher resolves webhook target hosts against DNS and strictly rejects loopback addresses (`127.0.0.1`), private networks (`10.0.0.0/8`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`).
 - **Owner-Bound Firestore Security Rules**: Cloud Firestore enforces strict path-level isolation (`request.auth.uid == userId`) with default-deny rules on all collections.
-- **Zero-Secret Hygiene**: Zero API keys or secrets are stored in code or client bundles. Secrets are injected at runtime via environment variables.
+- **Zero-Secret Hygiene**: Zero API keys or secrets are stored in code or client bundles. Secrets are injected at runtime via environment variables. Note: `firebase-applet-config.json` is intentionally committed — Firebase client config is not a secret (it is embedded in the JS bundle visible to any browser); security is enforced by Firestore rules.
 
 ---
 
