@@ -5,6 +5,18 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-06]
 
 ### Added
+- **Cloud Run Native Structured Logging & Error Reporting ([src/lib/logger.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/logger.ts), [tests/unit/cloud-logger.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/cloud-logger.test.ts))**:
+  - Implemented zero-dependency structured logger that emits Cloud Run native single-line JSON payloads to `stdout`/`stderr`.
+  - Correlates incoming distributed request traces via `X-Cloud-Trace-Context` (`logging.googleapis.com/trace`).
+  - Automatically formats errors with `@type: "type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent"` and `serviceContext` for automated incident tracking in Google Cloud Error Reporting.
+  - Enforced Threat Zone 5 zero-secret hygiene: recursively scrubs API keys, Bearer tokens, and sensitive reflection contents (`prompt`, `history`, `conversation`, `turns`) from log metadata.
+  - Replaced all raw `console.error` and `console.log` calls in [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts) with structured logger invocations.
+- **Serverless Cloud Scheduler Auto-Conclude Engine ([src/services/cronSweep.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/cronSweep.ts), [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts), [tests/unit/cron-sweep.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/cron-sweep.test.ts), [tests/unit/cron-endpoint.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/cron-endpoint.test.ts))**:
+  - Engineered `POST /api/cron/sweep-conclude` endpoint to replace local browser timers with authentic serverless cron lifecycle enforcement.
+  - Protected endpoint via `X-Cron-Secret` header validation and Cloud Scheduler native verification.
+  - Reused `isEntryEligibleForAutoConclude()` from [src/services/concludeEngine.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/concludeEngine.ts) to maintain 100% parity with client-side lifecycle logic.
+  - Added batching guardrails (`maxBatch: 5`) to prevent Gemini quota exhaustion and Cloud Run request timeouts.
+  - Added optional `concludedBy: 'manual' | 'auto_timer'` to [src/types.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/types.ts).
 - **Dark Mode Contrast Restoration & Accessibility Polish ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
   - Replaced hardcoded `text-stone-800`, `text-stone-900`, and `text-stone-600` in AI companion Markdown rendering (`h1`-`h3`, `strong`, `p`, `ul`, `ol`, `blockquote`) with semantic `text-text-primary` (`#ECE7DE` in dark mode) and `border-accent-sage` with `text-text-muted`, resolving near-zero contrast in Obsidian theme.
   - Upgraded Daily Reflection Inspiration card from low-contrast `bg-accent-sage-tint/40` to a dedicated card layout (`bg-surface border border-accent-sage/35 dark:border-accent-sage/50 shadow-xs`) with high-contrast serif italic quote typography.

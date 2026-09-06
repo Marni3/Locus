@@ -22,6 +22,11 @@ import { resolveGpsCoordinates, resolvePlaceQuery } from './src/integrations/geo
 import { validateWebhookUrl, dispatchSynthesisNotificationEmail } from './src/integrations/notifications';
 import { sanitizeForOutbound } from './src/integrations/sanitizer';
 import { requireAuth, AuthenticatedRequest } from './src/middleware/auth';
+import { logger, requestLogger } from './src/lib/logger';
+import { validateCronAuth, runAutoConcludeSweep } from './src/services/cronSweep';
+
+// 2.5 Structured Cloud Run Logging & Distributed Tracing Middleware
+app.use(requestLogger);
 
 // 3. API Routes
 
@@ -122,7 +127,7 @@ Core Directives:
       modelUsed: result.modelUsed
     });
   } catch (error: any) {
-    console.error('Error in reflect endpoint:', error);
+    logger.error('Error in reflect endpoint:', error, { component: 'reflect' });
     return res.status(500).json({
       error: error.message || 'Internal server error processing AI reflection.'
     });
@@ -165,7 +170,7 @@ Write a single, concise (maximum 15 words) analytical context note explaining wh
       modelUsed: result.modelUsed
     });
   } catch (error: any) {
-    console.error('Error in /api/notebook/context-hint:', error);
+    logger.error('Error in /api/notebook/context-hint:', error, { component: 'notebook' });
     return res.status(500).json({
       error: error.message || 'Internal server error generating context hint.'
     });
@@ -216,7 +221,7 @@ Format with crisp Markdown headers.`;
       modelUsed: result.modelUsed
     });
   } catch (error: any) {
-    console.error('Error in /api/gemini/summarize:', error);
+    logger.error('Error in /api/gemini/summarize:', error, { component: 'summarize' });
     return res.status(500).json({
       error: error.message || 'Internal server error generating summary.'
     });
@@ -269,7 +274,7 @@ Format with elegant, inspiring Markdown with clean headings and bullet points.`;
       modelUsed: result.modelUsed
     });
   } catch (error: any) {
-    console.error('Error in /api/gemini/synthesis:', error);
+    logger.error('Error in /api/gemini/synthesis:', error, { component: 'synthesis' });
     return res.status(500).json({
       error: error.message || 'Internal server error generating pattern synthesis.'
     });
@@ -331,9 +336,67 @@ app.post('/api/entries/:id/conclude', requireAuth, async (req: Request, res: Res
 
     return res.json({ success: true, result });
   } catch (error: any) {
-    console.error('Error in /api/entries/:id/conclude:', error);
+    logger.error('Error in /api/entries/:id/conclude:', error, { component: 'entries' });
     return res.status(500).json({
       error: error.message || 'Internal server error concluding entry.'
+    });
+  }
+});
+
+/**
+ * POST /api/cron/sweep-conclude
+ * Invoked by Google Cloud Scheduler (e.g. every 15-30 minutes).
+ * Sweeps active reflection entries older than 2 hours and triggers synthesis.
+ * Protected by X-Cron-Secret header or Cloud Scheduler native header.
+ */
+app.post('/api/cron/sweep-conclude', async (req: Request, res: Response) => {
+  try {
+    const cronSecret = process.env.CRON_SECRET;
+    const isAuthorized = validateCronAuth(req.headers as Record<string, string | string[] | undefined>, cronSecret);
+
+    if (!isAuthorized) {
+      logger.warn('Unauthorized attempt to trigger cron sweep', {
+        component: 'cron-sweep',
+        ip: req.ip
+      });
+      return res.status(401).json({ error: 'Unauthorized: Invalid or missing cron credentials.' });
+    }
+
+    const body = (req.body && typeof req.body === 'object') ? req.body : {};
+    const maxBatch = typeof body.maxBatch === 'number' ? body.maxBatch : 5;
+    const providedEntries = Array.isArray(body.entries) ? body.entries : [];
+
+    let activeEntries = providedEntries;
+
+    if (activeEntries.length === 0) {
+      const defaultUserId = typeof body.userId === 'string' ? body.userId : 'demo-student-user';
+      try {
+        const userEntries = await fetchUserEntries(defaultUserId);
+        activeEntries = userEntries.filter((e) => e.status === 'active');
+      } catch (fetchErr: any) {
+        logger.warn('Could not fetch active entries from Firestore for sweep', {
+          component: 'cron-sweep',
+          error: fetchErr?.message
+        });
+      }
+    }
+
+    const result = await runAutoConcludeSweep(
+      activeEntries,
+      async (entryToConclude) => {
+        return concludeAndSynthesizeEntry(entryToConclude);
+      },
+      { maxBatch }
+    );
+
+    return res.json({
+      success: true,
+      sweepResult: result
+    });
+  } catch (error: any) {
+    logger.error('Unexpected error during auto-conclude sweep', error, { component: 'cron-sweep' });
+    return res.status(500).json({
+      error: error.message || 'Internal server error executing auto-conclude sweep.'
     });
   }
 });
@@ -390,7 +453,7 @@ app.patch('/api/entries/:id/messages/:messageId', requireAuth, async (req: Reque
       }
     });
   } catch (error: any) {
-    console.error('Error in PATCH /api/entries/:id/messages/:messageId:', error);
+    logger.error('Error in PATCH /api/entries/:id/messages/:messageId:', error, { component: 'entries' });
     return res.status(500).json({
       error: error.message || 'Internal server error updating message.'
     });
@@ -423,7 +486,7 @@ app.post('/api/themes/:id/unpack', requireAuth, async (req: Request, res: Respon
       unpackResult: result,
     });
   } catch (error: any) {
-    console.error('Error in /api/themes/:id/unpack:', error);
+    logger.error('Error in /api/themes/:id/unpack:', error, { component: 'unpack' });
     return res.status(500).json({
       error: error.message || 'Internal server error unpacking theme.'
     });
@@ -451,7 +514,7 @@ app.post('/api/location/resolve-gps', requireAuth, async (req: Request, res: Res
       location: result,
     });
   } catch (error: any) {
-    console.error('Error in /api/location/resolve-gps:', error);
+    logger.error('Error in /api/location/resolve-gps:', error, { component: 'geocoding' });
     return res.status(500).json({
       error: error.message || 'Internal server error resolving coordinates.'
     });
@@ -478,7 +541,7 @@ app.post('/api/location/resolve-query', requireAuth, async (req: Request, res: R
       location: result,
     });
   } catch (error: any) {
-    console.error('Error in /api/location/resolve-query:', error);
+    logger.error('Error in /api/location/resolve-query:', error, { component: 'geocoding' });
     return res.status(500).json({
       error: error.message || 'Internal server error resolving place query.'
     });
@@ -505,7 +568,7 @@ app.post('/api/notifications/test-webhook', requireAuth, async (req: Request, re
       error: validation.error,
     });
   } catch (error: any) {
-    console.error('Error in /api/notifications/test-webhook:', error);
+    logger.error('Error in /api/notifications/test-webhook:', error, { component: 'notifications' });
     return res.status(500).json({
       error: error.message || 'Internal server error validating webhook URL.'
     });
@@ -529,10 +592,10 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`ReflectAI server listening on http://0.0.0.0:${PORT}`);
+    logger.info(`ReflectAI server listening on http://0.0.0.0:${PORT}`, { component: 'server', port: PORT });
   });
 }
 
 startServer().catch((err) => {
-  console.error('Failed to start server:', err);
+  logger.critical('Failed to start server:', err, { component: 'server' });
 });

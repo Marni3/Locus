@@ -102,6 +102,8 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
 - **SSRF-Protected Webhooks**: The notification dispatcher resolves webhook target hosts against DNS and strictly rejects loopback addresses (`127.0.0.1`), private networks (`10.0.0.0/8`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`).
 - **Owner-Bound Firestore Security Rules**: Cloud Firestore enforces strict path-level isolation (`request.auth.uid == userId`) with default-deny rules on all collections.
 - **Zero-Secret Hygiene**: Zero API keys or secrets are stored in code or client bundles. Secrets are injected at runtime via environment variables. Note: `firebase-applet-config.json` is intentionally committed — Firebase client config is not a secret (it is embedded in the JS bundle visible to any browser); security is enforced by Firestore rules.
+- **Cloud Run Native Structured Logging & Error Reporting**: Single-line JSON log ingestion mapped directly to Google Cloud Logging and Google Cloud Error Reporting. Extracts distributed trace IDs (`X-Cloud-Trace-Context`) and strictly scrubs PII and credentials prior to logging (Threat Zone 5).
+- **Serverless Cloud Scheduler Auto-Conclude Sweep**: A rate-capped, authenticated endpoint (`POST /api/cron/sweep-conclude`) protected by `X-Cron-Secret` allowing Google Cloud Scheduler to cleanly enforce the non-negotiable 2-hour inactivity lifecycle boundary without relying on client-side timers.
 
 
 ---

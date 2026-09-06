@@ -16,6 +16,7 @@ export interface Entry {
   title: string;
   createdAt: string;
   concludedAt?: string;
+  concludedBy?: 'manual' | 'auto_timer';
   bodySealedAt?: string;          // Proof of immutability
   bodyHash?: string;              // SHA-256 hash of sealed transcript
   status: EntryStatus;
