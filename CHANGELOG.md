@@ -5,7 +5,14 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-06]
 
 ### Added
-- **Cloud Run Native Structured Logging & Error Reporting ([src/lib/logger.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/logger.ts), [tests/unit/cloud-logger.test.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/unit/cloud-logger.test.ts))**:
+- **Clean 1080p Playwright Verification & Screenshot Automation ([tests/e2e/clean-1080p-screenshots.spec.ts](tests/e2e/clean-1080p-screenshots.spec.ts))**:
+  - Implemented non-invasive CSS injection preventing toast notification collisions with React 19 fiber reconciliation.
+  - Successfully generated 20 clean 1920×1080 UI screenshots across Light and Dark themes for portfolio and presentation artifacts.
+- **Development Journey Narrative & GitHub Link Relative Resolution ([README.md](README.md))**:
+  - Added dedicated narrative documenting the two-phase progression from Google AI Studio rapid prototyping to full-stack engineering in Google Antigravity IDE.
+  - Replaced all absolute `file:///` links with repository-relative paths, ensuring 100% clickability within GitHub's web file viewer.
+  - Credited Google AI Academy APAC Cohort 3 guidance for the foundational system prompt and software standards.
+- **Cloud Run Native Structured Logging & Error Reporting ([src/lib/logger.ts](src/lib/logger.ts), [tests/unit/cloud-logger.test.ts](tests/unit/cloud-logger.test.ts))**:
   - Implemented zero-dependency structured logger that emits Cloud Run native single-line JSON payloads to `stdout`/`stderr`.
   - Correlates incoming distributed request traces via `X-Cloud-Trace-Context` (`logging.googleapis.com/trace`).
   - Automatically formats errors with `@type: "type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent"` and `serviceContext` for automated incident tracking in Google Cloud Error Reporting.
