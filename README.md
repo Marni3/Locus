@@ -10,7 +10,26 @@ I asked this because I have spent years journaling on paper and experimenting wi
 
 In a physical journal, your past thoughts stay grounded on paper. Over weeks and months, you start seeing the recurring threads in your life—the questions you keep returning to, the ideas that quietly evolve, and the moments where your thinking shifted. 
 
-Locus is built around that reality. For the full behind-the-scenes engineering story, lessons learned, and trade-offs, see the [Talking Points & Retrospective](file:///c:/Users/reyna/OneDrive/Documents/Locus/TALKING_POINTS.md).
+Locus is built around that reality. For the full behind-the-scenes engineering story, lessons learned, and trade-offs, see the [Talking Points & Retrospective](TALKING_POINTS.md).
+
+---
+
+## The Development Journey: From Google AI Studio to Antigravity IDE
+
+Locus was built through a deliberate two-phase engineering progression during the **Google Gen AI Academy APAC (Cohort 3)**:
+
+1. **Rapid Conception in Google AI Studio**:
+   - Started with the Academy's prompt guidance in **Google AI Studio**, exploring Gemini's conversational capabilities and scaffolding the initial interactive prototype.
+   - The foundational software standards and system prompt originated from Google AI Academy's architectural guidance (threat modeling, defensive input validation, and model fallback concepts).
+
+2. **Full-Stack Systems Engineering in Google Antigravity IDE**:
+   - Once the core concept proved viable, the entire codebase was ported to **Google Antigravity IDE** to move far beyond a simple prototype into an enterprise-grade cloud application.
+   - Paired with agentic workflows, the Academy's initial standards were adapted and expanded into a formal repository governance skill ([`locus-software-standards`](docs/standards/locus-software-standards.md)), alongside specialized development skills:
+     - **Domain & Object-Oriented UX**: Decoupled episodic journal entries from longitudinal themes, observation trajectories, and physical paper-inspired *Strata Margins*.
+     - **Autonomous Synthesis Pipeline**: Vector embeddings (`text-embedding-004`) and similarity matching that discover emergent themes across weeks of reflection.
+     - **Serverless Cloud Run Architecture**: Unified single-container deployment, native Cloud Run structured JSON logging, distributed Cloud Trace correlation, and Cloud Scheduler background sweeps.
+     - **Defense-in-Depth Security**: Pre-egress PII sanitization and SSRF-hardened external webhooks.
+     - **Test-Driven Verification**: Authored comprehensive Vitest unit suites (119 tests passing) and Playwright browser E2E / visual audit automation.
 
 ---
 
@@ -153,14 +172,14 @@ I believe in being transparent about how this system was designed, built, and te
 
 | Document | Purpose |
 |---|---|
-| [CHANGELOG.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/CHANGELOG.md) | Running daily log of every change, feature addition, refactoring, and test result. |
-| [TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/TALKING_POINTS.md) | Authentic retrospective on engineering decisions, design epiphanies, and learnings. |
-| [PRODUCT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/PRODUCT.md) | Product definition, user personas, problem space, and core domain boundaries. |
-| [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md) | Visual design authority, typographic tokens, color system, and screen wireframes. |
-| [docs/Locus-Core-Object-Model.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/Locus-Core-Object-Model.md) | Deep breakdown of the Object-Oriented UX (OOUX) architecture and entity lifecycles. |
-| [docs/demo/Locus-Demo-Data-Brief.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/demo/Locus-Demo-Data-Brief.md) | Maya's authentic 15-entry student persona narrative specification. |
-| [docs/standards/locus-software-standards.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/standards/locus-software-standards.md) | The 5 Agentic Threat Zones, model fallback ladders, and zero-crash engineering standards. Based on the initial system prompt google provided for the system.|
-| [docs/DEMO_DATA_RUN_REPORT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/DEMO_DATA_RUN_REPORT.md) | Autonomous runner report and verification results for the 15-entry student narrative dataset. |
+| [CHANGELOG.md](CHANGELOG.md) | Running daily log of every change, feature addition, refactoring, and test result. |
+| [TALKING_POINTS.md](TALKING_POINTS.md) | Authentic retrospective on engineering decisions, design epiphanies, and learnings. |
+| [PRODUCT.md](PRODUCT.md) | Product definition, user personas, problem space, and core domain boundaries. |
+| [DESIGN.md](DESIGN.md) | Visual design authority, typographic tokens, color system, and screen wireframes. |
+| [docs/Locus-Core-Object-Model.md](docs/Locus-Core-Object-Model.md) | Deep breakdown of the Object-Oriented UX (OOUX) architecture and entity lifecycles. |
+| [docs/demo/Locus-Demo-Data-Brief.md](docs/demo/Locus-Demo-Data-Brief.md) | Maya's authentic 15-entry student persona narrative specification. |
+| [docs/standards/locus-software-standards.md](docs/standards/locus-software-standards.md) | The 5 Agentic Threat Zones, model fallback ladders, and zero-crash engineering standards. Adapted from the initial Google AI Academy system prompt.|
+| [docs/DEMO_DATA_RUN_REPORT.md](docs/DEMO_DATA_RUN_REPORT.md) | Autonomous runner report and verification results for the 15-entry student narrative dataset. |
 
 ### Video Walkthroughs
 Pre-rendered full-spectrum Playwright video captures are included in the repository showcasing all 7 core application acts:
@@ -225,7 +244,7 @@ I used a test-driven approach throughout development so changes to the synthesis
 # Type check TypeScript
 npm run lint
 
-# Run all 99 unit tests (Vitest)
+# Run all 119 unit tests across 18 test suites (Vitest)
 npm run test:unit
 
 # Run all 28 browser E2E tests (Playwright)
