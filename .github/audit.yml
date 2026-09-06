@@ -1,0 +1,21 @@
+name: Audit History for Secrets
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan-history:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full Git history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ""
+          head: "HEAD"
+          extra_args: --debug
