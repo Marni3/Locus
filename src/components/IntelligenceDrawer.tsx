@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { Interaction } from '../types';
+import { apiFetch } from '../lib/api';
 
 interface IntelligenceDrawerProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
 
     try {
       setIsLoading(true);
-      const res = await fetch('/api/gemini/summarize', {
+      const res = await apiFetch('/api/gemini/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +98,7 @@ export const IntelligenceDrawer: React.FC<IntelligenceDrawerProps> = ({
 
     try {
       setIsLoading(true);
-      const res = await fetch('/api/gemini/synthesis', {
+      const res = await apiFetch('/api/gemini/synthesis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -21,6 +21,7 @@ import { unpackThemeFurther } from './src/integrations/unpack';
 import { resolveGpsCoordinates, resolvePlaceQuery } from './src/integrations/geocoding';
 import { validateWebhookUrl, dispatchSynthesisNotificationEmail } from './src/integrations/notifications';
 import { sanitizeForOutbound } from './src/integrations/sanitizer';
+import { requireAuth, AuthenticatedRequest } from './src/middleware/auth';
 
 // 3. API Routes
 
@@ -128,14 +129,14 @@ Core Directives:
   }
 };
 
-app.post('/api/reflect', handleReflectRequest);
-app.post('/api/gemini/reflect', handleReflectRequest);
+app.post('/api/reflect', requireAuth, handleReflectRequest);
+app.post('/api/gemini/reflect', requireAuth, handleReflectRequest);
 
 /**
  * POST /api/notebook/context-hint
  * Generates a 1-sentence analytical context note for a saved excerpt
  */
-app.post('/api/notebook/context-hint', async (req: Request, res: Response) => {
+app.post('/api/notebook/context-hint', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const excerpt = typeof body.excerpt === 'string' ? body.excerpt : '';
@@ -176,7 +177,7 @@ Write a single, concise (maximum 15 words) analytical context note explaining wh
  * POST /api/gemini/summarize
  * Generates an executive summary and key takeaways for a session or collection of reflections
  */
-app.post('/api/gemini/summarize', async (req: Request, res: Response) => {
+app.post('/api/gemini/summarize', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const turns = Array.isArray(body.turns) ? body.turns : [];
@@ -226,7 +227,7 @@ Format with crisp Markdown headers.`;
  * POST /api/gemini/synthesis
  * Synthesizes cross-session patterns across multiple past journal entries
  */
-app.post('/api/gemini/synthesis', async (req: Request, res: Response) => {
+app.post('/api/gemini/synthesis', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const entries = Array.isArray(body.entries) ? body.entries : [];
@@ -279,8 +280,9 @@ Format with elegant, inspiring Markdown with clean headings and bullet points.`;
  * POST /api/entries/:id/conclude
  * Concludes an active reflection entry and triggers synchronous synthesis pipeline
  */
-app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
+app.post('/api/entries/:id/conclude', requireAuth, async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const entryId = req.params.id;
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const entry = body.entry;
@@ -289,7 +291,15 @@ app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing entry payload in request body' });
     }
 
+    // IDOR Safeguard (Standard Zone 4): Caller cannot trigger synthesis for another user
+    if (!authReq.isDemoUser && entry.userId && authReq.userId && entry.userId !== authReq.userId) {
+      return res.status(403).json({ error: 'Forbidden: Cannot conclude an entry belonging to another user.' });
+    }
+
     entry.id = entryId;
+    if (authReq.userId) {
+      entry.userId = authReq.userId;
+    }
     if (typeof body.overrideTimestamp === 'string') {
       entry.concludedAt = body.overrideTimestamp;
       if (!entry.createdAt) entry.createdAt = body.overrideTimestamp;
@@ -297,7 +307,7 @@ app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
     const result = await concludeAndSynthesizeEntry(entry);
 
     // Non-blocking email dispatch if user requested notifications
-    const userEmail = typeof body.userEmail === 'string' ? body.userEmail : undefined;
+    const userEmail = typeof body.userEmail === 'string' ? body.userEmail : authReq.userEmail;
     const emailNotifications = Boolean(body.emailNotifications);
 
     if (userEmail && emailNotifications) {
@@ -332,11 +342,18 @@ app.post('/api/entries/:id/conclude', async (req: Request, res: Response) => {
  * PATCH /api/entries/:id/messages/:messageId
  * Toggles message pinning and updates user notes
  */
-app.patch('/api/entries/:id/messages/:messageId', async (req: Request, res: Response) => {
+app.patch('/api/entries/:id/messages/:messageId', requireAuth, async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const { id: entryId, messageId } = req.params;
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
-    const { userId, isPinned, note } = body;
+    let { userId, isPinned, note } = body;
+
+    // IDOR Safeguard
+    if (!authReq.isDemoUser && userId && authReq.userId && userId !== authReq.userId) {
+      return res.status(403).json({ error: 'Forbidden: Cannot update message for another user.' });
+    }
+    userId = authReq.userId || userId;
 
     if (!userId) {
       return res.status(400).json({ error: 'Missing required userId' });
@@ -384,7 +401,7 @@ app.patch('/api/entries/:id/messages/:messageId', async (req: Request, res: Resp
  * POST /api/themes/:id/unpack
  * Unpacks a Theme with >= 2 observations into an evolutionary thesis, narrative, and exploration paths
  */
-app.post('/api/themes/:id/unpack', async (req: Request, res: Response) => {
+app.post('/api/themes/:id/unpack', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const theme = body.theme;
@@ -417,7 +434,7 @@ app.post('/api/themes/:id/unpack', async (req: Request, res: Response) => {
  * POST /api/location/resolve-gps
  * Reverse geocodes device GPS coordinates into a place name with coordinate minimization
  */
-app.post('/api/location/resolve-gps', async (req: Request, res: Response) => {
+app.post('/api/location/resolve-gps', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const lat = typeof body.latitude === 'number' ? body.latitude : NaN;
@@ -445,7 +462,7 @@ app.post('/api/location/resolve-gps', async (req: Request, res: Response) => {
  * POST /api/location/resolve-query
  * Forward geocodes text query to standardized place, or falls back to custom place tag
  */
-app.post('/api/location/resolve-query', async (req: Request, res: Response) => {
+app.post('/api/location/resolve-query', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const query = typeof body.query === 'string' ? body.query : '';
@@ -472,7 +489,7 @@ app.post('/api/location/resolve-query', async (req: Request, res: Response) => {
  * POST /api/notifications/test-webhook
  * Tests a webhook URL with SSRF validation at save time
  */
-app.post('/api/notifications/test-webhook', async (req: Request, res: Response) => {
+app.post('/api/notifications/test-webhook', requireAuth, async (req: Request, res: Response) => {
   try {
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     const webhookUrl = typeof body.webhookUrl === 'string' ? body.webhookUrl : '';

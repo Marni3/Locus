@@ -37,6 +37,7 @@ import { extractCleanTitle, cleanProseSnippet } from '../lib/textUtils';
 import { LocusMark } from './LocusMark';
 import { getRemainingActiveMs, formatRemainingTime } from '../services/concludeEngine';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { apiFetch } from '../lib/api';
 
 interface SessionWorkspaceProps {
   interaction: Interaction;
@@ -227,7 +228,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const res = await fetch('/api/location/resolve-gps', {
+          const res = await apiFetch('/api/location/resolve-gps', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -270,7 +271,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     setIsResolvingLocation(true);
     setLocationError(null);
     try {
-      const res = await fetch('/api/location/resolve-query', {
+      const res = await apiFetch('/api/location/resolve-query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -351,7 +352,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     // Call server Gemini route
     try {
       setIsGenerating(true);
-      const response = await fetch('/api/reflect', {
+      const response = await apiFetch('/api/reflect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -411,7 +412,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
       const turnIndex = allTurns.findIndex(t => t.id === failedTurn.id);
       const historyToSend = turnIndex !== -1 ? allTurns.slice(0, turnIndex + 1) : allTurns;
 
-      const response = await fetch('/api/reflect', {
+      const response = await apiFetch('/api/reflect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -488,7 +489,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     onUpdateInteraction(updatedInteraction);
 
     try {
-      await fetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
+      await apiFetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isBookmarked: newBookmarked, isPinned: newBookmarked, userId: interaction.userId }),
@@ -513,7 +514,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
     setNoteDraft('');
 
     try {
-      await fetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
+      await apiFetch(`/api/entries/${interaction.id}/messages/${turnId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: trimmed, userId: interaction.userId }),

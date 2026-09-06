@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, BookMarked, Compass, Check, RefreshCw } from 'lucide-react';
 import { Interaction, NotebookItem } from '../types';
+import { apiFetch } from '../lib/api';
 
 interface SaveToNotebookModalProps {
   isOpen: boolean;
@@ -59,7 +60,7 @@ export const SaveToNotebookModal: React.FC<SaveToNotebookModalProps> = ({
   const fetchContextHint = async (text: string, title: string, category: string) => {
     try {
       setIsGeneratingHint(true);
-      const res = await fetch('/api/notebook/context-hint', {
+      const res = await apiFetch('/api/notebook/context-hint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

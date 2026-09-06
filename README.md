@@ -40,11 +40,14 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
 - **Defensive Payload Ingestion**: Strict ordering guarantees (body parsers before routes), null-safe destructuring, and undefined-stripping ensure Firestore never rejects database writes.
 - **Instant Offline Demo Simulator**: Anyone can experience the full app immediately with 100% of features unlocked without configuring API keys or credentials.
 - **100% Automated Test Suite**:
-  - **93 Vitest Unit Tests**: Validating PII sanitization, SSRF protection, prompt structures, geocoding fallbacks, and honest error handling.
+  - **99 Vitest Unit Tests**: Validating PII sanitization, SSRF protection, prompt structures, geocoding fallbacks, honest error handling, and auth middleware (token verification, IDOR enforcement, demo/test bypass paths).
   - **28 Playwright E2E Tests**: Validating user journeys, graph physics, dark mode switches, and automated visual regressions.
   - **22-Screen Automated Visual Audit Pipeline (`npm run audit:screens`)**: Automatically captures high-resolution screenshots of all 11 core screens across both light and dark modes.
 
 ### 4. Security (Data Protection & Secure Cloud Infrastructure)
+- **Server-Side Authentication Enforcement**: Following an IDOR audit raised by a security-conscious reviewer (Ben Garcia), all protected API endpoints now require a verified Firebase ID token before processing. The `requireAuth` Express middleware (`src/middleware/auth.ts`) validates tokens against Google Identity Toolkit with a 5-minute in-memory cache to minimize latency, rather than simply trusting a `userId` parameter from the client body.
+- **IDOR Safeguards**: Mutation endpoints (`conclude entry`, `pin/note a message`) validate that the requesting user owns the target resource — blocking any attempt to modify another user's data even if a valid token is presented.
+- **Authenticated API Client**: A shared `apiFetch` wrapper (`src/lib/api.ts`) automatically injects the current Firebase ID token (or demo token) as a `Bearer` header on every client-to-server call, ensuring auth is never accidentally omitted.
 - **Outbound PII Gate**: All outgoing reflection text is scrubbed for phone numbers, emails, and physical addresses before reaching external AI or embedding APIs. Your raw, unredacted thoughts stay safely inside your private storage.
 - **SSRF-Protected Webhooks**: The notification dispatcher resolves webhook target hosts against DNS and strictly rejects loopback addresses (`127.0.0.1`), private networks (`10.0.0.0/8`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`).
 - **Owner-Bound Firestore Security Rules**: Cloud Firestore enforces strict path-level isolation (`request.auth.uid == userId`) with default-deny rules on all collections.
@@ -180,7 +183,7 @@ I used a test-driven approach throughout development so changes to the synthesis
 # Type check TypeScript
 npm run lint
 
-# Run all 93 unit tests (Vitest)
+# Run all 99 unit tests (Vitest)
 npm run test:unit
 
 # Run all 28 browser E2E tests (Playwright)

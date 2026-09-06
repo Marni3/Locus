@@ -77,6 +77,17 @@ export const signOutUser = async () => {
   return await signOut(auth);
 };
 
+export const getCurrentIdToken = async (): Promise<string | null> => {
+  const user = auth.currentUser;
+  if (!user) return null;
+  try {
+    return await user.getIdToken();
+  } catch (err) {
+    console.warn('Failed to retrieve Firebase ID token:', err);
+    return null;
+  }
+};
+
 /**
  * Utility: Recursively strips any undefined fields to prevent Firestore write crashes.
  * Adheres strictly to Locus Software Standard 6.

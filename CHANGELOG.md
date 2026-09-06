@@ -131,6 +131,14 @@ All notable changes, architectural decisions, schema modifications, and design s
   - Updated `ThemeObservation` texts for multi-turn entries to explicitly showcase how the AI companion's inquiries and reframings (e.g., chemical notation as compressed shortcuts, separating exam scores from self-worth, and dropping defensive pretense) catalyzed the user's breakthroughs.
 - Updated [tests/e2e/screens.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/screens.spec.ts) search query from `'Paralysis'` to `'Invisible Cities'` to validate search filter against the new student dataset.
 - Updated [src/services/strataService.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/services/strataService.ts) to seed demo strata anchored to student entries `demo-entry-1` (+27d correction, +21d confirmation) and `demo-entry-5` (+15d gratitude).
+- **API Authentication & IDOR Hardening (Ben Garcia Security Audit)**:
+  - Created [`src/middleware/auth.ts`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/middleware/auth.ts): `requireAuth` Express middleware verifying Firebase ID tokens via Google Identity Toolkit with 5-minute in-memory cache, demo-mode bypass (`DEMO_TOKEN`), and test-mode bypass (`Bearer test-token-<userId>`).
+  - Created [`src/lib/api.ts`](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/api.ts): `apiFetch` wrapper automatically injecting `Authorization: Bearer <token>` (Firebase ID token or demo token) on all client-to-server API calls.
+  - Integrated `requireAuth` middleware onto all sensitive endpoints in [`server.ts`](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts): `/api/reflect`, `/api/gemini/summarize`, `/api/gemini/synthesis`, `/api/entries/:id/conclude`, `/api/entries/:id/messages/:messageId`, `/api/themes/:id/unpack`, `/api/location/*`, and `/api/notifications/test-webhook`.
+  - Added IDOR safeguards on `/api/entries/:id/conclude` and `/api/entries/:id/messages/:messageId` to validate `req.userId === resource.userId` before mutation, blocking cross-user manipulation.
+  - Refactored all `fetch()` calls to `apiFetch()` in `SessionWorkspace.tsx`, `IntelligenceDrawer.tsx`, `ThemesView.tsx`, `SaveToNotebookModal.tsx`, `SettingsDrawer.tsx`, and `App.tsx`.
+  - Fixed TypeScript type error in `tests/unit/auth-middleware.test.ts`: `next` typed as `vi.fn() as unknown as NextFunction` to satisfy `tsc --noEmit`.
+  - **Verification**: `npm run lint` exits 0. `npm run test:unit` — 15 test files, 99 tests, all passing.
 
 ---
 

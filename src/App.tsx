@@ -28,6 +28,7 @@ import { WalkthroughOverlay } from './components/WalkthroughOverlay';
 import { selectReturnCandidate } from './services/returnRouter';
 import { DEMO_USER_ID, getSampleDemoDataset } from './services/demoSimulator';
 import { ReturnCandidate } from './types';
+import { apiFetch } from './lib/api';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -317,7 +318,7 @@ export default function App() {
   const handleConcludeEntry = async (entry: Entry) => {
     if (!currentUser?.uid) return;
     try {
-      const res = await fetch(`/api/entries/${entry.id}/conclude`, {
+      const res = await apiFetch(`/api/entries/${entry.id}/conclude`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

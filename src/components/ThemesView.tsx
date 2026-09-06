@@ -16,6 +16,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Theme, ThemeObservation, Entry } from '../types';
+import { apiFetch } from '../lib/api';
 
 interface ThemesViewProps {
   themes: Theme[];
@@ -512,7 +513,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
     setUnpackError(null);
 
     try {
-      const response = await fetch(`/api/themes/${theme.id}/unpack`, {
+      const response = await apiFetch(`/api/themes/${theme.id}/unpack`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

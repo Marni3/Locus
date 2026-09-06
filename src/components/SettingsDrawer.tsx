@@ -18,6 +18,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { UserSettings, PersonaTone, ReflectionMode, Interaction, NotebookItem } from '../types';
+import { apiFetch } from '../lib/api';
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
     if (!formState.webhookUrl?.trim()) return;
     setIsTestingWebhook(true);
     try {
-      const res = await fetch('/api/notifications/test-webhook', {
+      const res = await apiFetch('/api/notifications/test-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ webhookUrl: formState.webhookUrl.trim() }),
