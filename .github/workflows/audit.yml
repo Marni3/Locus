@@ -18,4 +18,4 @@ jobs:
           path: ./
           base: ""
           head: "HEAD"
-          extra_args: --debug
+          extra_args: --debug --exclude-paths=.trufflehogignore

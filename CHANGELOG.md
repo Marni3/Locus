@@ -5,6 +5,8 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-06]
 
 ### Added
+- **CI Secret Scan Remediation (`scan-history`)**:
+  - Replaced hardcoded Firebase API key in [firebase-applet-config.json](file:///c:/Users/reyna/OneDrive/Documents/Locus/firebase-applet-config.json) with `YOUR_FIREBASE_API_KEY` placeholder so TruffleHog no longer flags a `GoogleGeminiAPIKey` secret pattern.
 - **Mobile Viewport Audit & Responsive Touch Hardening ([tests/e2e/mobile-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/mobile-audit.spec.ts))**:
   - Authored and verified a 6-suite Playwright mobile audit on iPhone 14 / modern flagship mobile viewport (`390×844`, DPR 2, touch-enabled) with 100% pass rate:
     1. *Landing Page*: Zero horizontal scroll, accessible floating theme toggle touch target ($\ge 36\text{px}$), dark mode toggle, and demo gateway button.
