@@ -24,43 +24,82 @@ Locus is built around that reality. For the full behind-the-scenes engineering s
   - **Concept Graph**: An interactive, force-directed network showing connected themes, observation density, and cluster relationships.
 - **The Return**: An explainable daily review loop that resurfaces exactly one past entry based on clear criteria (time horizon, margin density, or theme relevance). No fake urgency, streaks, or guilt trips.
 - **Archival Appearance & Dark Mode**:
-  - **Daylight**: Warm archival ivory (`#FAF9F6`) substrate.
+  - **Daylight**: Warm archival ivory (`#FAF9F6`) .
   - **Obsidian Dark Mode**: Natural charcoal palette (`#141412` canvas, `#1E1D19` surface) engineered for quiet nighttime reflection.
   - **Rule of One Accent**: Muted sage green (`#3B7A57` / `#4E9B71`) reserved strictly for interactive actions.
 - **Privacy & Security First**: Outbound PII scrubbing, SSRF-validated webhooks, owner-bound Firestore isolation, and full offline Demo Mode.
 
 ---
 
-## Architecture & Google Cloud Infrastructure
+## Architecture & Google Cloud Ecosystem Integration
 
-Locus is built as a unified full-stack application designed to run as a single containerized service on **Google Cloud Run**, integrating cleanly with Google's cloud ecosystem:
+Locus is architected as a production-grade, unified full-stack application engineered specifically for **Google Cloud Run** and deeply integrated across Google's cloud ecosystem:
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                             Google Cloud Run                             │
-│       Stateless Container Runtime · Dynamic $PORT Binding · Auto-Scale   │
-│                                                                          │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │                    Express 4 + Vite SSR Middleware                 │  │
-│  │                                                                    │  │
-│  │  • Health Probe (/api/health)       • Egress PII Sanitizer         │  │
-│  │  • Resilient Model Ladder Engine    • SSRF Webhook Validator       │  │
-│  │  • Synthesis & Theme Pipeline       • Location Context Wrapper     │  │
-│  └──────────────────┬───────────────────────────────────┬─────────────┘  │
-└─────────────────────┼───────────────────────────────────┼────────────────┘
-                      │                                   │
-                      ▼                                   ▼
-        ┌───────────────────────────┐       ┌───────────────────────────┐
-        │     Google Gemini API     │       │      Google Firebase      │
-        │    @google/genai SDK      │       │    Auth & Cloud Firestore │
-        │   Multi-Model Fallback    │       │     User-Path Isolation   │
-        └───────────────────────────┘       └───────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                                 Google Cloud Run                                 │
+│         Stateless Container Runtime · Dynamic $PORT Binding · Scale-to-Zero      │
+│                                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────────┐  │
+│  │                     Unified Express 4 + Vite SSR Middleware                │  │
+│  │                                                                            │  │
+│  │  • Health Probe (/api/health)           • Cloud Run Structured Logger      │  │
+│  │  • Resilient Gemini Fallback Ladder     • Cloud Trace Context Linker       │  │
+│  │  • Synchronous Theme Synthesis Engine   • Outbound PII Sanitizer Gate      │  │
+│  │  • Serverless Auto-Conclude Sweeper     • SSRF-Hardened Webhook Guard      │  │
+│  │  • Google Maps Geocoding Wrapper        • Auth & IDOR Security Middleware  │  │
+│  └──────────────────┬───────────────────┬───────────────────┬─────────────────┘  │
+└─────────────────────┼───────────────────┼───────────────────┼────────────────────┘
+                      │                   │                   │
+         ┌────────────┴────────┐ ┌────────┴────────┐ ┌────────┴────────┐
+         │  Google Cloud Run   │ │  Google Cloud   │ │   Google Cloud  │
+         │  Native Observability│ │    Scheduler    │ │  Maps Platform  │
+         │  • Cloud Logging    │ │  • Cron Sweep   │ │  • Reverse Geo  │
+         │  • Error Reporting  │ │  • 2-Hr Seal    │ │  • Query Geo    │
+         │  • Cloud Trace      │ │  • X-Cron-Secret│ │  • Lat/Lng Min  │
+         └─────────────────────┘ └─────────────────┘ └─────────────────┘
+                      │                                       │
+                      ▼                                       ▼
+         ┌─────────────────────────────┐         ┌─────────────────────────────┐
+         │      Google Gemini API      │         │       Google Firebase       │
+         │     @google/genai SDK       │         │   Auth & Cloud Firestore    │
+         │  • 6-Tier Model Fallback    │         │  • Path-Level User Sandbox  │
+         │  • Structured JSON Theses   │         │  • Real-time Snapshot Sync  │
+         │  • Text-Embedding-004       │         │  • Undefined-Safe Hygiene   │
+         └─────────────────────────────┘         └─────────────────────────────┘
 ```
 
-- **Containerized for Google Cloud Run**: The entire app compiles into a standalone production server (`dist/server.cjs`) and client bundle. The server dynamically binds to `process.env.PORT` and provides `/api/health` probes for automated container lifecycle management.
-- **AI Engine**: Powered by Google's new `@google/genai` TypeScript SDK using the Gemini Flash family for high-speed, cost-effective synthesis and vector search.
-- **Database & Storage**: Google Cloud Firestore for secure, schema-flexible document storage with owner-isolated security rules.
-- **Zero Heavy Native Dependencies**: Uses pure-JS engines (custom Euler spring physics, Canvas/SVG constellation graphics, Web Speech API) to guarantee instant cold boots on Cloud Run.
+### Google Technologies & Platform Features
+
+#### 1. Google Cloud Run (Containerized Serverless Core)
+- **Unified Single-Container Architecture**: Compiles client and backend into a single production bundle (`dist/server.cjs` + Vite assets). Express serves static assets and handles API routes on the same port, eliminating CORS friction and multi-service overhead.
+- **Dynamic `$PORT` Binding & Health Probes**: Integrates natively with Cloud Run container orchestrators via `/api/health` probes for automated container lifecycle management and health checks.
+- **Sub-Second Cold Boot Optimization**: Zero heavy native C-bindings or telemetry daemons. Pure-JS physics and SVG graph rendering allow the container to scale to zero and cold-boot in sub-second intervals.
+- **Native Cloud Logging**: Emits single-line structured JSON logs directly to `stdout` and `stderr`, automatically ingested and indexed by **Google Cloud Logging** with severity tiers (`INFO`, `WARNING`, `ERROR`, `CRITICAL`).
+- **Distributed Trace Correlation**: Extracts `X-Cloud-Trace-Context` headers to map request telemetry directly into **Google Cloud Trace** (`logging.googleapis.com/trace`).
+- **Automated Cloud Error Reporting**: Automatically formats unhandled exceptions and server crashes with `@type: "...ReportedErrorEvent"` and `serviceContext`, grouping incidents for instant triage in the Google Cloud Console.
+
+#### 2. Google Cloud Scheduler (Serverless Lifecycle Sweep)
+- **Serverless Inactivity Sweeper**: Replaces fragile client-side browser timers with an authenticated serverless cron endpoint (`POST /api/cron/sweep-conclude`) triggered every 15–30 minutes by Cloud Scheduler.
+- **Non-Negotiable 2-Hour Lifecycle Boundary**: Automatically identifies active entries older than 2 hours and transitions them into immutable sealed records with synchronous Gemini synthesis.
+- **Cryptographic Guardrails (Threat Zone 3)**: Requires an `X-Cron-Secret` header or native Cloud Scheduler tokens to prevent unauthorized invocation.
+- **Batching & Rate-Limiting Protection**: Implements a strict `maxBatch: 5` ceiling per pass, preventing Cloud Run HTTP request timeouts (300s) and safeguarding Gemini API quotas.
+
+#### 3. Google Gemini API & `@google/genai` TypeScript SDK
+- **Multi-Model Resilient Fallback Ladder**: Wraps all generative calls in a sequential fallback chain (`gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-flash-latest`) that catches transient status codes (`429`, `503`, `500`) and seamlessly promotes through models without user-visible failures.
+- **Longitudinal Theme Synthesis**: Generates structured JSON outputs resolving newly concluded reflections into evolving intellectual trajectories, extracting discrete observations, and proposing emerging themes.
+- **Semantic Vector Embeddings**: Utilizes `text-embedding-004` to project reflection summaries and theme dossiers into high-dimensional semantic vector spaces for similarity matching.
+- **System Instruction Isolation & Prompt Hardening**: Wraps user content inside explicit delimiter tags (`<<<USER_INPUT>>>` / `<<<END_USER_INPUT>>>`) and strictly isolates system instructions on the server.
+
+#### 4. Google Firebase (Authentication & Cloud Firestore)
+- **Path-Level Data Isolation**: Cloud Firestore security rules strictly bind access to the authenticated user (`request.auth.uid == userId`), enforcing complete tenant isolation.
+- **Real-Time Snapshot Subscriptions**: The client leverages real-time snapshot listeners so that when Cloud Scheduler auto-concludes an entry in the background, the UI instantly flips from the active editor to the sealed reading view with zero page reload.
+- **Zero-Crash Payload Hygiene**: Employs recursive undefined-stripping prior to any Firestore write operation, preventing server crashes caused by Firestore rejecting `undefined` values.
+
+#### 5. Google Maps Geocoding API (Location Context)
+- **Reverse Geocoding**: Resolves raw GPS coordinates from opt-in browser geolocation into human-friendly, atmospheric place names (e.g. *"Balanga, Bataan"*, *"The Mill Coffee, SF"*).
+- **Forward Query Geocoding**: Translates search queries into canonical location tags with country/region metadata.
+- **Privacy-First Coordinate Minimization**: Allows users to attach place names to reflections while choosing whether to store raw latitude/longitude coordinates, minimizing unnecessary geographical data retention.
 
 ---
 
