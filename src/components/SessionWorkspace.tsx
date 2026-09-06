@@ -1001,19 +1001,11 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
                       {/* Actions on Assistant turns */}
                       {!isUser && (
-                        <div className="mt-3 pt-2.5 border-t border-stone-100 flex items-center justify-end gap-2 text-stone-400">
-                          <button
-                            onClick={() => onOpenSaveNotebook(turn.content)}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs text-stone-600 hover:text-emerald-900 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
-                            title="Save this excerpt to your Notebook"
-                          >
-                            <BookMarked className="w-3.5 h-3.5 text-[#3B7A57]" />
-                            <span className="text-xs font-medium">Save to Notebook</span>
-                          </button>
+                        <div className="mt-3 pt-2.5 border-t border-border-hairline flex items-center justify-end gap-2 text-text-muted">
 
                           <button
                             onClick={() => handleCopyText(turn.id, turn.content)}
-                            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition-colors cursor-pointer"
+                            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-canvas rounded-md transition-colors cursor-pointer"
                             title="Copy response"
                           >
                             {copiedTurnId === turn.id ? (
