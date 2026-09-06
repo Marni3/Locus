@@ -981,17 +981,17 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                           {turn.content}
                         </p>
                       ) : (
-                        <div className="text-sm font-sans leading-relaxed text-stone-800 space-y-2">
+                        <div className="text-sm font-sans leading-relaxed text-text-primary space-y-2">
                           <ReactMarkdown
                             components={{
-                              h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-stone-900 mt-2 mb-1">{children}</h3>,
-                              h2: ({ children }) => <h4 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h4>,
-                              h3: ({ children }) => <h5 className="font-serif-heading font-bold text-sm text-stone-900 mt-2 mb-1">{children}</h5>,
+                              h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-text-primary mt-2 mb-1">{children}</h3>,
+                              h2: ({ children }) => <h4 className="font-serif-heading font-bold text-sm text-text-primary mt-2 mb-1">{children}</h4>,
+                              h3: ({ children }) => <h5 className="font-serif-heading font-bold text-sm text-text-primary mt-2 mb-1">{children}</h5>,
                               p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
                               ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
                               ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
-                              blockquote: ({ children }) => <blockquote className="border-l-2 border-[#3B7A57] pl-3 italic text-stone-600 my-2">{children}</blockquote>,
-                              strong: ({ children }) => <strong className="font-semibold text-stone-900">{children}</strong>,
+                              blockquote: ({ children }) => <blockquote className="border-l-2 border-accent-sage pl-3 italic text-text-muted my-2">{children}</blockquote>,
+                              strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                             }}
                           >
                             {turn.content}
