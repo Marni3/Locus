@@ -27,13 +27,16 @@ import {
   Search,
   X,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Interaction, InteractionTurn, UserSettings, ReflectionMode } from '../types';
 import { extractCleanTitle, cleanProseSnippet } from '../lib/textUtils';
 import { LocusMark } from './LocusMark';
 import { getRemainingActiveMs, formatRemainingTime } from '../services/concludeEngine';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 interface SessionWorkspaceProps {
   interaction: Interaction;
@@ -101,6 +104,33 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   const [locationQuery, setLocationQuery] = useState('');
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const {
+    isListening,
+    isSupported: isSpeechSupported,
+    startListening,
+    stopListening,
+  } = useSpeechRecognition({
+    onTranscriptChange: (chunk) => {
+      setInputText((prev) => {
+        const trimmed = prev.trim();
+        const addition = chunk.trim();
+        if (!trimmed) return addition;
+        return `${trimmed} ${addition}`;
+      });
+    },
+    onError: (msg) => {
+      onError(msg);
+    },
+  });
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -278,6 +308,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   // Submit new reflection turn to server
   const handleSendMessage = async () => {
     if (!inputText.trim() || isGenerating) return;
+
+    if (isListening) {
+      stopListening();
+    }
 
     const userPrompt = inputText.trim();
     setInputText('');
@@ -492,20 +526,20 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
   const turns = interaction.turns || [];
 
   return (
-    <main id="session-workspace-container" className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-[#FAF9F6] overflow-hidden">
+    <main id="session-workspace-container" className="flex-1 flex flex-col h-[calc(100vh-61px)] bg-canvas overflow-hidden">
       {/* Workspace Header */}
-      <div className="px-4 sm:px-6 py-3.5 bg-white border-b border-stone-200 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
+      <div className="px-4 sm:px-6 py-3.5 bg-surface border-b border-border-hairline shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2">
             {!isSidebarOpen && onToggleSidebar && (
               <button
                 id="workspace-show-sidebar-btn"
                 onClick={onToggleSidebar}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 rounded-lg border border-stone-200 transition-all cursor-pointer shadow-2xs shrink-0"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-text-primary bg-canvas hover:bg-surface rounded-lg border border-border-hairline transition-all cursor-pointer shadow-2xs shrink-0"
                 title="Show reflections sidebar (Ctrl+B / ⌘B)"
                 aria-label="Show reflections sidebar"
               >
-                <PanelLeftOpen className="w-4 h-4 text-emerald-800" />
+                <PanelLeftOpen className="w-4 h-4 text-accent-sage" />
                 <span className="hidden sm:inline">Reflections</span>
               </button>
             )}
@@ -516,7 +550,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleTitleBlur}
-              className="font-serif-heading text-lg sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-emerald-700 focus:outline-none transition-colors w-full truncate"
+              className="font-serif-heading text-lg sm:text-xl font-bold text-text-primary bg-transparent border-b border-transparent hover:border-border-hairline focus:border-accent-sage focus:outline-none transition-colors w-full truncate"
               placeholder="Name this reflection session..."
             />
           </div>
@@ -529,7 +563,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                 id="workspace-category-select"
                 value={category}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="bg-[#F9F7F2] border border-stone-200 rounded-md px-2 py-0.5 text-xs text-stone-700 focus:outline-none focus:ring-1 focus:ring-emerald-700 font-medium cursor-pointer"
+                className="bg-canvas border border-border-hairline rounded-md px-2 py-0.5 text-xs text-text-primary focus:outline-none focus:border-accent-sage font-medium cursor-pointer"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -539,12 +573,12 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
             {/* Mood selector pill dropdown */}
             <div className="flex items-center gap-1">
-              <Smile className="w-3 h-3 text-stone-400" />
+              <Smile className="w-3 h-3 text-text-muted" />
               <select
                 value={mood}
                 onChange={(e) => setMood(e.target.value)}
                 onBlur={() => onUpdateInteraction({ ...interaction, mood: mood || undefined })}
-                className="bg-[#F9F7F2] border border-stone-200 rounded-md px-2 py-0.5 text-xs text-stone-700 focus:outline-none focus:ring-1 focus:ring-emerald-700 cursor-pointer"
+                className="bg-canvas border border-border-hairline rounded-md px-2 py-0.5 text-xs text-text-primary focus:outline-none focus:border-accent-sage cursor-pointer"
               >
                 <option value="">Mood: Not specified</option>
                 {PRESET_MOODS.map((m) => (
@@ -561,8 +595,8 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                 onClick={() => setIsLocationOpen(!isLocationOpen)}
                 className={`inline-flex items-center gap-1 border rounded-md px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ${
                   interaction.locationContext?.name
-                    ? 'bg-[#DCEEE3] text-[#3B7A57] border-[#BCE1CC] hover:bg-[#CFE8D7]'
-                    : 'bg-[#F9F7F2] hover:bg-stone-100 text-stone-600 border-stone-200'
+                    ? 'bg-accent-sage-tint text-accent-sage border-accent-sage/30'
+                    : 'bg-canvas hover:bg-surface text-text-muted border-border-hairline'
                 }`}
                 title={interaction.locationContext?.name ? `Location: ${interaction.locationContext.name}` : 'Attach location context'}
               >
@@ -699,14 +733,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
           {/* Inactivity Countdown Timer */}
           <div
             id="workspace-countdown-badge"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border font-medium transition-colors ${
-              interaction.status === 'concluded'
-                ? 'bg-stone-100 text-stone-600 border-stone-200'
-                : 'bg-emerald-50 text-emerald-900 border-emerald-200'
-            }`}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border border-border-hairline bg-canvas text-text-muted font-medium transition-colors"
             title={interaction.status === 'concluded' ? 'Entry is concluded' : 'Auto-concludes after 2 hours of inactivity'}
           >
-            <Clock className="w-3.5 h-3.5 text-emerald-800" />
+            <Clock className="w-3.5 h-3.5 text-accent-sage" />
             <span>{remainingTimeText || 'Active'}</span>
           </div>
 
@@ -724,7 +754,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                 }
               }}
               disabled={isConcluding}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-accent-sage hover:opacity-90 rounded-lg shadow-2xs transition-all cursor-pointer disabled:opacity-50"
               title="Conclude and seal this reflection. Once sealed, you can write in the margins."
             >
               {isConcluding ? (
@@ -744,7 +774,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               <button
                 id="workspace-new-entry-btn"
                 onClick={onNewSession}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-accent-sage hover:opacity-90 rounded-lg shadow-2xs transition-all cursor-pointer"
                 title="Start a new reflection entry"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -756,18 +786,18 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
           <button
             id="workspace-summary-drawer-btn"
             onClick={onOpenSummary}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200/80 rounded-lg transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-primary bg-canvas hover:bg-surface border border-border-hairline rounded-lg transition-colors cursor-pointer"
             title="Generate structured session takeaways and summary"
           >
-            <FileText className="w-3.5 h-3.5 text-stone-500" />
+            <FileText className="w-3.5 h-3.5 text-text-muted" />
             <span>Summary &amp; Insights</span>
           </button>
         </div>
       </div>
 
       {/* Stance Selector Banner */}
-      <div className="px-6 py-2 bg-[#F9F7F2] border-b border-stone-200 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
-        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider shrink-0">
+      <div className="px-6 py-2 bg-canvas border-b border-border-hairline flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
+        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider shrink-0">
           Mode:
         </span>
         {STANCES.map((st) => {
@@ -779,8 +809,8 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               onClick={() => handleModeChange(st.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? 'bg-emerald-900 text-white shadow-2xs font-semibold'
-                  : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
+                  ? 'bg-accent-sage text-white shadow-2xs font-semibold'
+                  : 'bg-surface text-text-muted border border-border-hairline hover:text-text-primary hover:bg-canvas'
               }`}
               title={st.desc}
             >
@@ -852,7 +882,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                     <button
                       key={idx}
                       onClick={() => setInputText(prompt)}
-                      className="p-3 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-snug transition-all text-left shadow-2xs cursor-pointer"
+                      className="p-3 bg-surface hover:bg-canvas border border-border-hairline rounded-xl text-xs text-text-primary leading-snug transition-all text-left shadow-2xs cursor-pointer"
                     >
                       "{prompt}"
                     </button>
@@ -879,15 +909,15 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                         compact ? 'max-w-full' : isSidebarOpen ? 'max-w-2xl' : 'max-w-3xl'
                       } ${
                         isUser
-                          ? 'bg-[#F2EFEB] border border-[#E6E3DC] text-[#232323] rounded-br-xs'
-                          : 'bg-white border border-[#E6E3DC] text-[#232323] rounded-bl-xs'
+                          ? 'bg-paper-deep border border-border-hairline text-text-primary rounded-br-xs'
+                          : 'bg-surface border border-border-hairline text-text-primary rounded-bl-xs'
                       }`}
                     >
                       {/* Role Header */}
                       <div className="flex items-center justify-between gap-4 mb-2">
                         <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase font-sans">
                           {isUser ? (
-                            <span className="text-[#3B7A57]">You &bull; Reflection</span>
+                            <span className="text-accent-sage">You &bull; Reflection</span>
                           ) : (
                             <div className="flex items-center gap-1.5 text-accent-sage">
                               <LocusMark className="w-3.5 h-3.5" />
@@ -895,7 +925,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                             </div>
                           )}
                           {(turn.isBookmarked || turn.isPinned) && (
-                            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-xs font-medium bg-[#DCEEE3] text-[#3B7A57]">
+                            <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-xs font-medium bg-accent-sage-tint text-accent-sage">
                               <Bookmark className="w-2.5 h-2.5 fill-current" />
                               <span>Bookmarked</span>
                             </span>
@@ -1085,15 +1115,15 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
         if (interaction.status === 'concluded') {
           return (
-            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row bg-[#FAF9F6]">
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row bg-canvas">
               {/* Left Column (60% on desktop): Chronological Conversation Transcript */}
-              <div className="flex-1 lg:w-3/5 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 border-b lg:border-b-0 lg:border-r border-[#E6E3DC]">
-                <div className="flex items-center justify-between pb-3 border-b border-[#E6E3DC]/60 max-w-2xl mx-auto">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-[#6B6B6B] font-sans flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#3B7A57]" />
+              <div className="flex-1 lg:w-3/5 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 border-b lg:border-b-0 lg:border-r border-border-hairline">
+                <div className="flex items-center justify-between pb-3 border-b border-border-hairline/60 max-w-2xl mx-auto">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-text-muted font-sans flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-accent-sage" />
                     Chronological Transcript ({turns.length} {turns.length === 1 ? 'turn' : 'turns'})
                   </span>
-                  <span className="text-xs text-[#6B6B6B] font-sans">
+                  <span className="text-xs text-text-muted font-sans">
                     Preserved Historical Record
                   </span>
                 </div>
@@ -1101,17 +1131,17 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
               </div>
 
               {/* Right Column (40% on desktop): Executive Synthesis Dossier */}
-              <div id="concluded-synthesis-dossier" className="lg:w-2/5 overflow-y-auto p-5 sm:p-7 bg-white space-y-6 shrink-0 shadow-xs">
+              <div id="concluded-synthesis-dossier" className="lg:w-2/5 overflow-y-auto p-5 sm:p-7 bg-surface space-y-6 shrink-0 shadow-xs border-l border-border-hairline text-text-primary">
                 {/* Header & Status */}
                 <div className="space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#DCEEE3] text-[#3B7A57]">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent-sage-tint text-accent-sage">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Concluded &amp; Synthesized</span>
                   </div>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#232323] leading-snug">
+                  <h2 className="font-serif text-xl sm:text-2xl font-bold text-text-primary leading-snug">
                     {interaction.title || 'Executive Reflection Synthesis'}
                   </h2>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B6B6B] font-sans">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted font-sans">
                     <span>
                       {interaction.concludedAt 
                         ? new Date(interaction.concludedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
@@ -1120,7 +1150,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                     {interaction.locationContext?.name && (
                       <>
                         <span>&middot;</span>
-                        <span className="inline-flex items-center gap-1 text-[#3B7A57]">
+                        <span className="inline-flex items-center gap-1 text-accent-sage">
                           <MapPin className="w-3 h-3" />
                           {interaction.locationContext.name}
                         </span>
@@ -1222,9 +1252,9 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
             </div>
 
             {/* Bottom Composer Bar */}
-            <div className="p-4 sm:p-6 bg-white border-t border-stone-200 shrink-0">
+            <div className="p-4 sm:p-6 bg-surface border-t border-border-hairline shrink-0">
               <div className={`mx-auto space-y-2 transition-all duration-300 ${isSidebarOpen ? 'max-w-3xl' : 'max-w-4xl'}`}>
-                <div className="relative bg-[#FDFBF7] rounded-2xl border border-stone-200 focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/20 transition-all p-3 shadow-2xs">
+                <div className="relative bg-canvas rounded-2xl border border-border-hairline focus-within:border-accent-sage focus-within:ring-2 focus-within:ring-accent-sage/20 transition-all p-3 shadow-2xs">
                   <textarea
                     ref={textareaRef}
                     id="workspace-prompt-textarea"
@@ -1233,21 +1263,54 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Reflect on your thoughts, ask for clarity, or brainstorm next steps..."
-                    className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none resize-none font-sans leading-relaxed"
+                    className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none resize-none font-sans leading-relaxed"
                     disabled={isGenerating}
                   />
 
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                    <span className="text-xs text-stone-400 hidden sm:inline">
+                  <div className="flex items-center justify-between pt-2 border-t border-border-hairline/60">
+                    <span className="text-xs text-text-muted hidden sm:inline">
                       Shift + Enter for new line
                     </span>
 
                     <div className="flex items-center gap-2 ml-auto">
+                      {/* Voice-to-Text Microphone Button */}
+                      <button
+                        id="workspace-mic-button"
+                        type="button"
+                        onClick={toggleListening}
+                        disabled={!isSpeechSupported || isGenerating}
+                        title={
+                          !isSpeechSupported
+                            ? 'Speech recognition is not supported in this browser'
+                            : isListening
+                            ? 'Stop voice recording'
+                            : 'Start voice dictation'
+                        }
+                        aria-label={isListening ? 'Stop voice recording' : 'Start voice dictation'}
+                        className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer shadow-2xs ${
+                          isListening
+                            ? 'bg-rose-50 border-rose-300 text-rose-600 ring-2 ring-rose-400/40 animate-pulse dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-400'
+                            : 'bg-surface border-border-hairline text-text-muted hover:text-text-primary hover:border-accent-sage'
+                        } disabled:opacity-30 disabled:cursor-not-allowed`}
+                      >
+                        {isListening ? (
+                          <>
+                            <MicOff className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            <span className="text-rose-600 dark:text-rose-400">Listening...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-3.5 h-3.5" />
+                            <span className="hidden xs:inline">Dictate</span>
+                          </>
+                        )}
+                      </button>
+
                       <button
                         id="workspace-send-button"
                         onClick={handleSendMessage}
                         disabled={!inputText.trim() || isGenerating}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-accent-sage hover:opacity-95 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
                       >
                         {isGenerating ? (
                           <>

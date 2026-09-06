@@ -119,6 +119,15 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
     if (accents[settings.accentColor || 'sage']) {
       document.documentElement.style.setProperty('--accent-sage', accents[settings.accentColor || 'sage']);
     }
+
+    const initialThemeMode = settings.themeMode || 'system';
+    const isDark = initialThemeMode === 'dark' || (initialThemeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     onClose();
   };
 
@@ -177,25 +186,27 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-stone-900/30 backdrop-blur-xs animate-fade-in">
       <div 
         id="settings-drawer-panel"
-        className="w-full max-w-2xl bg-[#FDFBF7] h-full shadow-2xl border-l border-stone-200 flex flex-col justify-between"
+        className="w-full max-w-2xl bg-canvas h-full shadow-2xl border-l border-border-hairline flex flex-col justify-between"
       >
         {/* Header */}
-        <div className="p-5 border-b border-stone-200 bg-white flex items-center justify-between">
+        <div className="p-5 border-b border-border-hairline bg-surface flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700">
+            <div className="w-9 h-9 rounded-xl bg-canvas border border-border-hairline flex items-center justify-center text-text-primary">
               <SettingsIcon className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif-heading text-xl font-bold text-stone-900 leading-tight">
+              <h3 className="font-serif-heading text-xl font-bold text-text-primary leading-tight">
                 Settings &amp; Preferences
               </h3>
-              <p className="text-xs text-stone-500">Configure your companion tone, tags, and notebook</p>
+              <p className="text-xs text-text-muted">Configure your companion tone, appearance, tags, and notebook</p>
             </div>
           </div>
 
           <button
+            id="settings-close-drawer-btn"
             onClick={onClose}
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+            aria-label="Close Settings"
+            className="p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -348,10 +359,58 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'appearance' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
+                    Interface Theme
+                  </label>
+                  <p className="text-xs text-text-muted mb-3">
+                    Choose between daylight archival ivory or obsidian night contemplation.
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'system', label: 'System', desc: 'Sync with device' },
+                      { id: 'light', label: 'Daylight', desc: 'Warm ivory canvas' },
+                      { id: 'dark', label: 'Obsidian', desc: 'Archival charcoal' },
+                    ].map((mode) => {
+                      const isSelected = (formState.themeMode || 'system') === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          id={`settings-theme-${mode.id}-btn`}
+                          onClick={() => {
+                            const nextMode = mode.id as 'system' | 'light' | 'dark';
+                            setFormState({ ...formState, themeMode: nextMode });
+                            const isDark = nextMode === 'dark' || (nextMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                            if (isDark) {
+                              document.documentElement.classList.add('dark');
+                            } else {
+                              document.documentElement.classList.remove('dark');
+                            }
+                          }}
+                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-surface border-accent-sage ring-1 ring-accent-sage/20 shadow-2xs'
+                              : 'bg-surface/60 border-border-hairline hover:bg-surface'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-text-primary">{mode.label}</span>
+                            {isSelected && (
+                              <Check className="w-3.5 h-3.5 text-accent-sage" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-text-muted mt-0.5">{mode.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
                     Reading Typeface
                   </label>
-                  <p className="text-xs text-stone-500 mb-3">
+                  <p className="text-xs text-text-muted mb-3">
                     Select the typographic substrate for your personal reflections and archival marginalia.
                   </p>
                   <div className="space-y-2">
@@ -380,27 +439,27 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         }}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                           (formState.fontFamily || 'Literata') === f.id
-                            ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
-                            : 'bg-white/60 border-stone-200 hover:bg-white'
+                            ? 'bg-surface border-accent-sage ring-1 ring-accent-sage/20 shadow-2xs'
+                            : 'bg-surface/60 border-border-hairline hover:bg-surface'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-stone-900">{f.label}</span>
+                          <span className="text-xs font-semibold text-text-primary">{f.label}</span>
                           {(formState.fontFamily || 'Literata') === f.id && (
-                            <Check className="w-3.5 h-3.5 text-emerald-700" />
+                            <Check className="w-3.5 h-3.5 text-accent-sage" />
                           )}
                         </div>
-                        <p className="text-xs text-stone-500 mt-0.5">{f.desc}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{f.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
                     Substrate Accent Ink
                   </label>
-                  <p className="text-xs text-stone-500 mb-3">
+                  <p className="text-xs text-text-muted mb-3">
                     Governs the single action accent color for primary buttons, active chips, and seals.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -429,19 +488,19 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         }}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center gap-3 ${
                           (formState.accentColor || 'sage') === c.id
-                            ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
-                            : 'bg-white/60 border-stone-200 hover:bg-white'
+                            ? 'bg-surface border-accent-sage ring-1 ring-accent-sage/20 shadow-2xs'
+                            : 'bg-surface/60 border-border-hairline hover:bg-surface'
                         }`}
                       >
                         <span className="w-4 h-4 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: c.color }} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-stone-900">{c.label}</span>
+                            <span className="text-xs font-semibold text-text-primary">{c.label}</span>
                             {(formState.accentColor || 'sage') === c.id && (
-                              <Check className="w-3.5 h-3.5 text-emerald-700" />
+                              <Check className="w-3.5 h-3.5 text-accent-sage" />
                             )}
                           </div>
-                          <p className="text-[11px] text-stone-500 truncate">{c.desc}</p>
+                          <p className="text-[11px] text-text-muted truncate">{c.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -449,21 +508,21 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
                     Sensory &amp; Motion Accessibility
                   </label>
-                  <label className="flex items-start gap-3 p-3 bg-white border border-stone-200 rounded-xl cursor-pointer hover:bg-stone-50 transition-colors">
+                  <label className="flex items-start gap-3 p-3 bg-surface border border-border-hairline rounded-xl cursor-pointer hover:bg-canvas transition-colors">
                     <input
                       type="checkbox"
                       checked={Boolean(formState.reducedMotion)}
                       onChange={(e) => setFormState({ ...formState, reducedMotion: e.target.checked })}
-                      className="mt-0.5 rounded text-emerald-700 focus:ring-emerald-700"
+                      className="mt-0.5 rounded text-accent-sage focus:ring-accent-sage"
                     />
                     <div>
-                      <span className="text-xs font-semibold text-stone-900 block">
+                      <span className="text-xs font-semibold text-text-primary block">
                         Reduce Motion &amp; Micro-animations
                       </span>
-                      <span className="text-xs text-stone-500 block mt-0.5 leading-relaxed">
+                      <span className="text-xs text-text-muted block mt-0.5 leading-relaxed">
                         Halts sliding page transitions and pulse keyframes across all views, adhering to WCAG 2.1 AA vestibular standards.
                       </span>
                     </div>
@@ -471,12 +530,12 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 </div>
 
                 {/* Guided Tour Launcher */}
-                <div className="p-4 bg-[#FAF9F6] border border-border-hairline rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+                <div className="p-4 bg-canvas border border-border-hairline rounded-xl flex items-center justify-between gap-3 shadow-2xs">
                   <div>
-                    <span className="text-xs font-semibold text-stone-900 block">
+                    <span className="text-xs font-semibold text-text-primary block">
                       Guided Walkthrough Tour
                     </span>
-                    <span className="text-xs text-stone-500 block mt-0.5 leading-relaxed">
+                    <span className="text-xs text-text-muted block mt-0.5 leading-relaxed">
                       Re-open the 7-stage interactive tour through Locus's reflective philosophy and core features.
                     </span>
                   </div>
@@ -838,16 +897,16 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-stone-200 bg-white flex items-center justify-end gap-2">
+        <div className="p-4 border-t border-border-hairline bg-surface flex items-center justify-end gap-2">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-xs font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-medium text-text-muted hover:text-text-primary transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg transition-colors shadow-2xs cursor-pointer"
+            className="px-5 py-2 text-xs font-semibold text-white bg-accent-sage hover:opacity-95 rounded-lg transition-colors shadow-2xs cursor-pointer"
           >
             Save Changes
           </button>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-serif: 'Literata', 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,6 +33,24 @@
 
 @layer base {
   :root {
+    --color-canvas: #FAF9F6;
+    --color-surface: #FFFFFF;
+    --color-accent-sage: #3B7A57;
+    --color-accent-sage-tint: #DCEEE3;
+    --color-border-hairline: #E6E3DC;
+    --color-text-primary: #191813;
+    --color-text-muted: #5A5648;
+
+    --color-paper: #FAF9F6;
+    --color-paper-deep: #EAE6DC;
+    --color-leaf: #FFFFFF;
+    --color-ink: #191813;
+    --color-ink-muted: #5A5648;
+    --color-irongall: #2C3A4F;
+    --color-vermilion: #8A3A22;
+    --color-moss: #3B5540;
+    --color-rule: #DCD7CD;
+
     --paper: #FAF9F6;
     --paper-deep: #EAE6DC;
     --leaf: #FFFFFF;
@@ -46,6 +66,37 @@
     --font-quote: 'Newsreader', 'Literata', Georgia, serif;
     --font-ui: 'Archivo', 'Inter', sans-serif;
     --font-stamp: 'Courier Prime', 'Overpass Mono', monospace;
+  }
+
+  :root.dark,
+  .dark {
+    --color-canvas: #141412;
+    --color-surface: #1E1D19;
+    --color-accent-sage: #4E9B71;
+    --color-accent-sage-tint: #1B3324;
+    --color-border-hairline: #2D2B24;
+    --color-text-primary: #ECE7DE;
+    --color-text-muted: #9B9588;
+
+    --color-paper: #141412;
+    --color-paper-deep: #26241F;
+    --color-leaf: #1E1D19;
+    --color-ink: #ECE7DE;
+    --color-ink-muted: #9B9588;
+    --color-irongall: #7496C4;
+    --color-vermilion: #D97E6A;
+    --color-moss: #6BA876;
+    --color-rule: #2D2B24;
+
+    --paper: #141412;
+    --paper-deep: #26241F;
+    --leaf: #1E1D19;
+    --ink: #ECE7DE;
+    --ink-muted: #9B9588;
+    --irongall: #7496C4;
+    --vermilion: #D97E6A;
+    --moss: #6BA876;
+    --rule: #2D2B24;
   }
 
   body {
@@ -108,6 +159,19 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #6B6B6B;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2D2B24;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4E9B71;
+}
+
+.dark ::selection {
+  background: #1B3324;
+  color: #ECE7DE;
 }
 
 /* Calm continuous water droplet expanding ripple waves */

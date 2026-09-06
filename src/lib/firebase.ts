@@ -26,11 +26,35 @@ import {
 import firebaseConfig from '../../firebase-applet-config.json';
 import { Entry, Message, Theme, ThemeObservation, UserSettings, NotebookItem } from '../types';
 
+const getEnv = (viteKey: string, nodeKey: string): string | undefined => {
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env[viteKey]) {
+      return (import.meta as any).env[viteKey];
+    }
+  } catch {}
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[nodeKey]) {
+      return process.env[nodeKey];
+    }
+  } catch {}
+  return undefined;
+};
+
+const resolvedConfig = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY', 'FIREBASE_API_KEY') || firebaseConfig.apiKey,
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', 'FIREBASE_AUTH_DOMAIN') || firebaseConfig.authDomain,
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', 'FIREBASE_PROJECT_ID') || firebaseConfig.projectId,
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', 'FIREBASE_STORAGE_BUCKET') || firebaseConfig.storageBucket,
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', 'FIREBASE_MESSAGING_SENDER_ID') || firebaseConfig.messagingSenderId,
+  appId: getEnv('VITE_FIREBASE_APP_ID', 'FIREBASE_APP_ID') || firebaseConfig.appId,
+  firestoreDatabaseId: getEnv('VITE_FIREBASE_DATABASE_ID', 'FIREBASE_DATABASE_ID') || (firebaseConfig as any).firestoreDatabaseId || undefined
+};
+
 // Initialize Firebase App
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(resolvedConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+export const db = getFirestore(app, resolvedConfig.firestoreDatabaseId || undefined);
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
@@ -274,6 +298,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   fontFamily: 'Literata',
   accentColor: 'sage',
   reducedMotion: false,
+  themeMode: 'system',
 };
 
 export const saveUserSettingsToFirestore = async (userId: string, settings: UserSettings): Promise<void> => {

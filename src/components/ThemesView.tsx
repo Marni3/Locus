@@ -183,7 +183,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
       g.setAttribute('transform', `translate(${node.x.toFixed(1)}, ${node.y.toFixed(1)}) scale(${node.scale ?? 1})`);
       g.setAttribute('opacity', String(node.opacity !== undefined ? node.opacity : 1));
     }
-    const line = svgRef.current.querySelector(`#link-${node.id}`) as SVGLineElement | null;
+    const line = (svgRef.current.querySelector(`#link-${node.id}`) || svgRef.current.querySelector(`#sun-link-${node.id}`)) as SVGLineElement | null;
     if (line) {
       line.setAttribute('x2', node.x.toFixed(1));
       line.setAttribute('y2', node.y.toFixed(1));
@@ -355,20 +355,21 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
           orderIndex: i + 1,
           label: `Obs #${i + 1}`,
           subLabel: new Date(obs.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-          x: homeX,
-          y: homeY,
+          x: center.x,
+          y: center.y,
           homeX,
           homeY,
           vx: 0,
           vy: 0,
-          scale: 1,
-          opacity: 1,
+          scale: 0.35,
+          opacity: 0,
           radius: 18
         });
       });
 
       nodesRef.current = newNodes;
       setNodes([...newNodes]);
+      triggerSpiralBloom(newNodes);
     }
 
     return () => {
@@ -595,6 +596,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
         {/* Segmented View Toggle */}
         <div className="inline-flex p-1 rounded-xl bg-surface border border-border-hairline shadow-2xs">
           <button
+            id="themes-tab-timeline"
             onClick={() => setActiveTab('timeline')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'timeline'
@@ -606,6 +608,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
             <span>Timeline</span>
           </button>
           <button
+            id="themes-tab-graph"
             onClick={() => setActiveTab('graph')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === 'graph'
@@ -666,7 +669,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between text-left group ${
                       isSelected
                         ? 'bg-surface border-accent-sage shadow-xs ring-1 ring-accent-sage/20'
-                        : 'bg-surface border-border-hairline hover:border-[#D5D0C7]'
+                        : 'bg-surface border-border-hairline hover:border-accent-sage/40'
                     }`}
                   >
                     <div>
@@ -726,7 +729,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                     className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${
                       selectedObservations.length >= 2
                         ? 'bg-accent-sage text-white hover:opacity-95 shadow-xs cursor-pointer'
-                        : 'bg-[#F2EFEB] text-text-muted cursor-not-allowed'
+                        : 'bg-canvas border border-border-hairline text-text-muted cursor-not-allowed'
                     }`}
                     title={
                       selectedObservations.length < 2
@@ -740,7 +743,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                 </div>
 
                 {/* Rolling Synthesis */}
-                <div className="bg-[#FAF9F6] border border-border-hairline/80 rounded-xl p-4 space-y-1.5">
+                <div className="bg-canvas border border-border-hairline rounded-xl p-4 space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider font-semibold text-text-muted font-sans">
                     <TrendingUp className="w-3.5 h-3.5 text-accent-sage" />
                     <span>Current Rolling Synthesis</span>
@@ -816,7 +819,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
         /* ================= MODE B: HYBRID CONCEPT GRAPH ================= */
         <div className="bg-surface border border-border-hairline rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
           {/* Header & Zoom Breadcrumbs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+          <div className="flex items-center justify-between gap-2.5 pb-1">
             {zoomedThemeId ? (
               <div className="flex items-center gap-3">
                 <button
@@ -829,29 +832,50 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                   title="Return to Themes Constellation"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Return to Themes Constellation</span>
+                  <span>Constellation</span>
                 </button>
-                <span className="text-xs font-medium text-text-muted font-sans">
-                  Trajectory: <strong className="text-text-primary font-serif">{graphZoomedTheme?.title}</strong> ({graphZoomedObservations.length} observations)
+                <span className="text-xs font-medium text-text-muted font-sans truncate">
+                  Trajectory: <strong className="text-text-primary font-serif">{graphZoomedTheme?.title}</strong>
                 </span>
               </div>
             ) : (
-              <div className="text-xs text-text-muted font-sans flex items-center gap-2">
-                <Compass className="w-3.5 h-3.5 text-accent-sage shrink-0" />
-                <span>
-                  <strong>Hybrid Concept Graph:</strong> Drag nodes to explore spring equilibrium. Double-click any theme node (or click Focus) to zoom into its observation trajectory.
-                </span>
+              <div className="text-xs font-medium text-text-muted font-sans">
+                <span>Constellation View</span>
               </div>
             )}
 
-            <div className="text-xs text-text-muted font-sans text-right">
+            <div className="flex items-center gap-2.5 text-xs text-text-muted font-sans">
               {zoomedThemeId ? (
-                <span className="inline-flex items-center gap-1 text-accent-sage font-medium">
-                  <TrendingUp className="w-3 h-3" />
-                  Chronological Trajectory ($Obs_1 \rightarrow Obs_n$)
-                </span>
+                <>
+                  <span className="hidden sm:inline text-accent-sage font-medium">
+                    {graphZoomedObservations.length} observations
+                  </span>
+                  <button
+                    id="graph-rebloom-btn"
+                    onClick={() => {
+                      if (!isBlooming && nodesRef.current.length > 0) {
+                        const center = { x: 380, y: 260 };
+                        nodesRef.current.forEach((n, idx) => {
+                          if (idx > 0) {
+                            n.x = center.x;
+                            n.y = center.y;
+                            n.scale = 0.35;
+                            n.opacity = 0;
+                            updateSVGElement(n);
+                          }
+                        });
+                        triggerSpiralBloom(nodesRef.current);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border-hairline hover:border-accent-sage text-xs font-medium text-accent-sage transition-colors cursor-pointer"
+                    title="Replay Observation Bloom"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Re-bloom</span>
+                  </button>
+                </>
               ) : (
-                <div className="flex items-center gap-2">
+                <>
                   <span>{themes.length} {themes.length === 1 ? 'theme' : 'themes'} constellation</span>
                   <button
                     id="graph-rebloom-btn"
@@ -870,19 +894,19 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                         triggerSpiralBloom(nodesRef.current);
                       }
                     }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-surface border border-border-hairline hover:border-accent-sage text-xs font-medium text-accent-sage transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border-hairline hover:border-accent-sage text-xs font-medium text-accent-sage transition-colors cursor-pointer"
                     title="Replay Spiral Petal Bloom"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Re-bloom</span>
                   </button>
-                </div>
+                </>
               )}
             </div>
           </div>
 
           {/* Canvas Viewport */}
-          <div className="relative w-full h-[540px] bg-[#FAF9F6] border border-border-hairline rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+          <div className="relative w-full h-[540px] bg-canvas border border-border-hairline rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
             {/* SVG Visual Graph */}
             <svg
               id="concept-graph-svg"
@@ -929,7 +953,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                               y1={hubNode.y}
                               x2={themeNode.x}
                               y2={themeNode.y}
-                              stroke={isSelected ? '#3B7A57' : '#E6E3DC'}
+                              stroke={isSelected ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-border-hairline, #E6E3DC)'}
                               strokeWidth={isSelected ? 2 : 1.2}
                               strokeDasharray={isSelected ? 'none' : '4 4'}
                               opacity={themeNode.opacity !== undefined ? themeNode.opacity * 0.85 : 0.85}
@@ -951,11 +975,12 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                     {obsNodes.map(obsNode => (
                       <line
                         key={`sun-link-${obsNode.id}`}
+                        id={`sun-link-${obsNode.id}`}
                         x1={hubNode.x}
                         y1={hubNode.y}
                         x2={obsNode.x}
                         y2={obsNode.y}
-                        stroke="#E6E3DC"
+                        stroke="var(--color-border-hairline, #E6E3DC)"
                         strokeWidth={1}
                         strokeDasharray="3 3"
                         opacity={0.6}
@@ -1036,15 +1061,15 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                             width={160}
                             height={22}
                             rx={11}
-                            fill="#FFFFFF"
-                            stroke="#3B7A57"
+                            fill="var(--color-surface, #FFFFFF)"
+                            stroke="var(--color-accent-sage, #3B7A57)"
                             strokeWidth={1.5}
                           />
                           <text
                             x={0}
                             y={15}
                             textAnchor="middle"
-                            fill="#232323"
+                            fill="var(--color-text-primary, #232323)"
                             fontSize={11}
                             fontWeight="600"
                             fontFamily="Source Serif 4, Georgia, serif"
@@ -1083,7 +1108,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                           cy={0}
                           r={node.radius + 6}
                           fill="none"
-                          stroke="#3B7A57"
+                          stroke="var(--color-accent-sage, #3B7A57)"
                           strokeWidth={2}
                           strokeDasharray="4 3"
                         />
@@ -1094,8 +1119,8 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                         cx={0}
                         cy={0}
                         r={node.radius}
-                        fill={isDragged ? '#DCEEE3' : '#FFFFFF'}
-                        stroke={isSelected || isDragged ? '#3B7A57' : '#D5D0C7'}
+                        fill={isDragged ? 'var(--color-accent-sage-tint, #DCEEE3)' : 'var(--color-surface, #FFFFFF)'}
+                        stroke={isSelected || isDragged ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-border-hairline, #D5D0C7)'}
                         strokeWidth={isSelected || isDragged ? 2.5 : 1.5}
                       />
 
@@ -1104,7 +1129,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                         x={0}
                         y={3}
                         textAnchor="middle"
-                        fill={isSelected || isDragged ? '#3B7A57' : '#6B6B6B'}
+                        fill={isSelected || isDragged ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-text-muted, #6B6B6B)'}
                         fontSize={10}
                         fontWeight="600"
                         fontFamily="Inter, sans-serif"
@@ -1120,8 +1145,8 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                       >
                         <text
                           textAnchor="middle"
-                          fill={isSelected || isDragged ? '#3B7A57' : '#232323'}
-                          stroke="#FAF9F6"
+                          fill={isSelected || isDragged ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-text-primary, #232323)'}
+                          stroke="var(--color-canvas, #FAF9F6)"
                           strokeWidth={3.5}
                           paintOrder="stroke fill"
                           strokeLinejoin="round"
@@ -1158,7 +1183,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                         cy={0}
                         r={node.radius + 6}
                         fill="none"
-                        stroke="#3B7A57"
+                        stroke="var(--color-accent-sage, #3B7A57)"
                         strokeWidth={2}
                         strokeDasharray="3 3"
                       />
@@ -1169,8 +1194,8 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                       cx={0}
                       cy={0}
                       r={node.radius}
-                      fill={isSelected ? '#DCEEE3' : '#FFFFFF'}
-                      stroke={isSelected ? '#3B7A57' : '#D5D0C7'}
+                      fill={isSelected ? 'var(--color-accent-sage-tint, #DCEEE3)' : 'var(--color-surface, #FFFFFF)'}
+                      stroke={isSelected ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-border-hairline, #D5D0C7)'}
                       strokeWidth={isSelected ? 2.5 : 1.5}
                     />
 
@@ -1179,7 +1204,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                       x={0}
                       y={4}
                       textAnchor="middle"
-                      fill="#3B7A57"
+                      fill="var(--color-accent-sage, #3B7A57)"
                       fontSize={11}
                       fontWeight="bold"
                       fontFamily="Inter, sans-serif"
@@ -1195,15 +1220,15 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                         width={72}
                         height={18}
                         rx={9}
-                        fill="#FFFFFF"
-                        stroke={isSelected ? '#3B7A57' : '#E6E3DC'}
+                        fill="var(--color-surface, #FFFFFF)"
+                        stroke={isSelected ? 'var(--color-accent-sage, #3B7A57)' : 'var(--color-border-hairline, #E6E3DC)'}
                         strokeWidth={1}
                       />
                       <text
                         x={0}
                         y={13}
                         textAnchor="middle"
-                        fill="#6B6B6B"
+                        fill="var(--color-text-muted, #6B6B6B)"
                         fontSize={10}
                         fontFamily="Inter, sans-serif"
                       >
@@ -1245,7 +1270,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                   )}
                 </div>
 
-                <p className="font-serif text-sm text-text-primary italic leading-relaxed bg-[#FAF9F6] p-3 rounded-xl border border-border-hairline/60">
+                <p className="font-serif text-sm text-text-primary italic leading-relaxed bg-canvas p-3 rounded-xl border border-border-hairline/60">
                   "{selectedObs.observationText}"
                 </p>
 
@@ -1255,7 +1280,7 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                   return (
                     <button
                       onClick={() => onSelectEntry(parentEntry)}
-                      className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-accent-sage text-white text-xs font-semibold hover:bg-[#2E6145] transition-all cursor-pointer"
+                      className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-accent-sage text-white text-xs font-semibold hover:opacity-90 transition-all cursor-pointer"
                     >
                       <span>Jump to Reflection Session</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1264,46 +1289,64 @@ export const ThemesView: React.FC<ThemesViewProps> = ({
                 })()}
               </div>
             ) : selectedTheme ? (
-              /* Theme Dossier Card (Macro View) */
-              <div className="absolute bottom-4 right-4 max-w-sm w-[calc(100%-2rem)] sm:w-80 bg-surface/95 backdrop-blur-md border border-border-hairline rounded-2xl p-4 shadow-lg space-y-2.5 animate-slide-up">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-accent-sage bg-accent-sage-tint px-2.5 py-0.5 rounded-full font-sans">
-                    {selectedTheme.observationCount} observations
+              /* Theme Inspector Card (Streamlined) */
+              <div className="absolute bottom-3 right-3 max-w-xs w-[calc(100%-1.5rem)] sm:w-72 bg-surface/90 backdrop-blur-md border border-border-hairline rounded-2xl p-3.5 shadow-md space-y-2 animate-slide-up">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="text-[11px] font-medium text-accent-sage bg-accent-sage-tint px-2 py-0.5 rounded-full font-sans">
+                    {selectedTheme.observationCount} {selectedTheme.observationCount === 1 ? 'observation' : 'observations'}
                   </span>
-                  <button
-                    onClick={() => setActiveTab('timeline')}
-                    className="text-xs text-accent-sage font-medium hover:underline font-sans inline-flex items-center gap-0.5"
-                  >
-                    <span>View Timeline</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveTab('timeline')}
+                      className="text-[11px] text-accent-sage hover:underline font-sans inline-flex items-center gap-0.5 cursor-pointer"
+                      title="Open in Timeline View"
+                    >
+                      <span>Timeline</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => setSelectedThemeId(null)}
+                      className="p-1 text-text-muted hover:text-text-primary rounded-md transition-colors cursor-pointer"
+                      title="Dismiss inspector"
+                      aria-label="Close inspector"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <h4 className="font-serif text-base font-semibold text-text-primary leading-snug">
-                  {selectedTheme.title}
-                </h4>
-                <p className="text-xs text-text-muted line-clamp-3 leading-relaxed font-sans">
-                  {selectedTheme.currentSynthesis}
-                </p>
-                <div className="pt-2 space-y-2">
+
+                <div>
+                  <h4 className="font-serif text-sm font-semibold text-text-primary leading-snug line-clamp-1">
+                    {selectedTheme.title}
+                  </h4>
+                  <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed font-sans mt-0.5">
+                    {selectedTheme.currentSynthesis || 'Evolving reflection theme.'}
+                  </p>
+                </div>
+
+                <div className="pt-1 flex items-center gap-2">
                   <button
                     id="graph-focus-trajectory-btn"
                     onClick={() => {
                       setZoomedThemeId(selectedTheme.id);
                       setSelectedObsId(null);
                     }}
-                    className="w-full py-2 px-3 rounded-xl bg-surface border border-border-hairline hover:border-accent-sage text-accent-sage text-xs font-semibold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-accent-sage text-white text-xs font-semibold hover:opacity-90 transition-all cursor-pointer inline-flex items-center justify-center gap-1 shadow-2xs"
                   >
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>Focus Trajectory &amp; Observations</span>
+                    <span>Focus Trajectory</span>
                   </button>
 
-                  <button
-                    onClick={() => handleUnpackTheme(selectedTheme)}
-                    disabled={(selectedTheme.observationCount || 0) < 2}
-                    className="w-full py-2 px-3 rounded-xl bg-accent-sage text-white text-xs font-semibold hover:bg-[#2E6145] transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
-                  >
-                    Unpack Longitudinal Trajectory
-                  </button>
+                  {(selectedTheme.observationCount || 0) >= 2 && (
+                    <button
+                      onClick={() => handleUnpackTheme(selectedTheme)}
+                      className="py-1.5 px-2.5 rounded-xl bg-surface border border-border-hairline hover:border-accent-sage text-accent-sage text-xs font-medium transition-all cursor-pointer inline-flex items-center gap-1"
+                      title="Unpack Longitudinal Trajectory"
+                    >
+                      <Compass className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Unpack</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ) : null}

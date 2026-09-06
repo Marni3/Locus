@@ -246,7 +246,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
             {selectedTag && (
               <button
                 onClick={() => setSelectedTag(null)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#232323] text-white hover:bg-stone-800 transition-colors shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-text-primary text-surface hover:opacity-90 transition-colors shrink-0 cursor-pointer"
               >
                 <span>Clear</span>
                 <X className="w-3 h-3" />
@@ -259,7 +259,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                 className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
                   selectedTag === tag
                     ? 'bg-accent-sage text-white font-semibold'
-                    : 'bg-[#F4F3EE] text-text-muted hover:text-text-primary hover:bg-[#EAE8DF]'
+                    : 'bg-canvas border border-border-hairline text-text-muted hover:text-text-primary hover:border-accent-sage'
                 }`}
               >
                 #{tag}
@@ -417,7 +417,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                     {entry.tags && entry.tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-block text-xs font-medium px-2 py-0.5 rounded-md bg-[#F4F3EE] text-text-muted font-sans border border-border-hairline/40"
+                        className="inline-block text-xs font-medium px-2 py-0.5 rounded-md bg-canvas text-text-muted font-sans border border-border-hairline"
                       >
                         #{tag}
                       </span>
@@ -425,7 +425,7 @@ export const ReflectionsHome: React.FC<ReflectionsHomeProps> = ({
                   </div>
 
                   {(entry.stratumCount || 0) > 0 && (
-                    <span className="font-stamp text-[10px] px-1.5 py-0.5 rounded bg-[#EAE6DC] text-[#191813] font-semibold shrink-0">
+                    <span className="font-stamp text-[10px] px-1.5 py-0.5 rounded bg-canvas border border-border-hairline text-text-muted font-semibold shrink-0">
                       {entry.stratumCount} {entry.stratumCount === 1 ? 'stratum' : 'strata'}
                     </span>
                   )}

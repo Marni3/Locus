@@ -9,7 +9,9 @@ import {
   ChevronDown,
   Bookmark,
   HelpCircle,
-  Clock
+  Clock,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { LocusMark } from './LocusMark';
 import { UserProfile } from '../types';
@@ -28,6 +30,8 @@ interface NavbarProps {
   hasReturnCandidate?: boolean;
   onSignOut: () => void;
   totalSessions?: number;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -41,37 +45,39 @@ export const Navbar: React.FC<NavbarProps> = ({
   bookmarkCount,
   hasReturnCandidate,
   onSignOut,
+  isDark,
+  onToggleTheme,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-border-hairline px-4 sm:px-6 py-2.5">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <header id="app-navbar" className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-border-hairline px-2.5 sm:px-6 py-2">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left Brand & Context */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {activeView === 'session' ? (
             <button
               onClick={() => onViewChange('reflections')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-canvas hover:bg-[#F2EFEB] rounded-xl border border-border-hairline transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-text-primary bg-canvas hover:bg-[#F2EFEB] rounded-xl border border-border-hairline transition-all cursor-pointer shadow-2xs"
               title="Return to Reflections Canvas"
               aria-label="Return to Reflections Canvas"
             >
               <ArrowLeft className="w-3.5 h-3.5 text-accent-sage" />
-              <span>Reflections</span>
+              <span className="hidden sm:inline">Reflections</span>
             </button>
           ) : (
             <div 
               onClick={() => onViewChange('reflections')}
-              className="flex items-center gap-2.5 cursor-pointer group"
+              className="flex items-center gap-2 cursor-pointer group"
             >
-              <div className="w-8 h-8 rounded-xl bg-accent-sage flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-                <LocusMark className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-accent-sage flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <LocusMark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="flex items-baseline gap-2">
-                <h1 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-text-primary leading-none">
+                <h1 className="font-serif text-base sm:text-xl font-bold tracking-tight text-text-primary leading-none">
                   Locus
                 </h1>
-                <span className="text-xs font-medium text-text-muted font-sans uppercase tracking-widest hidden sm:inline-block">
+                <span className="text-xs font-medium text-text-muted font-sans uppercase tracking-widest hidden md:inline-block">
                   Sanctuary
                 </span>
               </div>
@@ -80,44 +86,50 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Center: Segmented Navigation (Reflections, Themes, Looking back) */}
-        <div className="inline-flex p-1 rounded-xl bg-canvas border border-border-hairline text-xs font-medium font-sans shadow-2xs">
+        <div className="inline-flex p-0.5 sm:p-1 rounded-xl bg-canvas border border-border-hairline text-xs font-medium font-sans shadow-2xs shrink-0">
           <button
             id="nav-tab-reflections"
             onClick={() => onViewChange('reflections')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            title="Reflections"
+            aria-label="Reflections"
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeView === 'reflections' || activeView === 'session'
                 ? 'bg-surface text-text-primary shadow-2xs font-semibold'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5 text-accent-sage" />
-            <span>Reflections</span>
+            <span className="hidden md:inline">Reflections</span>
           </button>
 
           <button
             id="nav-tab-themes"
             onClick={() => onViewChange('themes')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            title="Themes"
+            aria-label="Themes"
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeView === 'themes'
                 ? 'bg-surface text-text-primary shadow-2xs font-semibold'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
             <Layers className="w-3.5 h-3.5 text-accent-sage" />
-            <span>Themes</span>
+            <span className="hidden md:inline">Themes</span>
           </button>
 
           <button
             id="nav-tab-return"
             onClick={() => onViewChange('return')}
-            className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            title="Looking back"
+            aria-label="Looking back"
+            className={`relative inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
               activeView === 'return'
                 ? 'bg-surface text-text-primary shadow-2xs font-semibold'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
             <Clock className="w-3.5 h-3.5 text-accent-sage" />
-            <span>Looking back</span>
+            <span className="hidden md:inline">Looking back</span>
             {hasReturnCandidate && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#8A3A22] shrink-0" title="Daily reflection available" />
             )}
@@ -125,15 +137,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right Actions: New Entry, Settings, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             id="navbar-new-reflection-btn"
             onClick={onNewSession}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-accent-sage hover:opacity-95 rounded-xl shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-accent-sage hover:opacity-95 rounded-xl shadow-xs transition-all cursor-pointer"
+            title="New Reflection"
+            aria-label="New Reflection"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden xs:inline">New Reflection</span>
-            <span className="xs:hidden">New</span>
+            <span className="hidden sm:inline">New Reflection</span>
           </button>
 
           <div className="h-5 w-px bg-border-hairline mx-0.5 hidden sm:block"></div>
@@ -143,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="navbar-open-bookmarks-btn"
               onClick={onOpenBookmarks}
-              className="relative p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer hidden sm:flex"
               title="Saved Bookmarks"
               aria-label="Open Saved Bookmarks"
             >
@@ -159,12 +172,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="navbar-open-tour-btn"
               onClick={onOpenTour}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer text-xs font-medium border border-transparent hover:border-border-hairline"
+              className="items-center gap-1 px-2.5 py-1.5 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer text-xs font-medium border border-transparent hover:border-border-hairline hidden md:inline-flex"
               title="Start Guided Tour"
               aria-label="Open Guided Tour"
             >
               <HelpCircle className="w-4 h-4 text-accent-sage" />
-              <span className="hidden sm:inline">Tour</span>
+              <span>Tour</span>
+            </button>
+          )}
+
+          {/* Quick Theme Toggle (Sun/Moon) */}
+          {onToggleTheme && (
+            <button
+              id="navbar-theme-toggle-btn"
+              onClick={onToggleTheme}
+              className="p-1.5 sm:p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
+              title={isDark ? "Switch to daylight mode" : "Switch to obsidian dark mode"}
+              aria-label={isDark ? "Switch to daylight mode" : "Switch to obsidian dark mode"}
+            >
+              {isDark ? <Sun className="w-4 h-4 text-accent-sage" /> : <Moon className="w-4 h-4" />}
             </button>
           )}
 
@@ -172,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             id="navbar-open-settings-btn"
             onClick={onOpenSettings}
-            className="p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 text-text-muted hover:text-text-primary hover:bg-canvas rounded-xl transition-colors cursor-pointer"
             title="Settings & Integrations"
             aria-label="Open Settings"
           >
@@ -183,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-1.5 p-1 rounded-full hover:bg-canvas transition-colors cursor-pointer"
+              className="flex items-center gap-1 p-0.5 rounded-full hover:bg-canvas transition-colors cursor-pointer"
               title={user.email || 'User profile'}
               aria-label="User profile menu"
             >

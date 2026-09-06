@@ -64,6 +64,18 @@ export default function App() {
   // Settings Drawer State
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
+  // Dark Mode State
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('locus_theme_mode');
+      if (stored === 'dark') return true;
+      if (stored === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  });
+
   const showToast = (
     msg: string, 
     type: 'success' | 'error' | 'info' = 'info',
@@ -85,9 +97,35 @@ export default function App() {
     setToastSubText(undefined);
   };
 
-  // 0. Dynamic Archival Appearance & Accessibility Settings
+  // 0. Dynamic Archival Appearance, Theme Mode & Accessibility Settings
   useEffect(() => {
     const root = document.documentElement;
+    const mode = settings.themeMode || 'system';
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const updateTheme = () => {
+      const darkActive = mode === 'dark' || (mode === 'system' && mediaQuery.matches);
+      setIsDarkMode(darkActive);
+      if (darkActive) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      try {
+        localStorage.setItem('locus_theme_mode', mode);
+      } catch (e) {}
+    };
+
+    updateTheme();
+
+    const handleMediaChange = () => {
+      if ((settings.themeMode || 'system') === 'system') {
+        updateTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleMediaChange);
+
     if (settings.reducedMotion) {
       root.classList.add('reduce-motion');
     } else {
@@ -118,7 +156,20 @@ export default function App() {
       root.style.setProperty('--font-leaf', family);
       root.style.setProperty('--font-serif', family);
     }
-  }, [settings.reducedMotion, settings.accentColor, settings.fontFamily]);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaChange);
+    };
+  }, [settings.themeMode, settings.reducedMotion, settings.accentColor, settings.fontFamily]);
+
+  const handleToggleTheme = async () => {
+    const nextMode: 'light' | 'dark' = isDarkMode ? 'light' : 'dark';
+    const updated = { ...settings, themeMode: nextMode };
+    setSettings(updated);
+    if (currentUser?.uid) {
+      await saveUserSettingsToFirestore(currentUser.uid, updated);
+    }
+  };
 
   // 1. Auth Listener
   useEffect(() => {
@@ -536,12 +587,14 @@ export default function App() {
       <LandingPage
         onError={(msg) => showToast(msg, 'error')}
         onEnterDemoMode={handleEnterDemoMode}
+        isDark={isDarkMode}
+        onToggleTheme={handleToggleTheme}
       />
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas text-text-primary font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-canvas text-text-primary font-sans antialiased overflow-x-hidden w-full">
       {/* Universal Sticky Navbar */}
       <Navbar
         user={currentUser}
@@ -561,6 +614,8 @@ export default function App() {
         bookmarkCount={bookmarkCount}
         onSignOut={handleSignOut}
         totalSessions={entries.length}
+        isDark={isDarkMode}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Screen 1: Reflections Home (Default) */}

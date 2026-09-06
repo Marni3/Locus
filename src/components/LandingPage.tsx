@@ -12,7 +12,9 @@ import {
   KeyRound, 
   Network,
   MessageSquare,
-  Clock
+  Clock,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { LocusMark } from './LocusMark';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../lib/firebase';
@@ -21,6 +23,8 @@ interface LandingPageProps {
   onSignInSuccess?: () => void;
   onEnterDemoMode?: () => void;
   onError: (errorMsg: string) => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
 }
 
 interface ShowcaseSlide {
@@ -51,7 +55,32 @@ const SHOWCASE_SLIDES: ShowcaseSlide[] = [
   }
 ];
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMode }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ 
+  onError, 
+  onEnterDemoMode,
+  isDark,
+  onToggleTheme 
+}) => {
+  // Theme State
+  const [internalIsDark, setInternalIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const currentIsDark = isDark !== undefined ? isDark : internalIsDark;
+
+  const handleToggleThemeClick = () => {
+    if (onToggleTheme) {
+      onToggleTheme();
+    } else {
+      const willBeDark = !document.documentElement.classList.contains('dark');
+      if (willBeDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('locus_theme_mode', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('locus_theme_mode', 'light');
+      }
+      setInternalIsDark(willBeDark);
+    }
+  };
+
   // Carousel State with Cross-Fade Transition
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -158,6 +187,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
   return (
     <div className="relative min-h-screen bg-canvas text-text-primary flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-accent-sage-tint selection:text-accent-sage overflow-hidden">
       
+      {/* Quick Theme Toggle (Sun/Moon) */}
+      <button
+        id="landing-theme-toggle-btn"
+        type="button"
+        onClick={handleToggleThemeClick}
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-30 p-2.5 rounded-full bg-surface/85 backdrop-blur-md border border-border-hairline text-text-muted hover:text-text-primary hover:border-accent-sage transition-all shadow-xs cursor-pointer flex items-center justify-center"
+        title={currentIsDark ? "Switch to daylight mode" : "Switch to obsidian dark mode"}
+        aria-label={currentIsDark ? "Switch to daylight mode" : "Switch to obsidian dark mode"}
+      >
+        {currentIsDark ? (
+          <Sun className="w-4 h-4 text-accent-sage" />
+        ) : (
+          <Moon className="w-4 h-4" />
+        )}
+      </button>
+
       {/* Continuous Animated Water Droplet Ripple Waves */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Epicenter 1: Center background */}
@@ -186,7 +231,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
         
         {/* ================= LEFT COLUMN: Visual Showcase (~64%) ================= */}
         <div 
-          className="relative flex-1 md:w-[62%] lg:w-[64%] p-6 sm:p-7 sm:py-8 flex flex-col justify-between bg-gradient-to-br from-surface via-canvas to-stone-50/50 overflow-hidden"
+          className="relative flex-1 md:w-[62%] lg:w-[64%] p-6 sm:p-7 sm:py-8 flex flex-col justify-between bg-gradient-to-br from-surface via-surface to-canvas overflow-hidden"
           onMouseEnter={() => setIsCarouselHovered(true)}
           onMouseLeave={() => setIsCarouselHovered(false)}
         >
@@ -197,7 +242,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
                 <LocusMark className="w-3 h-3" />
               </div>
               <span className="font-serif text-sm font-semibold tracking-tight text-text-primary shrink-0">Locus</span>
-              <span className="hidden sm:inline-block text-2xs font-normal text-text-muted bg-stone-100/90 px-1.5 py-0.5 rounded border border-border-hairline/70 truncate">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium bg-accent-sage-tint text-accent-sage border border-accent-sage/25 tracking-wide truncate shadow-2xs">
                 {activeSlideData.badge}
               </span>
             </div>
@@ -312,26 +357,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
                   <div className="relative h-[116px] w-full rounded-xl bg-canvas/90 border border-border-hairline/70 overflow-hidden flex items-center justify-center">
                     <svg className="w-full h-full" viewBox="0 0 320 116" fill="none">
                       {/* Connecting Spring Links */}
-                      <line x1="160" y1="58" x2="68" y2="40" stroke="#E6E3DC" strokeWidth="1.5" />
-                      <line x1="160" y1="58" x2="252" y2="38" stroke="#E6E3DC" strokeWidth="1.5" />
-                      <line x1="160" y1="58" x2="160" y2="94" stroke="#E6E3DC" strokeWidth="1.5" strokeDasharray="3 3" />
+                      <line x1="160" y1="58" x2="68" y2="40" stroke="var(--color-border-hairline, #E6E3DC)" strokeWidth="1.5" />
+                      <line x1="160" y1="58" x2="252" y2="38" stroke="var(--color-border-hairline, #E6E3DC)" strokeWidth="1.5" />
+                      <line x1="160" y1="58" x2="160" y2="94" stroke="var(--color-border-hairline, #E6E3DC)" strokeWidth="1.5" strokeDasharray="3 3" />
 
                       {/* Theme Node 1: Creative Practice */}
                       <g>
-                        <circle cx="68" cy="40" r="13" fill="#FFFFFF" stroke="#3B7A57" strokeWidth="1.5" />
-                        <circle cx="68" cy="40" r="3.5" fill="#3B7A57" />
-                        <text x="68" y="66" textAnchor="middle" fill="#232323" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
+                        <circle cx="68" cy="40" r="13" fill="var(--color-surface, #FFFFFF)" stroke="var(--color-accent-sage, #3B7A57)" strokeWidth="1.5" />
+                        <circle cx="68" cy="40" r="3.5" fill="var(--color-accent-sage, #3B7A57)" />
+                        <text x="68" y="66" textAnchor="middle" fill="var(--color-text-primary, #232323)" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
                           Creative Practice
                         </text>
-                        <text x="68" y="76" textAnchor="middle" fill="#6B6B6B" fontSize="8" fontFamily="'Inter', sans-serif">
+                        <text x="68" y="76" textAnchor="middle" fill="var(--color-text-muted, #6B6B6B)" fontSize="8" fontFamily="'Inter', sans-serif">
                           5 observations
                         </text>
                       </g>
 
                       {/* Central "YOU" Anchor Hub matching ThemesView.tsx */}
                       <g>
-                        <circle cx="160" cy="58" r="16" fill="#3B7A57" />
-                        <circle cx="160" cy="58" r="21" stroke="#3B7A57" strokeWidth="1" opacity="0.25" />
+                        <circle cx="160" cy="58" r="16" fill="var(--color-accent-sage, #3B7A57)" />
+                        <circle cx="160" cy="58" r="21" stroke="var(--color-accent-sage, #3B7A57)" strokeWidth="1" opacity="0.25" />
                         <text x="160" y="62" textAnchor="middle" fill="#FFFFFF" fontSize="8.5" fontFamily="'Inter', sans-serif" fontWeight="700" letterSpacing="0.05em">
                           YOU
                         </text>
@@ -339,20 +384,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
 
                       {/* Theme Node 2: Deep Focus */}
                       <g>
-                        <circle cx="252" cy="38" r="13" fill="#FFFFFF" stroke="#3B7A57" strokeWidth="1.5" />
-                        <circle cx="252" cy="38" r="3.5" fill="#3B7A57" />
-                        <text x="252" y="64" textAnchor="middle" fill="#232323" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
+                        <circle cx="252" cy="38" r="13" fill="var(--color-surface, #FFFFFF)" stroke="var(--color-accent-sage, #3B7A57)" strokeWidth="1.5" />
+                        <circle cx="252" cy="38" r="3.5" fill="var(--color-accent-sage, #3B7A57)" />
+                        <text x="252" y="64" textAnchor="middle" fill="var(--color-text-primary, #232323)" fontSize="9.5" fontFamily="'Source Serif 4', Georgia, serif" fontWeight="600">
                           Deep Focus
                         </text>
-                        <text x="252" y="74" textAnchor="middle" fill="#6B6B6B" fontSize="8" fontFamily="'Inter', sans-serif">
+                        <text x="252" y="74" textAnchor="middle" fill="var(--color-text-muted, #6B6B6B)" fontSize="8" fontFamily="'Inter', sans-serif">
                           4 observations
                         </text>
                       </g>
 
                       {/* Theme Node 3: Leadership */}
                       <g className="opacity-80">
-                        <circle cx="160" cy="94" r="10" fill="#FFFFFF" stroke="#6B6B6B" strokeWidth="1.2" />
-                        <text x="160" y="110" textAnchor="middle" fill="#6B6B6B" fontSize="8.5" fontFamily="'Source Serif 4', Georgia, serif">
+                        <circle cx="160" cy="94" r="10" fill="var(--color-surface, #FFFFFF)" stroke="var(--color-text-muted, #6B6B6B)" strokeWidth="1.2" />
+                        <text x="160" y="110" textAnchor="middle" fill="var(--color-text-muted, #6B6B6B)" fontSize="8.5" fontFamily="'Source Serif 4', Georgia, serif">
                           Leadership
                         </text>
                       </g>
@@ -382,7 +427,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
         </div>
 
         {/* ================= RIGHT COLUMN: Clean Gateway (~36%) ================= */}
-        <div className="flex-none md:w-[38%] lg:w-[36%] bg-[#FBFBF9] border-t md:border-t-0 md:border-l border-border-hairline p-6 sm:p-7 flex flex-col justify-center">
+        <div className="flex-none md:w-[38%] lg:w-[36%] bg-surface border-t md:border-t-0 md:border-l border-border-hairline p-6 sm:p-7 flex flex-col justify-center">
           <div>
             {/* Clean Title */}
             <div className="mb-5 text-center md:text-left">
@@ -419,7 +464,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
 
             {/* Error Notification Banner */}
             {authError && (
-              <div className="mb-3.5 p-2.5 rounded-xl bg-red-50/80 border border-red-200 text-red-700 text-xs leading-relaxed animate-in fade-in duration-200">
+              <div className="mb-3.5 p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs leading-relaxed animate-in fade-in duration-200">
                 {authError}
               </div>
             )}
@@ -430,7 +475,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isAuthenticating}
-              className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-surface hover:bg-stone-50 text-text-primary border border-border-hairline text-xs font-medium transition-all shadow-2xs hover:shadow-xs disabled:opacity-50 cursor-pointer mb-3.5"
+              className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl bg-surface hover:bg-canvas text-text-primary border border-border-hairline text-xs font-medium transition-all shadow-2xs hover:shadow-xs disabled:opacity-50 cursor-pointer mb-3.5"
             >
               {isAuthenticating ? (
                 <RefreshCw className="w-4 h-4 animate-spin text-accent-sage" />
@@ -462,7 +507,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border-hairline" />
               </div>
-              <span className="relative px-2.5 bg-[#FBFBF9] text-2xs text-text-muted font-medium uppercase tracking-wider">
+              <span className="relative px-2.5 bg-surface text-2xs text-text-muted font-medium uppercase tracking-wider">
                 or with email
               </span>
             </div>
@@ -479,7 +524,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full pl-9 pr-3 py-1.5 bg-surface rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-stone-400 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
+                    className="w-full pl-9 pr-3 py-1.5 bg-canvas rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
                   />
                 </div>
               </div>
@@ -495,7 +540,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onError, onEnterDemoMo
                     placeholder="••••••••"
                     required
                     minLength={6}
-                    className="w-full pl-9 pr-3 py-1.5 bg-surface rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-stone-400 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
+                    className="w-full pl-9 pr-3 py-1.5 bg-canvas rounded-xl border border-border-hairline text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage transition-all"
                   />
                 </div>
               </div>

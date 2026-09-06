@@ -114,21 +114,21 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
       />
 
       {/* Drawer Container */}
-      <div className="relative w-full max-w-xl bg-[#FAF9F6] h-full shadow-2xl flex flex-col border-l border-[#DCD7CD] z-10">
+      <div className="relative w-full max-w-xl bg-canvas h-full shadow-2xl flex flex-col border-l border-border-hairline z-10">
         {/* Drawer Header */}
-        <div className="p-4 sm:p-6 border-b border-[#DCD7CD] bg-[#FFFFFF] flex items-center justify-between shrink-0">
+        <div className="p-4 sm:p-6 border-b border-border-hairline bg-surface flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-[#DCEEE3] text-[#3B7A57] flex items-center justify-center">
+            <div className="w-8 h-8 rounded bg-accent-sage-tint text-accent-sage flex items-center justify-center">
               <Bookmark className="w-4 h-4 fill-current" />
             </div>
             <div>
               <h2
                 id="bookmarks-drawer-title"
-                className="font-ui text-base sm:text-lg font-semibold text-[#191813] tracking-tight"
+                className="font-ui text-base sm:text-lg font-semibold text-text-primary tracking-tight"
               >
                 Saved Bookmarks
               </h2>
-              <p className="font-stamp text-xs text-[#5A5648]">
+              <p className="font-stamp text-xs text-text-muted">
                 {allBookmarks.length} {allBookmarks.length === 1 ? 'passage' : 'passages'} bookmarked across reflections
               </p>
             </div>
@@ -137,23 +137,24 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
           <button
             onClick={onClose}
             aria-label="Close bookmarks drawer"
-            className="p-1.5 rounded-lg text-[#5A5648] hover:text-[#191813] hover:bg-[#FAF9F6] border border-transparent hover:border-[#DCD7CD] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-canvas border border-transparent hover:border-border-hairline transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* View Mode Tabs & Search Filter */}
-        <div className="p-4 bg-[#FFFFFF] border-b border-[#DCD7CD] space-y-3 shrink-0">
+        {/* Filter / Search Bar */}
+        <div className="p-4 sm:p-6 pb-2 border-b border-border-hairline bg-surface space-y-3 shrink-0">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center p-0.5 bg-[#EAE6DC] rounded-lg text-xs font-ui">
+            {/* View Mode Segmented Control */}
+            <div className="inline-flex rounded-lg border border-border-hairline bg-canvas p-0.5 text-xs font-ui">
               <button
                 type="button"
                 onClick={() => setViewMode('chronological')}
-                className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                   viewMode === 'chronological'
-                    ? 'bg-[#FFFFFF] text-[#191813] shadow-xs'
-                    : 'text-[#5A5648] hover:text-[#191813]'
+                    ? 'bg-surface font-semibold text-text-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 Chronological
@@ -161,29 +162,29 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode('by_entry')}
-                className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                   viewMode === 'by_entry'
-                    ? 'bg-[#FFFFFF] text-[#191813] shadow-xs'
-                    : 'text-[#5A5648] hover:text-[#191813]'
+                    ? 'bg-surface font-semibold text-text-primary shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 By Reflection
               </button>
             </div>
 
-            <span className="font-stamp text-xs text-[#5A5648]">
+            <span className="font-stamp text-xs text-text-muted">
               {filteredBookmarks.length} shown
             </span>
           </div>
 
           <div className="relative">
-            <Search className="w-4 h-4 text-[#5A5648] absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-text-muted absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search bookmarked passages and notes..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs font-ui bg-[#FAF9F6] border border-[#DCD7CD] rounded-lg text-[#191813] placeholder:text-[#5A5648]/60 focus:outline-none focus:border-[#2C3A4F] focus:ring-1 focus:ring-[#2C3A4F]"
+              className="w-full pl-9 pr-3 py-1.5 text-xs font-ui bg-canvas border border-border-hairline rounded-lg text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-accent-sage focus:ring-1 focus:ring-accent-sage"
             />
           </div>
         </div>
@@ -192,13 +193,13 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {filteredBookmarks.length === 0 ? (
             <div className="text-center py-16 px-4">
-              <div className="w-12 h-12 rounded-full bg-[#EAE6DC] text-[#5A5648] flex items-center justify-center mx-auto mb-3">
-                <Bookmark className="w-6 h-6 stroke-1 text-[#5A5648]" />
+              <div className="w-12 h-12 rounded-full bg-surface border border-border-hairline text-text-muted flex items-center justify-center mx-auto mb-3">
+                <Bookmark className="w-6 h-6 stroke-1 text-text-muted" />
               </div>
-              <p className="font-ui text-sm font-medium text-[#191813] mb-1">
+              <p className="font-ui text-sm font-medium text-text-primary mb-1">
                 {searchQuery ? 'No bookmarks match your query' : 'No bookmarked passages yet'}
               </p>
-              <p className="font-leaf text-xs text-[#5A5648] max-w-sm mx-auto">
+              <p className="font-leaf text-xs text-text-muted max-w-sm mx-auto">
                 {searchQuery
                   ? 'Try adjusting your search terms.'
                   : 'Click the bookmark ribbon on any conversational turn during reflection to preserve pivotal realizations here.'}
@@ -213,20 +214,20 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                 return (
                   <article
                     key={`${item.entryId}-${item.turn.id}`}
-                    className="p-4 bg-[#FFFFFF] border border-[#DCD7CD] rounded-lg space-y-2.5 transition-shadow hover:shadow-xs"
+                    className="p-4 bg-surface border border-border-hairline rounded-lg space-y-2.5 transition-shadow hover:shadow-xs"
                   >
-                    <div className="flex items-center justify-between gap-2 text-xs border-b border-[#DCD7CD]/60 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-xs border-b border-border-hairline/60 pb-2">
                       <div className="flex items-center gap-2 truncate">
-                        <span className="font-ui font-semibold text-[#191813] truncate">
+                        <span className="font-ui font-semibold text-text-primary truncate">
                           {item.entryTitle}
                         </span>
                         {item.entryCategory && (
-                          <span className="font-stamp text-[10px] px-1.5 py-0.5 bg-[#EAE6DC] text-[#5A5648] rounded">
+                          <span className="font-stamp text-[10px] px-1.5 py-0.5 bg-canvas border border-border-hairline text-text-muted rounded">
                             {item.entryCategory}
                           </span>
                         )}
                       </div>
-                      <span className="font-stamp text-[11px] text-[#5A5648] shrink-0">
+                      <span className="font-stamp text-[11px] text-text-muted shrink-0">
                         {new Date(item.timestamp).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -235,19 +236,19 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                       </span>
                     </div>
 
-                    <blockquote className="font-leaf text-sm text-[#191813] leading-relaxed pl-3 border-l-2 border-[#3B7A57]/60 italic">
+                    <blockquote className="font-leaf text-sm text-text-primary leading-relaxed pl-3 border-l-2 border-accent-sage/60 italic">
                       "{item.turn.content}"
                     </blockquote>
 
                     {item.turn.note && (
-                      <div className="p-2 bg-[#FAF9F6] border border-[#DCD7CD] rounded text-xs font-stamp text-[#5A5648]">
-                        <span className="font-medium text-[#191813]">Note: </span>
+                      <div className="p-2 bg-canvas border border-border-hairline rounded text-xs font-stamp text-text-muted">
+                        <span className="font-medium text-text-primary">Note: </span>
                         {item.turn.note}
                       </div>
                     )}
 
                     <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="font-stamp text-[10px] text-[#5A5648] uppercase tracking-wider">
+                      <span className="font-stamp text-[10px] text-text-muted uppercase tracking-wider">
                         {isUser ? 'User Voice' : 'Reflection Partner'}
                       </span>
 
@@ -255,12 +256,12 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                         <button
                           type="button"
                           onClick={() => handleCopy(item.turn.id, item.turn.content)}
-                          className="p-1 rounded text-[#5A5648] hover:text-[#191813] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                          className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-canvas transition-colors cursor-pointer"
                           title="Copy quote"
                           aria-label="Copy quote"
                         >
                           {copiedId === item.turn.id ? (
-                            <Check className="w-3.5 h-3.5 text-[#3B7A57]" />
+                            <Check className="w-3.5 h-3.5 text-accent-sage" />
                           ) : (
                             <Copy className="w-3.5 h-3.5" />
                           )}
@@ -270,7 +271,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                           <button
                             type="button"
                             onClick={() => onRemoveBookmark(item.entryId, item.turn.id)}
-                            className="p-1 rounded text-[#5A5648] hover:text-[#8A3A22] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                            className="p-1 rounded text-text-muted hover:text-vermilion hover:bg-canvas transition-colors cursor-pointer"
                             title="Remove bookmark"
                             aria-label="Remove bookmark"
                           >
@@ -285,7 +286,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                               onSelectEntry(parentEntry, item.turn.id);
                               onClose();
                             }}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-ui font-medium text-[#3B7A57] hover:bg-[#DCEEE3] rounded transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-ui font-medium text-accent-sage hover:bg-accent-sage-tint rounded transition-colors cursor-pointer"
                           >
                             <span>Open</span>
                             <ArrowUpRight className="w-3 h-3" />
@@ -304,12 +305,12 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                 const parentEntry = entries.find((e) => e.id === entryId);
                 return (
                   <section key={entryId} className="space-y-3">
-                    <div className="flex items-center justify-between pb-1.5 border-b border-[#DCD7CD]">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-border-hairline">
                       <div>
-                        <h3 className="font-ui text-sm font-bold text-[#191813]">
+                        <h3 className="font-ui text-sm font-bold text-text-primary">
                           {group.entryTitle}
                         </h3>
-                        <span className="font-stamp text-[10px] text-[#5A5648]">
+                        <span className="font-stamp text-[10px] text-text-muted">
                           {group.items.length} {group.items.length === 1 ? 'bookmark' : 'bookmarks'}
                         </span>
                       </div>
@@ -321,7 +322,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                             onSelectEntry(parentEntry);
                             onClose();
                           }}
-                          className="inline-flex items-center gap-1 text-xs font-ui font-medium text-[#3B7A57] hover:underline cursor-pointer"
+                          className="inline-flex items-center gap-1 text-xs font-ui font-medium text-accent-sage hover:underline cursor-pointer"
                         >
                           <span>Go to entry</span>
                           <ArrowUpRight className="w-3 h-3" />
@@ -333,20 +334,20 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                       {group.items.map((item) => (
                         <div
                           key={item.turn.id}
-                          className="p-3 bg-[#FFFFFF] border border-[#DCD7CD] rounded-md space-y-2"
+                          className="p-3 bg-surface border border-border-hairline rounded-md space-y-2"
                         >
-                          <blockquote className="font-leaf text-xs sm:text-sm text-[#191813] leading-relaxed italic">
+                          <blockquote className="font-leaf text-xs sm:text-sm text-text-primary leading-relaxed italic">
                             "{item.turn.content}"
                           </blockquote>
 
                           {item.turn.note && (
-                            <div className="text-[11px] font-stamp text-[#5A5648] bg-[#FAF9F6] p-1.5 rounded border border-[#DCD7CD]">
-                              <span className="font-medium text-[#191813]">Note: </span>
+                            <div className="text-[11px] font-stamp text-text-muted bg-canvas p-1.5 rounded border border-border-hairline">
+                              <span className="font-medium text-text-primary">Note: </span>
                               {item.turn.note}
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between text-[10px] font-stamp text-[#5A5648] pt-1">
+                          <div className="flex items-center justify-between text-[10px] font-stamp text-text-muted pt-1">
                             <span>
                               {new Date(item.timestamp).toLocaleTimeString([], {
                                 hour: '2-digit',
@@ -358,7 +359,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleCopy(item.turn.id, item.turn.content)}
-                                className="text-[#5A5648] hover:text-[#191813] transition-colors"
+                                className="text-text-muted hover:text-text-primary transition-colors"
                               >
                                 {copiedId === item.turn.id ? 'Copied' : 'Copy'}
                               </button>
@@ -369,7 +370,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
                                     onSelectEntry(parentEntry, item.turn.id);
                                     onClose();
                                   }}
-                                  className="text-[#3B7A57] font-medium hover:underline"
+                                  className="text-accent-sage font-medium hover:underline"
                                 >
                                   View in context
                                 </button>

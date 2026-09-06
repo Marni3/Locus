@@ -6,37 +6,17 @@ Even when Antigravity IDE or the local machine is powered off, this file preserv
 
 ---
 
-## 📅 Morning Kickoff (Phase 5: Project Documentation)
+## ✅ Completed Phases & Verification Archive
 
-**Scheduled Time**: Tomorrow morning (e.g., 9:00 AM)  
-**Command / Trigger to Say to Antigravity**:
-> *"Good morning! Let's execute Phase 5: write the project README and perform the final project audit."*
-
-### Phase 5 Deliverables & Morning Focus
-1. **Detailed README Flow & Architecture Drafting**:
-   - **Collaborative Flow Draft**: First prompt the user to review and collaborate on drafting a more detailed, customized flow and narrative structure for the README before authoring.
-   - **Comprehensive Technical Sections**:
-     - *Project Overview*: The "Anti-Dashboard for the Mind", longitudinal intellectual trajectories, finite sealed pages, and Strata marginalia.
-     - *Tech Stack & Architecture*: React 19, TypeScript, TailwindCSS v4, Express 4, Vite 6, Cloud Firestore, Firebase Auth, Google GenAI SDK (`@google/genai`).
-     - *Core Features & How They Were Integrated*: Conversational Session Workspace, Strata Margins, Looking Back provenance loop, Themes Constellation & Concept Graph, Geocoding minimization, and send-time SSRF-hardened webhooks.
-     - *Security Architecture (5 Threat Zones)*: Outbound PII redaction gate, prompt delimiter isolation, webhook IP range blocking, and Firestore user isolation.
-     - *Setup & Verification Instructions*: Startup commands, unit tests, Playwright E2E suites, and production bundling.
-2. **Intentional Archival Dark Mode**:
-   - Design and integrate an intentional, calm dark mode system (soothing charcoal and deep obsidian archival ink tones rather than harsh black or glaring neon).
-   - Preserve the strict **Rule of One Accent** (`#3B7A57` / `#2E5A36`) and typographic dignity across all reading cards, Strata margins, and session workspaces.
-   - Add a dark mode toggle to the Settings Drawer and universal Navbar with system preference persistence (`localStorage` / `UserSettings`).
-
----
-
-## 🛡️ Final Security & Resilience Audit
-
-**Status**: Scheduled in background (`task-4880`)  
-**Scope**:
-1. **Outbound PII Gate**: Validate that all user emails, phone numbers, and addresses are redacted prior to any external LLM/embedding egress.
-2. **Webhook SSRF Protection**: Verify DNS resolution, HTTPS enforcement, private/internal IP blocking (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`, `169.254.169.254`), and redirect prevention.
-3. **Gemini Fallback Ladder**: Verify resilience across `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-2.5-flash`, and `gemini-flash-latest` on rate limits (`429`) or errors.
-4. **Secret Hygiene**: Confirm 0 API keys (`AIzaSy...`) exist in client bundles or public commits.
-5. **Data Isolation**: Ensure all Firestore queries filter strictly on authenticated `userId`.
+### Phase 5: Project Documentation & Archival Design (Completed 2026-09-06)
+- **Detailed Builder-Voiced README.md**: Fully aligned with Google Gen AI Academy 4 Pillars (Authenticity, Usability, Stability, Security), Cloud Run container architecture, and OOUX domain modeling.
+- **Humanized Talking Points ([TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/TALKING_POINTS.md))**: Natural first-person narrative covering Ben Garcia's marginalia, 550KB vector float optimization, Impeccable color restraint, and Gemini fallback engineering.
+- **Intentional Archival Dark Mode**: Dual substrate palette (`#FAF9F6` daylight, `#141412` obsidian), WCAG 2.1 AA contrast compliance, zero-flash script in `index.html`, and quick navbar/settings toggles.
+- **Automated Visual Screen Audit ([tests/e2e/visual-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/visual-audit.spec.ts))**: 22 full-page visual captures across all 11 core screens in both Daylight and Obsidian themes.
+- **Mobile Touch Audit ([tests/e2e/mobile-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/mobile-audit.spec.ts))**: 6/6 tests passing on `390×844` Retina DPR 2 with collapsing navbar icon targets and zero horizontal scroll.
+- **Full-Spectrum Video Walkthroughs**: Autonomous Playwright captures of all 7 Acts on Desktop (`media/demo_recordings/locus_desktop_walkthrough_1080p.webm`) and Mobile (`media/demo_recordings/locus_mobile_walkthrough_retina.webm`).
+- **Zero-Secret Production Hygiene**: Sanitized `firebase-applet-config.json`, dynamic environment variable resolution in `src/lib/firebase.ts`, and verified 0 leaked API keys in git diff.
+- **Repository Reorganization**: Clean root directory with structured `docs/demo/`, `docs/architecture/`, `docs/design/`, and `docs/standards/` subdirectories.
 
 ---
 

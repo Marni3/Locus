@@ -11,3 +11,9 @@ coverage/
 test-results/
 playwright-report/
 image_docs/
+.cache/
+*.tmp
+*.bak
+.vscode/
+.idea/
+

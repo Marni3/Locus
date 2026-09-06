@@ -5,6 +5,92 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-06]
 
 ### Added
+- **Mobile Viewport Audit & Responsive Touch Hardening ([tests/e2e/mobile-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/mobile-audit.spec.ts))**:
+  - Authored and verified a 6-suite Playwright mobile audit on iPhone 14 / modern flagship mobile viewport (`390×844`, DPR 2, touch-enabled) with 100% pass rate:
+    1. *Landing Page*: Zero horizontal scroll, accessible floating theme toggle touch target ($\ge 36\text{px}$), dark mode toggle, and demo gateway button.
+    2. *Reflections Home*: 2-column to 1-column responsive masonry stacking, full-width search input, and qualitative tag chips.
+    3. *Sealed Reader & Strata Margins*: Mobile reading column width, responsive back button navigation, and temporal marginalia cards.
+    4. *Session Workspace*: Stance mode strip and voice-to-text dictation mic button ($\ge 32\text{px}$) with touch-friendly composer.
+    5. *Themes View & Concept Graph*: Responsive master-detail drilldown and Concept Graph SVG canvas touch controls.
+    6. *Settings Drawer*: Responsive full-width slide-over drawer with segmented theme switcher and close action.
+  - Refactored [src/components/Navbar.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Navbar.tsx) to collapse text labels on mobile screens (`< md`), presenting clean 36px icon touch targets and eliminating horizontal navbar overflow (~580px collapsed to ~345px on 390px screens).
+  - Added `overflow-x-hidden w-full` to root container in [src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx).
+- **High-Fidelity Presentation Recordings & Animated Virtual Cursor Engine ([scripts/lib/virtual-cursor.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/scripts/lib/virtual-cursor.ts), [scripts/record-walkthrough.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/scripts/record-walkthrough.ts))**:
+  - Engineered an in-browser animated virtual cursor with smooth cubic-bezier easing (`easeOutCubic`), real mouse-hover style activations, expanding click ripples, and calibrated 1.5s–2.3s human reading pauses.
+  - Re-architected walkthroughs around a cohesive **3-Act Guided Structure**:
+    - *Act 1*: Sanctuary Welcome & Archival Theme Flip (`Daylight` $\rightarrow$ `Obsidian`).
+    - *Act 2*: 7-Step Guided Tour Backbone (Canvas, Companion, Bookmarks, Sealing, Strata Margins, The Return, Longitudinal Themes).
+    - *Act 3*: Live Deep-Dive into expanded capabilities (authentic `"Chem"` query filtering, interactive Strata Margins inspection, Voice Dictation mic hover and prompt typing, Fibonacci Spiral Petal Bloom, liquid spring drag physics, micro-trajectory zoom, and Archival Settings).
+  - Fixed mobile letterboxing scale issue by locking viewport and recording dimensions in 1:1 parity (`430×932` edge-to-edge full-bleed framing).
+  - Outputs:
+    - 🖥️ **Desktop Full HD (1080p)**: [media/demo_recordings/locus_desktop_walkthrough_1080p.webm](file:///c:/Users/reyna/OneDrive/Documents/Locus/media/demo_recordings/locus_desktop_walkthrough_1080p.webm) (12.58 MB, 1920×1080).
+    - 📱 **Mobile Flagship (Full Bleed)**: [media/demo_recordings/locus_mobile_walkthrough_retina.webm](file:///c:/Users/reyna/OneDrive/Documents/Locus/media/demo_recordings/locus_mobile_walkthrough_retina.webm) (5.89 MB, 430×932).
+- **Repository Root Directory Hygiene**:
+  - Removed duplicate package lockfile `bun.lock`.
+  - Hardened [.gitignore](file:///c:/Users/reyna/OneDrive/Documents/Locus/.gitignore) with `.cache/`, `*.tmp`, `*.bak`, `.vscode/`, `.idea/`.
+- **Zero-Secret Production Key Hygiene & Self-Hostable Config**:
+  - Completely sanitized [firebase-applet-config.json](file:///c:/Users/reyna/OneDrive/Documents/Locus/firebase-applet-config.json) with public placeholders (`YOUR_FIREBASE_API_KEY`, etc.).
+  - Upgraded [src/lib/firebase.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/firebase.ts) to dynamically resolve configuration prioritizing environment variables (`VITE_FIREBASE_API_KEY`, etc.) before falling back to local JSON, ensuring complete self-hostability out of the box.
+  - Validated git diff to confirm 0 secrets or API keys (`AIzaSy...`, `AQ.`, `re_`) are committed.
+- **Repository Documentation Reorganization**:
+  - Reorganized loose root markdown files into structured `docs/` subdirectories:
+    - Moved [Locus-Demo-Agent-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/demo/Locus-Demo-Agent-Plan.md) and [Locus-Demo-Data-Brief.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/docs/demo/Locus-Demo-Data-Brief.md) to `docs/demo/`.
+    - Removed legacy scratch prompt `STRATA-refactor-prompt.md`.
+    - Removed redundant root duplicates of design guidelines and standards.
+    - Updated [README.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/README.md) documentation directory and video walkthrough links.
+- **Authentic Conversational Tone Pass ([TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/TALKING_POINTS.md))**:
+  - Completely overhauled talking points in the creator's natural first-person developer voice, chronicling OOUX domain modeling, Ben Garcia's paper marginalia, the 550KB vector float stripping breakthrough, exorcising AI purple gradients with Impeccable, the 6-tier fallback ladder in production, Maya's student persona simulation, and Cloud Run single-container architecture.
+- **Archival Dark Mode Integration**:
+  - Added `@custom-variant dark (&:where(.dark, .dark *));` to [src/index.css](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/index.css) for Tailwind CSS v4 class-based dark mode.
+  - Configured dark semantic substrate and ink tokens (`--color-canvas: #141412`, `--color-surface: #1E1D19`, `--color-paper-deep: #26241F`, `--color-text-primary: #ECE7DE`, `--color-text-muted: #9B9588`, `--color-border-hairline: #2D2B24`, `--color-accent-sage: #4E9B71`, `--color-accent-sage-tint: #1B3324`).
+  - Added zero-flash inline theme initialization script in `<head>` of [index.html](file:///c:/Users/reyna/OneDrive/Documents/Locus/index.html) checking `localStorage.getItem('locus_theme_mode')` and device `prefers-color-scheme`.
+  - Added quick Sun/Moon toggle button (`#navbar-theme-toggle-btn`) in [src/components/Navbar.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/Navbar.tsx).
+  - Added 3-way segmented control (`System`, `Daylight`, `Obsidian`) in [src/components/SettingsDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SettingsDrawer.tsx) with live preview and cancel rollback.
+  - Added `themeMode?: 'system' | 'light' | 'dark'` to `UserSettings` in [src/types.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/types.ts), initialized in `DEFAULT_SETTINGS` in [src/lib/firebase.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/lib/firebase.ts), and synced in [src/App.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/App.tsx).
+  - Audited design tokens with Impeccable tools (`doctor.mjs` no drift, `context.mjs`), ensuring WCAG 2.1 AA text contrast compliance ($\ge 6.2:1$).
+- **Voice-to-Text Speech Recognition**:
+  - Authored reusable [src/hooks/useSpeechRecognition.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/hooks/useSpeechRecognition.ts) using the Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`) with error handling, transcript buffering, and unmount cleanup.
+  - Integrated `#workspace-mic-button` in [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx) with accessible tooltip and aria labels, pulsing indicator during active dictation, and non-destructive transcript appending.
+- **Authentic Builder-Voiced README.md & Academy Submission Alignment**:
+  - Completely rewrote [README.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/README.md) in the creator's authentic first-person voice, dropping AI marketing clichés.
+  - Added dedicated section framing engineering and design decisions around the **4 Academy Evaluation Pillars**:
+    - **Authenticity**: OOUX domain modeling (Sophia Prater), Ben Garcia's paper marginalia (Strata Layer), and realistic 15-entry longitudinal student dataset.
+    - **Usability**: Exorcising AI tropes with Impeccable, Rule of One Accent (`#3B7A57` / `#4E9B71`), WCAG 2.1 AA dual substrates, native voice-to-text dictation, and interactive phyllotaxis blooming concept graph.
+    - **Stability**: 6-tier Gemini fallback ladder (`gemini-3.5-flash` to `gemini-flash-latest`), offline demo simulator, and 100% automated test coverage (93 Vitest unit tests, 28 Playwright browser tests, 22-screen visual audit suite).
+    - **Security**: Outbound PII scrubbing, SSRF-protected webhooks, owner-bound Firestore security rules (`request.auth.uid == userId`), and zero hardcoded secrets.
+  - Highlighted **Google Cloud Run** container architecture with dynamic `process.env.PORT` binding in [server.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/server.ts), `/api/health` probes, and stateless execution.
+  - Formally credited Google Gen AI Academy APAC Cohort 3, Sophia Prater's Object-Oriented UX (OOUX) domain modeling, Ben Garcia's marginalia guidance, Playwright automated testing, and Impeccable design tools.
+  - Added transparent documentation table referencing [CHANGELOG.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/CHANGELOG.md), [TALKING_POINTS.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/TALKING_POINTS.md), [PRODUCT.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/PRODUCT.md), and [DESIGN.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/DESIGN.md).
+- **Automated Visual Screen Audit Suite ([tests/e2e/visual-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/visual-audit.spec.ts), `npm run audit:screens`)**:
+  - Authored a comprehensive 11-screen automated Playwright visual audit suite systematically evaluating the entire application in both **Light** and **Archival Obsidian Dark** modes (22 high-resolution full-page captures):
+    1. `01_landing_page`: Sanctuary gateway with auth modal, Google OAuth, and constellation preview.
+    2. `02_reflections_home`: 2-column masonry reflection cards with strata badges and filter chips.
+    3. `03_workspace_empty`: Dialogue composer in empty state with microphone dictation button and mode stances.
+    4. `04_workspace_conversation`: Interactive reflection stream with companion response and status indicator.
+    5. `05_entry_margins`: Sealed immutable reading view with marginalia notes and strata deltas.
+    6. `06_themes_timeline`: Themes master-detail timeline with current rolling synthesis and observation timeline.
+    7. `07_concept_graph_macro`: Macro themes constellation with radial springs and interactive dragging.
+    8. `08_concept_graph_zoomed`: Zoomed micro trajectory view with directed chronological vectors ($Obs_1 \rightarrow Obs_n$).
+    9. `09_the_return_view`: Looking back daily archivist view with provenance header and margin action bar.
+    10. `10_settings_drawer`: Settings & preferences drawer with tone presets and segmented theme switcher.
+    11. `11_guided_tour_modal`: Docked floating walkthrough card with interactive steps.
+  - Automatically exports all screenshots to `image_docs/visual_audit/light/` and `image_docs/visual_audit/dark/`, and mirrors into the agent artifact directory for instant evaluation.
+  - Added `"audit:screens": "playwright test tests/e2e/visual-audit.spec.ts"` to [package.json](file:///c:/Users/reyna/OneDrive/Documents/Locus/package.json).
+
+- **Dark Mode Substrate Hardening & Zero-Leak Audit**:
+  - **Landing Page Auth Modal & Gateway**: Converted right gateway column from hardcoded `bg-[#FBFBF9]` to `bg-surface`, Google OAuth button hover to `hover:bg-canvas`, input fields to `bg-canvas border-border-hairline text-text-primary`, and mini SVG constellation preview to CSS variables `var(--color-surface)` and `var(--color-text-primary)` in [src/components/LandingPage.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/LandingPage.tsx). Added fixed floating quick theme toggle (`#landing-theme-toggle-btn`) in the top-right corner and converted carousel slide badges from awkward gray/white boxes to high-contrast semantic sage pills (`bg-accent-sage-tint text-accent-sage border border-accent-sage/25`).
+  - **Reflections Home Strata Badges**: Converted `{stratumCount} strata` badges and tag chips from stark white capsules (`#EAE6DC`, `#F4F3EE`) to subtle dark-bordered capsules (`bg-canvas border border-border-hairline text-text-muted font-semibold`) in [src/components/ReflectionsHome.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ReflectionsHome.tsx).
+  - **Session Workspace Header & Stance Strip**: Harmonized category/mood select dropdowns, countdown timer badge, Summary & Insights button, and Stance mode bar from hardcoded `#F9F7F2` and `stone` colors to `bg-canvas border-border-hairline text-text-primary` in [src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx).
+  - **The Return / Looking Back**: Completely adapted page canvas from hardcoded `#FAF9F6` to `bg-canvas`, reading turn cards from `#FFFFFF` to `bg-surface border-border-hairline`, and borders/muted text from `#DCD7CD`/`#5A5648` to semantic design tokens in [src/components/TheReturnView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/TheReturnView.tsx).
+  - **Themes Timeline Rolling Synthesis**: Adapted "Current Rolling Synthesis" card from hardcoded `bg-[#FAF9F6]` to `bg-canvas border border-border-hairline text-text-primary` in [src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx).
+  - **Guided Tour Modals & Drawers**: Adapted [src/components/WalkthroughOverlay.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/WalkthroughOverlay.tsx), [src/components/EntryReaderWithStrata.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/EntryReaderWithStrata.tsx), [src/components/BookmarksDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/BookmarksDrawer.tsx), and [src/components/IntelligenceDrawer.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/IntelligenceDrawer.tsx) to semantic design tokens.
+
+- **Concept Graph Streamlining, Zoom Blooming & Hybrid Physics ([src/components/ThemesView.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/ThemesView.tsx))**:
+  - **Removed Redundant Instruction Banner**: Exorcised the bulky top explanation banner (`"Hybrid Concept Graph: Drag nodes to explore..."`), streamlining the header to constellation metrics and the `Re-bloom` action.
+  - **Streamlined Floating Inspector**: Replaced the bulky `w-80` bottom-right card with a compact floating inspector (`w-72 sm:w-76 p-3.5 bg-surface/90 backdrop-blur-md border-border-hairline`) featuring an instant dismiss (`X`) button, a 2-line condensed synthesis excerpt, and an efficient side-by-side action row (`Focus Trajectory` + `Unpack`).
+  - **Zoom Spiral Blooming Motion**: When zooming into a theme via double-click or "Focus Trajectory", observation satellites initialize at center `(380, 260)` with `scale: 0.35, opacity: 0` and bloom outward in chronological order along the spiral trajectory with spring physics.
+  - **Zoomed Hybrid Physics**: Enabled full interactive pointer dragging and liquid physics (orbital springs toward the theme Sun + soft Coulomb repulsion) for observation satellites in zoomed mode, with dynamic radial spring updates and a dedicated "Re-bloom" action.
+
 - **Student Persona Demo Dataset Realignment ([Locus-Demo-Data-Brief.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/Locus-Demo-Data-Brief.md), [Locus-Demo-Agent-Plan.md](file:///c:/Users/reyna/OneDrive/Documents/Locus/Locus-Demo-Agent-Plan.md))**:
   - **15-Entry Chronological Student Archive**: Created authentic 4-week narrative archive of a first-year university student adjusting to college life away from home.
   - **Organically Evolved Longitudinal Themes**: Produced 8 persistent themes and 21 observations through live Gemini AI execution, including *The Strain of Environmental Anonymity* (2 obs), *Home as Unnegotiated Sanctuary* (9 obs), *Grace in Beginner's Mind* (2 obs), *Vulnerability as Collaborative Bridge* (3 obs), *Agency in Economic Friction* (1 obs), *Sanctuary of the Unobserved Laboratory* (2 obs), *The Recursive Loop of Healing* (1 obs), and *The Architecture of Self-Projection* (1 obs).

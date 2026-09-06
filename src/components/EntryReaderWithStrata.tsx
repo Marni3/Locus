@@ -169,27 +169,27 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
   const concludedTime = entry.concludedAt ? new Date(entry.concludedAt) : new Date(entry.createdAt);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#191813] flex flex-col font-sans">
+    <div className="min-h-screen bg-canvas text-text-primary flex flex-col font-sans">
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-20 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#DCD7CD] px-4 sm:px-8 py-3">
+      <header className="sticky top-0 z-20 bg-surface/95 backdrop-blur-md border-b border-border-hairline px-4 sm:px-8 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-medium text-[#5A5648] hover:text-[#191813] bg-[#FAF9F6] hover:bg-[#EAE6DC] border border-[#DCD7CD] rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-medium text-text-muted hover:text-text-primary bg-canvas hover:bg-surface border border-border-hairline rounded-lg transition-colors cursor-pointer"
               title="Return to reflections"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-[#3B7A57]" />
+              <ArrowLeft className="w-3.5 h-3.5 text-accent-sage" />
               <span>Reflections</span>
             </button>
 
-            <div className="h-4 w-px bg-[#DCD7CD] hidden sm:block" />
+            <div className="h-4 w-px bg-border-hairline hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <span className="font-stamp text-xs text-[#5A5648] uppercase tracking-wider">
+              <span className="font-stamp text-xs text-text-muted uppercase tracking-wider">
                 The Page is Set · Immutable
               </span>
-              <span className="font-stamp text-xs px-2 py-0.5 bg-[#EAE6DC] text-[#191813] rounded font-semibold">
+              <span className="font-stamp text-xs px-2 py-0.5 bg-canvas border border-border-hairline text-text-muted rounded font-semibold">
                 {strata.length} {strata.length === 1 ? 'stratum' : 'strata'}
               </span>
             </div>
@@ -199,7 +199,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
             {onViewThemes && (
               <button
                 onClick={onViewThemes}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-medium text-[#3B7A57] bg-[#DCEEE3] hover:bg-[#CFE8D7] rounded-lg transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-medium text-accent-sage bg-accent-sage-tint hover:opacity-90 rounded-lg transition-colors cursor-pointer"
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">View Themes</span>
@@ -209,7 +209,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
             {onNewReflection && (
               <button
                 onClick={onNewReflection}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg transition-colors cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-ui font-semibold text-white bg-accent-sage hover:opacity-90 rounded-lg transition-colors cursor-pointer shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Reflection</span>
@@ -229,10 +229,10 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
             className="lg:col-span-8 space-y-8"
           >
             {/* Entry Title & Historical Header */}
-            <section className="space-y-3 pb-6 border-b border-[#DCD7CD]">
-              <div className="flex items-center gap-2 flex-wrap text-xs font-stamp text-[#5A5648]">
+            <section className="space-y-3 pb-6 border-b border-border-hairline">
+              <div className="flex items-center gap-2 flex-wrap text-xs font-stamp text-text-muted">
                 <span className="inline-flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-[#3B7A57]" />
+                  <Calendar className="w-3 h-3 text-accent-sage" />
                   <span>
                     Concluded {concludedTime.toLocaleDateString(undefined, {
                       month: 'long',
@@ -256,28 +256,28 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                   <>
                     <span>·</span>
                     <span className="inline-flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-[#3B7A57]" />
+                      <MapPin className="w-3 h-3 text-accent-sage" />
                       <span>{entry.locationContext.name}</span>
                     </span>
                   </>
                 )}
               </div>
 
-              <h1 className="font-leaf text-2xl sm:text-3xl lg:text-4xl font-bold text-[#191813] leading-tight">
+              <h1 className="font-leaf text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary leading-tight">
                 {entry.title}
               </h1>
 
               {entry.summary && (
-                <div className="p-4 bg-[#FFFFFF] border-l-3 border-[#3B7A57] rounded-r-lg shadow-2xs font-leaf text-sm sm:text-base text-[#191813] leading-relaxed italic">
+                <div className="p-4 bg-surface border-l-3 border-accent-sage rounded-r-lg shadow-2xs font-leaf text-sm sm:text-base text-text-primary leading-relaxed italic">
                   "{entry.summary}"
                 </div>
               )}
             </section>
 
             {/* Selection Hint Callout */}
-            <div className="p-3 bg-[#EAE6DC]/60 rounded-lg border border-[#DCD7CD] flex items-center justify-between text-xs font-ui text-[#5A5648]">
+            <div className="p-3 bg-canvas rounded-lg border border-border-hairline flex items-center justify-between text-xs font-ui text-text-muted">
               <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4 text-[#3B7A57] shrink-0" />
+                <Compass className="w-4 h-4 text-accent-sage shrink-0" />
                 <span>
                   <strong>Tip:</strong> Highlight any passage in this reflection to anchor a note in the margin.
                 </span>
@@ -289,7 +289,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                   setParentStratumId(null);
                   setIsComposing(true);
                 }}
-                className="underline hover:text-[#191813] font-medium cursor-pointer shrink-0 ml-2"
+                className="underline hover:text-text-primary font-medium cursor-pointer shrink-0 ml-2"
               >
                 Annotate overall entry
               </button>
@@ -298,7 +298,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
             {/* Full Immutable Conversational Transcript */}
             <div className="space-y-6">
               {turns.length === 0 ? (
-                <p className="font-leaf text-base text-[#5A5648] italic">
+                <p className="font-leaf text-base text-text-muted italic">
                   No conversational transcript recorded for this reflection.
                 </p>
               ) : (
@@ -315,12 +315,12 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                       id={`reader-turn-${turn.id || index}`}
                       className={`relative p-5 sm:p-6 rounded-xl border transition-all ${
                         isUser
-                          ? 'bg-[#FFFFFF] border-[#DCD7CD] shadow-2xs'
-                          : 'bg-[#F4F1EA]/60 border-[#DCD7CD]/60'
+                          ? 'bg-surface border-border-hairline shadow-2xs'
+                          : 'bg-surface/50 border-border-hairline/60'
                       }`}
                     >
                       {/* Author Line */}
-                      <div className="flex items-center justify-between gap-2 mb-3 text-xs font-stamp text-[#5A5648] border-b border-[#DCD7CD]/50 pb-2">
+                      <div className="flex items-center justify-between gap-2 mb-3 text-xs font-stamp text-text-muted border-b border-border-hairline/50 pb-2">
                         <span className="font-semibold uppercase tracking-wider">
                           {isUser ? 'User Voice' : 'Reflection Partner'}
                         </span>
@@ -333,13 +333,13 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                       </div>
 
                       {/* Content in Literata Serif */}
-                      <div className="font-leaf text-base sm:text-lg text-[#191813] leading-relaxed whitespace-pre-wrap selection:bg-[#8A3A22]/20 selection:text-[#191813]">
+                      <div className="font-leaf text-base sm:text-lg text-text-primary leading-relaxed whitespace-pre-wrap">
                         {turn.content}
                       </div>
 
                       {/* Bookmark Indicator if marked */}
                       {(turn.isBookmarked || turn.isPinned) && (
-                        <div className="mt-3 pt-2 border-t border-[#DCD7CD]/40 flex items-center gap-1.5 text-xs font-stamp text-[#3B7A57]">
+                        <div className="mt-3 pt-2 border-t border-border-hairline/40 flex items-center gap-1.5 text-xs font-stamp text-accent-sage">
                           <Bookmark className="w-3.5 h-3.5 fill-current" />
                           <span>Bookmarked realization</span>
                         </div>
@@ -347,14 +347,14 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
 
                       {/* Marginalia Anchor Badges */}
                       {matchingStrata.length > 0 && (
-                        <div className="mt-4 pt-3 border-t border-[#8A3A22]/30 flex items-center gap-2 flex-wrap">
-                          <span className="font-stamp text-[10px] text-[#8A3A22] uppercase tracking-wider">
+                        <div className="mt-4 pt-3 border-t border-border-hairline/60 flex items-center gap-2 flex-wrap">
+                          <span className="font-stamp text-[10px] text-vermilion uppercase tracking-wider">
                             Annotated in margins:
                           </span>
                           {matchingStrata.map((s) => (
                             <span
                               key={s.id}
-                              className="font-stamp text-[11px] px-2 py-0.5 rounded bg-[#8A3A22]/10 text-[#8A3A22] border border-[#8A3A22]/30"
+                              className="font-stamp text-[11px] px-2 py-0.5 rounded bg-vermilion/10 text-vermilion border border-vermilion/30"
                             >
                               {formatTemporalDistance(s.daysLater)}
                             </span>
@@ -372,12 +372,12 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
           <aside className="lg:col-span-4 space-y-6">
             <div className="sticky top-20 space-y-6">
               {/* Margin Gutter Header */}
-              <div className="flex items-center justify-between pb-2 border-b border-[#DCD7CD]">
+              <div className="flex items-center justify-between pb-2 border-b border-border-hairline">
                 <div>
-                  <h2 className="font-ui text-sm font-bold uppercase tracking-wider text-[#191813]">
+                  <h2 className="font-ui text-sm font-bold uppercase tracking-wider text-text-primary">
                     The Margins
                   </h2>
-                  <p className="font-stamp text-xs text-[#5A5648]">
+                  <p className="font-stamp text-xs text-text-muted">
                     Sediment of past re-reads across time
                   </p>
                 </div>
@@ -390,7 +390,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                       setParentStratumId(null);
                       setIsComposing(true);
                     }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-ui font-medium text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-md transition-colors cursor-pointer shadow-2xs"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-ui font-medium text-white bg-accent-sage hover:opacity-90 rounded-md transition-colors cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-3 h-3" />
                     <span>Write Note</span>
@@ -400,9 +400,9 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
 
               {/* Active Stratum Composer */}
               {isComposing && (
-                <div className="p-4 bg-[#FFFFFF] border-2 border-[#8A3A22] rounded-xl shadow-md space-y-3">
+                <div className="p-4 bg-surface border-2 border-vermilion rounded-xl shadow-md space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-stamp text-xs font-bold text-[#8A3A22] uppercase tracking-wider">
+                    <span className="font-stamp text-xs font-bold text-vermilion uppercase tracking-wider">
                       {parentStratumId ? 'Annotate Note (Depth 2)' : 'New Margin Stratum'}
                     </span>
                     <button
@@ -412,21 +412,21 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                         setSelectedTextAnchor(null);
                         setParentStratumId(null);
                       }}
-                      className="text-xs text-[#5A5648] hover:text-[#191813] underline cursor-pointer"
+                      className="text-xs text-text-muted hover:text-text-primary underline cursor-pointer"
                     >
                       Cancel
                     </button>
                   </div>
 
                   {selectedTextAnchor && (
-                    <div className="p-2 bg-[#FAF9F6] border-l-2 border-[#8A3A22] text-xs font-leaf italic text-[#5A5648] rounded-r">
+                    <div className="p-2 bg-canvas border-l-2 border-vermilion text-xs font-leaf italic text-text-muted rounded-r">
                       "{selectedTextAnchor.quotedText.slice(0, 90)}..."
                     </div>
                   )}
 
                   {/* Semantic Stance Picker */}
                   <div className="space-y-1">
-                    <label className="font-ui text-[11px] font-semibold text-[#5A5648] uppercase tracking-wider">
+                    <label className="font-ui text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                       Semantic Ink / Stance
                     </label>
                     <div className="grid grid-cols-2 gap-1.5 text-xs font-stamp">
@@ -441,7 +441,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                             className={`px-2 py-1 rounded border text-left cursor-pointer transition-colors ${
                               isSelected
                                 ? `${style.bgClass} ${style.inkClass} ${style.borderClass} font-bold shadow-2xs`
-                                : 'border-[#DCD7CD] text-[#5A5648] hover:bg-[#FAF9F6]'
+                                : 'border-border-hairline text-text-muted hover:bg-canvas'
                             }`}
                           >
                             {style.label}
@@ -457,18 +457,18 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                     value={draftContent}
                     onChange={(e) => setDraftContent(e.target.value)}
                     placeholder="Write in the margins of your past self..."
-                    className="w-full p-2.5 text-xs sm:text-sm font-leaf bg-[#FAF9F6] border border-[#DCD7CD] rounded-lg focus:outline-none focus:border-[#8A3A22] text-[#191813] leading-relaxed resize-y"
+                    className="w-full p-2.5 text-xs sm:text-sm font-leaf bg-canvas border border-border-hairline rounded-lg focus:outline-none focus:border-vermilion text-text-primary leading-relaxed resize-y"
                   />
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-stamp text-[11px] text-[#5A5648]">
+                    <span className="font-stamp text-[11px] text-text-muted">
                       {formatTemporalDistance(calculateDaysLater(entry.concludedAt || entry.createdAt))}
                     </span>
                     <button
                       type="button"
                       onClick={handleSaveNewStratum}
                       disabled={!draftContent.trim()}
-                      className="px-3 py-1.5 bg-[#8A3A22] hover:bg-[#722F1B] text-white rounded-md text-xs font-ui font-semibold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+                      className="px-3 py-1.5 bg-vermilion hover:opacity-90 text-white rounded-md text-xs font-ui font-semibold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
                     >
                       Seal in Margin
                     </button>
@@ -479,13 +479,13 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
               {/* Strata Feed in Margin */}
               <div className="space-y-4">
                 {isLoadingStrata ? (
-                  <p className="font-stamp text-xs text-[#5A5648]">Loading margin strata...</p>
+                  <p className="font-stamp text-xs text-text-muted">Loading margin strata...</p>
                 ) : strata.length === 0 ? (
-                  <div className="text-center py-8 px-4 border border-dashed border-[#DCD7CD] rounded-xl">
-                    <p className="font-ui text-xs font-semibold text-[#191813] mb-1">
+                  <div className="text-center py-8 px-4 border border-dashed border-border-hairline rounded-xl">
+                    <p className="font-ui text-xs font-semibold text-text-primary mb-1">
                       No strata recorded yet
                     </p>
-                    <p className="font-leaf text-xs text-[#5A5648]">
+                    <p className="font-leaf text-xs text-text-muted">
                       This page is set. Re-read it when you have lived further, and annotate how your thinking has evolved.
                     </p>
                   </div>
@@ -498,32 +498,32 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                       <article
                         key={s.id}
                         style={{ marginLeft: isDepth2 ? '1rem' : '0' }}
-                        className={`p-3.5 bg-[#FFFFFF] border-l-3 ${style.borderClass} border-t border-r border-b border-[#DCD7CD] rounded-r-lg shadow-2xs space-y-2 relative transition-all`}
+                        className={`p-3.5 bg-surface border-l-3 ${style.borderClass} border-t border-r border-b border-border-hairline rounded-r-lg shadow-2xs space-y-2 relative transition-all`}
                       >
                         {/* Temporal Distance & Stance Badge */}
                         <div className="flex items-center justify-between text-[11px] font-stamp">
                           <span className={`px-1.5 py-0.5 rounded ${style.bgClass} ${style.inkClass} font-semibold uppercase tracking-wider`}>
                             {style.label}
                           </span>
-                          <span className="text-[#5A5648]">
+                          <span className="text-text-muted">
                             {formatTemporalDistance(s.daysLater)}
                           </span>
                         </div>
 
                         {/* Anchored text fragment if present */}
                         {s.anchor?.quotedText && (
-                          <div className="text-[11px] font-leaf italic text-[#5A5648] pl-2 border-l-2 border-[#DCD7CD]">
+                          <div className="text-[11px] font-leaf italic text-text-muted pl-2 border-l-2 border-border-hairline">
                             "{s.anchor.quotedText.slice(0, 80)}..."
                           </div>
                         )}
 
                         {/* Stratum Body */}
-                        <p className="font-leaf text-xs sm:text-sm text-[#191813] leading-relaxed whitespace-pre-wrap">
+                        <p className="font-leaf text-xs sm:text-sm text-text-primary leading-relaxed whitespace-pre-wrap">
                           {s.bodyMarkdown}
                         </p>
 
                         {/* Note Actions */}
-                        <div className="flex items-center justify-between pt-1 border-t border-[#DCD7CD]/40 text-[10px] font-stamp text-[#5A5648]">
+                        <div className="flex items-center justify-between pt-1 border-t border-border-hairline/40 text-[10px] font-stamp text-text-muted">
                           <span>Depth {s.depth} of 3</span>
                           <div className="flex items-center gap-2">
                             {s.depth < 3 && (
@@ -534,7 +534,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                                   setSelectedTextAnchor(null);
                                   setIsComposing(true);
                                 }}
-                                className="text-[#3B7A57] hover:underline cursor-pointer flex items-center gap-0.5"
+                                className="text-accent-sage hover:underline cursor-pointer flex items-center gap-0.5"
                               >
                                 <CornerDownRight className="w-2.5 h-2.5" />
                                 <span>Annotate</span>
@@ -544,7 +544,7 @@ export const EntryReaderWithStrata: React.FC<EntryReaderWithStrataProps> = ({
                             <button
                               type="button"
                               onClick={() => handleDeleteStratum(s.id)}
-                              className="text-[#8A3A22] hover:underline cursor-pointer"
+                              className="text-vermilion hover:underline cursor-pointer"
                               title="Delete stratum"
                             >
                               <Trash2 className="w-2.5 h-2.5" />

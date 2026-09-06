@@ -158,6 +158,7 @@ export interface UserSettings {
   fontFamily?: 'Literata' | 'Inter' | 'Roboto' | 'Overpass' | 'Overpass Mono';
   accentColor?: 'sage' | 'moss' | 'irongall' | 'ochre' | 'terracotta';
   reducedMotion?: boolean;
+  themeMode?: 'system' | 'light' | 'dark';
 }
 
 export interface UserProfile {
