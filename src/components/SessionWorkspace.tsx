@@ -834,38 +834,38 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                   <Compass className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-serif-heading text-xl font-bold text-stone-900">
+                  <h3 className="font-serif-heading text-xl font-bold text-text-primary">
                     Begin your reflection
                   </h3>
-                  <p className="text-sm text-stone-500 mt-1.5 leading-relaxed font-sans">
+                  <p className="text-sm text-text-muted mt-1.5 leading-relaxed font-sans">
                     Write down what's on your mind. Explore a challenge, reflect on a recent decision, or unpack your day.
                   </p>
                 </div>
 
                 {/* Floating Inspiration Chip if launched from daily prompt */}
                 {initialPrompt && (
-                  <div className="p-4 bg-[#DCEEE3]/40 border border-[#3B7A57]/30 rounded-2xl text-left space-y-2 relative group mb-4">
+                  <div className="p-4 bg-accent-sage-tint/40 border border-accent-sage/30 rounded-2xl text-left space-y-2 relative group mb-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase tracking-wider font-semibold text-[#3B7A57] flex items-center gap-1.5 font-sans">
+                      <span className="text-xs uppercase tracking-wider font-semibold text-accent-sage flex items-center gap-1.5 font-sans">
                         <Compass className="w-3.5 h-3.5" />
                         Daily Reflection Inspiration
                       </span>
                       {onDismissInitialPrompt && (
                         <button
                           onClick={onDismissInitialPrompt}
-                          className="p-1 text-stone-400 hover:text-stone-600 rounded-md cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text-primary rounded-md cursor-pointer"
                           title="Dismiss prompt"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
-                    <p className="font-serif text-sm sm:text-base text-stone-900 italic leading-snug">
+                    <p className="font-serif text-sm sm:text-base text-text-primary italic leading-snug">
                       "{initialPrompt}"
                     </p>
                     <button
                       onClick={() => setInputText(initialPrompt)}
-                      className="text-xs text-[#3B7A57] font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
+                      className="text-xs text-accent-sage font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
                     >
                       Use this contemplation as your starter &rarr;
                     </button>
