@@ -37,6 +37,25 @@ Even when Antigravity IDE or the local machine is powered off, this file preserv
 
 ---
 
+## 🎨 Polish Queue (Do When Limits Refresh)
+
+### 1. Impeccable Design Audit Pass
+- Run a full Impeccable skill audit across all screens.
+- Focus areas: visual hierarchy consistency, spacing rhythm, typographic scale, any remaining hardcoded colors leaking into dark mode.
+- Check empty states, loading skeletons, and error surfaces — these tend to miss dark mode coverage.
+- Trigger: read `impeccable` SKILL.md → audit mode.
+
+### 2. Motion & Transition Fluidity Pass
+- **Page/view transitions**: Add smooth animate-in/fade on `App.tsx` view switches (`reflections` → `session` → `themes` → `return`).
+- **Drawers**: Audit `SettingsDrawer`, `BookmarksDrawer`, `IntelligenceDrawer` for consistent slide+fade behavior.
+- **Message stream**: Verify new AI turns animate in with subtle `fade-in slide-up` rather than hard-appearing.
+- **Concept graph**: Review spring stiffness/damping — aim for more liquid, unhurried settle.
+- **Stance mode strip**: Pill indicator should translate smoothly between stances rather than jump.
+- **Navbar active tab**: Active indicator should slide between tabs rather than snap.
+- Implementation note: prefer CSS `transition` + Tailwind duration classes over JS libraries — keeps bundle lean.
+
+---
+
 ## 🛠️ Verification Command Reference
 
 ```bash
