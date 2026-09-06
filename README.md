@@ -14,6 +14,56 @@ Locus is built around that reality. For the full behind-the-scenes engineering s
 
 ---
 
+## What Locus Does
+
+- **Multi-Stance Reflection**: Choose how the companion reflects back to you—*Reflective Mirror* for emotional unpacking, *Idea Spark* for brainstorming, *Action Blueprint* for pragmatic next steps, or *Mindful Grounding* for presence.
+- **Voice-to-Text Dictation**: Native speech recognition composer built directly into the reflection workspace, allowing you to speak your stream of consciousness naturally without breaking focus.
+- **Synchronous Synthesis Pipeline**: The moment an entry is concluded, Gemini analyzes the transcript and any pinned highlights, checks for related themes via semantic similarity, and creates or updates persistent theme dossiers with discrete observations.
+- **Dual-View Themes Canvas**:
+  - **Timeline Trajectory**: Read a chronological feed of how your thoughts on a topic evolved over weeks.
+  - **Concept Graph**: An interactive, force-directed network showing connected themes, observation density, and cluster relationships.
+- **The Return**: An explainable daily review loop that resurfaces exactly one past entry based on clear criteria (time horizon, margin density, or theme relevance). No fake urgency, streaks, or guilt trips.
+- **Archival Appearance & Dark Mode**:
+  - **Daylight**: Warm archival ivory (`#FAF9F6`) substrate.
+  - **Obsidian Dark Mode**: Natural charcoal palette (`#141412` canvas, `#1E1D19` surface) engineered for quiet nighttime reflection.
+  - **Rule of One Accent**: Muted sage green (`#3B7A57` / `#4E9B71`) reserved strictly for interactive actions.
+- **Privacy & Security First**: Outbound PII scrubbing, SSRF-validated webhooks, owner-bound Firestore isolation, and full offline Demo Mode.
+
+---
+
+## Architecture & Google Cloud Infrastructure
+
+Locus is built as a unified full-stack application designed to run as a single containerized service on **Google Cloud Run**, integrating cleanly with Google's cloud ecosystem:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                             Google Cloud Run                             │
+│       Stateless Container Runtime · Dynamic $PORT Binding · Auto-Scale   │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                    Express 4 + Vite SSR Middleware                 │  │
+│  │                                                                    │  │
+│  │  • Health Probe (/api/health)       • Egress PII Sanitizer         │  │
+│  │  • Resilient Model Ladder Engine    • SSRF Webhook Validator       │  │
+│  │  • Synthesis & Theme Pipeline       • Location Context Wrapper     │  │
+│  └──────────────────┬───────────────────────────────────┬─────────────┘  │
+└─────────────────────┼───────────────────────────────────┼────────────────┘
+                      │                                   │
+                      ▼                                   ▼
+        ┌───────────────────────────┐       ┌───────────────────────────┐
+        │     Google Gemini API     │       │      Google Firebase      │
+        │    @google/genai SDK      │       │    Auth & Cloud Firestore │
+        │   Multi-Model Fallback    │       │     User-Path Isolation   │
+        └───────────────────────────┘       └───────────────────────────┘
+```
+
+- **Containerized for Google Cloud Run**: The entire app compiles into a standalone production server (`dist/server.cjs`) and client bundle. The server dynamically binds to `process.env.PORT` and provides `/api/health` probes for automated container lifecycle management.
+- **AI Engine**: Powered by Google's new `@google/genai` TypeScript SDK using the Gemini Flash family for high-speed, cost-effective synthesis and vector search.
+- **Database & Storage**: Google Cloud Firestore for secure, schema-flexible document storage with owner-isolated security rules.
+- **Zero Heavy Native Dependencies**: Uses pure-JS engines (custom Euler spring physics, Canvas/SVG constellation graphics, Web Speech API) to guarantee instant cold boots on Cloud Run.
+
+---
+
 ## Designing for the 4 Academy Evaluation Pillars
 
 I used the **Google Gen AI Academy Evaluation Criteria** as our compass during architecture and development, treating each pillar as a real engineering constraint rather than a post-hoc checklist:
@@ -53,55 +103,6 @@ I used the **Google Gen AI Academy Evaluation Criteria** as our compass during a
 - **Owner-Bound Firestore Security Rules**: Cloud Firestore enforces strict path-level isolation (`request.auth.uid == userId`) with default-deny rules on all collections.
 - **Zero-Secret Hygiene**: Zero API keys or secrets are stored in code or client bundles. Secrets are injected at runtime via environment variables. Note: `firebase-applet-config.json` is intentionally committed — Firebase client config is not a secret (it is embedded in the JS bundle visible to any browser); security is enforced by Firestore rules.
 
----
-
-## Architecture & Google Cloud Infrastructure
-
-Locus is built as a unified full-stack application designed to run as a single containerized service on **Google Cloud Run**, integrating cleanly with Google's cloud ecosystem:
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                             Google Cloud Run                             │
-│       Stateless Container Runtime · Dynamic $PORT Binding · Auto-Scale   │
-│                                                                          │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │                    Express 4 + Vite SSR Middleware                 │  │
-│  │                                                                    │  │
-│  │  • Health Probe (/api/health)       • Egress PII Sanitizer         │  │
-│  │  • Resilient Model Ladder Engine    • SSRF Webhook Validator       │  │
-│  │  • Synthesis & Theme Pipeline       • Location Context Wrapper     │  │
-│  └──────────────────┬───────────────────────────────────┬─────────────┘  │
-└─────────────────────┼───────────────────────────────────┼────────────────┘
-                      │                                   │
-                      ▼                                   ▼
-        ┌───────────────────────────┐       ┌───────────────────────────┐
-        │     Google Gemini API     │       │      Google Firebase      │
-        │    @google/genai SDK      │       │    Auth & Cloud Firestore │
-        │   Multi-Model Fallback    │       │     User-Path Isolation   │
-        └───────────────────────────┘       └───────────────────────────┘
-```
-
-- **Containerized for Google Cloud Run**: The entire app compiles into a standalone production server (`dist/server.cjs`) and client bundle. The server dynamically binds to `process.env.PORT` and provides `/api/health` probes for automated container lifecycle management.
-- **AI Engine**: Powered by Google's new `@google/genai` TypeScript SDK using the Gemini Flash family for high-speed, cost-effective synthesis and vector search.
-- **Database & Storage**: Google Cloud Firestore for secure, schema-flexible document storage with owner-isolated security rules.
-- **Zero Heavy Native Dependencies**: Uses pure-JS engines (custom Euler spring physics, Canvas/SVG constellation graphics, Web Speech API) to guarantee instant cold boots on Cloud Run.
-
----
-
-## What Locus Does
-
-- **Multi-Stance Reflection**: Choose how the companion reflects back to you—*Reflective Mirror* for emotional unpacking, *Idea Spark* for brainstorming, *Action Blueprint* for pragmatic next steps, or *Mindful Grounding* for presence.
-- **Voice-to-Text Dictation**: Native speech recognition composer built directly into the reflection workspace, allowing you to speak your stream of consciousness naturally without breaking focus.
-- **Synchronous Synthesis Pipeline**: The moment an entry is concluded, Gemini analyzes the transcript and any pinned highlights, checks for related themes via semantic similarity, and creates or updates persistent theme dossiers with discrete observations.
-- **Dual-View Themes Canvas**:
-  - **Timeline Trajectory**: Read a chronological feed of how your thoughts on a topic evolved over weeks.
-  - **Concept Graph**: An interactive, force-directed network showing connected themes, observation density, and cluster relationships.
-- **The Return**: An explainable daily review loop that resurfaces exactly one past entry based on clear criteria (time horizon, margin density, or theme relevance). No fake urgency, streaks, or guilt trips.
-- **Archival Appearance & Dark Mode**:
-  - **Daylight**: Warm archival ivory (`#FAF9F6`) substrate.
-  - **Obsidian Dark Mode**: Natural charcoal palette (`#141412` canvas, `#1E1D19` surface) engineered for quiet nighttime reflection.
-  - **Rule of One Accent**: Muted sage green (`#3B7A57` / `#4E9B71`) reserved strictly for interactive actions.
-- **Privacy & Security First**: Outbound PII scrubbing, SSRF-validated webhooks, owner-bound Firestore isolation, and full offline Demo Mode.
 
 ---
 
