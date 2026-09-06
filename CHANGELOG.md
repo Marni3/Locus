@@ -5,6 +5,10 @@ All notable changes, architectural decisions, schema modifications, and design s
 ## [2026-09-06]
 
 ### Added
+- **Dark Mode Contrast Restoration & Accessibility Polish ([src/components/SessionWorkspace.tsx](file:///c:/Users/reyna/OneDrive/Documents/Locus/src/components/SessionWorkspace.tsx))**:
+  - Replaced hardcoded `text-stone-800`, `text-stone-900`, and `text-stone-600` in AI companion Markdown rendering (`h1`-`h3`, `strong`, `p`, `ul`, `ol`, `blockquote`) with semantic `text-text-primary` (`#ECE7DE` in dark mode) and `border-accent-sage` with `text-text-muted`, resolving near-zero contrast in Obsidian theme.
+  - Upgraded Daily Reflection Inspiration card from low-contrast `bg-accent-sage-tint/40` to a dedicated card layout (`bg-surface border border-accent-sage/35 dark:border-accent-sage/50 shadow-xs`) with high-contrast serif italic quote typography.
+  - Swapped hardcoded stone/hex colors on timestamps, bookmark toggles, and note pills to semantic tokens.
 - **CI Secret Scan Remediation (`scan-history`)**:
   - Replaced hardcoded Firebase API key in [firebase-applet-config.json](file:///c:/Users/reyna/OneDrive/Documents/Locus/firebase-applet-config.json) with `YOUR_FIREBASE_API_KEY` placeholder so TruffleHog no longer flags a `GoogleGeminiAPIKey` secret pattern.
 - **Mobile Viewport Audit & Responsive Touch Hardening ([tests/e2e/mobile-audit.spec.ts](file:///c:/Users/reyna/OneDrive/Documents/Locus/tests/e2e/mobile-audit.spec.ts))**:

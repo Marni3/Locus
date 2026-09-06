@@ -844,7 +844,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
                 {/* Floating Inspiration Chip if launched from daily prompt */}
                 {initialPrompt && (
-                  <div className="p-4 bg-accent-sage-tint/40 border border-accent-sage/30 rounded-2xl text-left space-y-2 relative group mb-4">
+                  <div className="p-4 sm:p-5 bg-surface border border-accent-sage/35 dark:border-accent-sage/50 rounded-2xl text-left space-y-2.5 relative group mb-4 shadow-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-wider font-semibold text-accent-sage flex items-center gap-1.5 font-sans">
                         <Compass className="w-3.5 h-3.5" />
@@ -853,19 +853,19 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                       {onDismissInitialPrompt && (
                         <button
                           onClick={onDismissInitialPrompt}
-                          className="p-1 text-text-muted hover:text-text-primary rounded-md cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text-primary rounded-md cursor-pointer transition-colors"
                           title="Dismiss prompt"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
-                    <p className="font-serif text-sm sm:text-base text-text-primary italic leading-snug">
+                    <p className="font-serif text-base sm:text-lg text-text-primary italic leading-relaxed">
                       "{initialPrompt}"
                     </p>
                     <button
                       onClick={() => setInputText(initialPrompt)}
-                      className="text-xs text-accent-sage font-medium hover:underline inline-flex items-center gap-1 font-sans cursor-pointer"
+                      className="text-xs text-accent-sage hover:underline font-medium inline-flex items-center gap-1 font-sans cursor-pointer transition-colors"
                     >
                       Use this contemplation as your starter &rarr;
                     </button>
@@ -934,7 +934,7 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-stone-400">
+                          <span className="text-xs text-text-muted font-sans">
                             {new Date(turn.createdAt || turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
 
@@ -943,10 +943,10 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                             onClick={() => handleToggleBookmark(turn.id, Boolean(turn.isBookmarked || turn.isPinned))}
                             className={`p-1 rounded transition-colors cursor-pointer ${
                               turn.isBookmarked || turn.isPinned
-                                ? 'text-[#3B7A57] bg-[#DCEEE3]/60'
+                                ? 'text-accent-sage bg-accent-sage-tint'
                                 : isUser
-                                ? 'text-stone-500 hover:text-stone-300'
-                                : 'text-stone-400 hover:text-stone-600'
+                                ? 'text-text-muted hover:text-text-primary'
+                                : 'text-text-muted hover:text-text-primary'
                             }`}
                             title={turn.isBookmarked || turn.isPinned ? 'Remove bookmark' : 'Bookmark this realization'}
                             aria-label={turn.isBookmarked || turn.isPinned ? 'Remove bookmark' : 'Bookmark this realization'}
@@ -962,10 +962,8 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                             }}
                             className={`p-1 rounded transition-colors cursor-pointer ${
                               turn.note
-                                ? 'text-emerald-400'
-                                : isUser
-                                ? 'text-stone-500 hover:text-stone-300'
-                                : 'text-stone-400 hover:text-stone-600'
+                                ? 'text-accent-sage'
+                                : 'text-text-muted hover:text-text-primary'
                             }`}
                             title={turn.note ? 'Edit note' : 'Add personal note'}
                             aria-label={turn.note ? 'Edit note' : 'Add personal note'}
@@ -987,9 +985,9 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                               h1: ({ children }) => <h3 className="font-serif-heading font-bold text-base text-text-primary mt-2 mb-1">{children}</h3>,
                               h2: ({ children }) => <h4 className="font-serif-heading font-bold text-sm text-text-primary mt-2 mb-1">{children}</h4>,
                               h3: ({ children }) => <h5 className="font-serif-heading font-bold text-sm text-text-primary mt-2 mb-1">{children}</h5>,
-                              p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
+                              p: ({ children }) => <p className="mb-2 leading-relaxed text-text-primary">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1 text-text-primary">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1 text-text-primary">{children}</ol>,
                               blockquote: ({ children }) => <blockquote className="border-l-2 border-accent-sage pl-3 italic text-text-muted my-2">{children}</blockquote>,
                               strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                             }}
