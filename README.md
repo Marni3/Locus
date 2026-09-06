@@ -1,4 +1,4 @@
-# Locus (ReflectAI)
+# Locus
 
 > A private reflective sanctuary and longitudinal insight companion built for the **Google Gen AI Academy APAC Edition (Cohort 3)**.
 
