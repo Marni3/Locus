@@ -2,6 +2,26 @@
 
 > A private reflective sanctuary and longitudinal insight companion built for the **Google Gen AI Academy APAC Edition (Cohort 3)**.
 
+---
+
+## At a Glance: What is Locus?
+
+**Locus** (ReflectAI) is an intelligent, calm, and private reflective journaling sanctuary designed to transcend ephemeral AI chatbots. Built with **React 19**, **TypeScript**, **TailwindCSS v4**, **Express 4**, and **Gemini 2.5 / 3.5**, Locus treats reflection like a living physical notebook: active conversations seal into immutable historical pages, margin notes track how your realizations evolve across time, and an autonomous vector embedding engine discovers recurring intellectual and creative trajectories.
+
+### Core Features at a Glance
+
+| Feature | What It Does & Why It Matters |
+| :--- | :--- |
+| **Finite Pages & Sealing** | Reflection sessions seal naturally or after a 2-hour inactivity window. Once sealed, a page becomes **permanently immutable**, preserving who you were when you wrote it. |
+| **Strata Margins (Marginalia)** | Revisit sealed entries across time to write in the margins with temporal distance stamps (e.g., *3 weeks later*) and ink stances (*revision*, *correction*, *affirmation*)—without altering your original words. |
+| **Longitudinal Themes & Graph** | Concluded entries pass through a vector similarity pipeline (`text-embedding-004`). Gemini extracts discrete observations and clusters them into longitudinal trajectories and an interactive **Force-Directed Concept Constellation**. |
+| **The Return (One Page a Day)** | An explainable daily review ritual that resurfaces exactly one past page based on anniversary timing, thematic resonance, or contradictory realizations—prompting you to look back and write in the margins. |
+| **Voice Stream-of-Consciousness** | In-browser speech recognition lets you speak your thoughts freely into the reflection workspace without breaking focus. |
+| **Obsidian Dark & Daylight Modes** | Archival typography (Literata + Courier Prime Mono) rendered on warm archival paper (`#FAF9F6`) or deep charcoal (`#141412`), strictly adhering to the **Rule of One Accent** (sage green) with zero enterprise clutter. |
+| **Zero-Compromise Privacy** | Outbound regex PII sanitizer scrubs phone numbers, emails, and street addresses before egress; strict SSRF guards on webhooks; owner-isolated Firestore rules; plus a 1-click **30-Day Simulation Dataset** for instant evaluation without login. |
+
+---
+
 I took my sweet time working on my submission for the Google Gen AI Academy APAC Edition, but I'm happy to finally call it finished. I learned quite a lot building it and applying what we were taught in Cohort 3.
 
 Since we were tasked with creating a "Personal Gemini Journal" and were even given a starter prompt that scaffolded a base application, I wanted to step back first and ask: *what does a journal actually need to do?* 

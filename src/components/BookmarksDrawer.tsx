@@ -110,7 +110,7 @@ export const BookmarksDrawer: React.FC<BookmarksDrawerProps> = ({
       {/* Backdrop Scrim */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-stone-900/30 backdrop-blur-[2px] transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
       />
 
       {/* Drawer Container */}

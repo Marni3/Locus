@@ -184,7 +184,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-stone-900/30 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-black/40 backdrop-blur-xs animate-fade-in">
       <div 
         id="settings-drawer-panel"
         className="w-full max-w-2xl bg-canvas h-full shadow-2xl border-l border-border-hairline flex flex-col justify-between"
@@ -284,8 +284,8 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               onClick={() => setActiveTab('integrations')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
                 activeTab === 'integrations'
-                  ? 'bg-white text-emerald-900 shadow-2xs font-semibold'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                  ? 'bg-surface text-text-primary shadow-2xs font-semibold'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface/60'
               }`}
             >
               <Bell className="w-3.5 h-3.5" />
@@ -298,7 +298,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'persona' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
                     Tone Presets
                   </label>
                   <div className="space-y-2">
@@ -308,30 +308,30 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         onClick={() => setFormState({ ...formState, personaTone: t.id })}
                         className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                           formState.personaTone === t.id
-                            ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
-                            : 'bg-white/60 border-stone-200 hover:bg-white'
+                            ? 'bg-surface border-accent-sage ring-1 ring-accent-sage/20 shadow-2xs'
+                            : 'bg-surface/60 border-border-hairline hover:bg-surface'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-stone-900">{t.label}</span>
+                          <span className="text-xs font-semibold text-text-primary">{t.label}</span>
                           {formState.personaTone === t.id && (
-                            <Check className="w-3.5 h-3.5 text-emerald-700" />
+                            <Check className="w-3.5 h-3.5 text-accent-sage" />
                           )}
                         </div>
-                        <p className="text-xs text-stone-500 mt-0.5">{t.desc}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{t.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-2">
                     Default Stance on New Entries
                   </label>
                   <select
                     value={formState.defaultStance}
                     onChange={(e) => setFormState({ ...formState, defaultStance: e.target.value as ReflectionMode })}
-                    className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                    className="w-full px-3 py-2 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-sage/20 focus:border-accent-sage"
                   >
                     {STANCES.map((s) => (
                       <option key={s.id} value={s.id}>{s.label}</option>
@@ -340,10 +340,10 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     System Prompt &amp; Custom Instructions
                   </label>
-                  <p className="text-xs text-stone-500 mb-2">
+                  <p className="text-xs text-text-muted mb-2">
                     Guide how your companion analyzes, frames insights, and responds to your reflections.
                   </p>
                   <textarea
@@ -351,7 +351,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     value={formState.customInstructions}
                     onChange={(e) => setFormState({ ...formState, customInstructions: e.target.value })}
                     placeholder="e.g. I am an engineer transitioning to product leadership. Challenge my assumptions with strategic inquiry and help me clarify priorities."
-                    className="w-full p-3 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 leading-relaxed"
+                    className="w-full p-3 text-xs bg-surface text-text-primary border border-border-hairline rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-sage/20 focus:border-accent-sage leading-relaxed"
                   />
                 </div>
               </div>
@@ -561,10 +561,10 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'tags' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     Manage Categories &amp; Tags
                   </label>
-                  <p className="text-xs text-stone-500 mb-4">
+                  <p className="text-xs text-text-muted mb-4">
                     This is the single source of truth for categories, keeping the sidebar taxonomy perfectly in sync.
                   </p>
 
@@ -575,11 +575,11 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                       onChange={(e) => setNewTagInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
                       placeholder="Add new category (e.g., Reading, Health)..."
-                      className="flex-1 px-3 py-2 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                      className="flex-1 px-3 py-2 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-sage/20 focus:border-accent-sage"
                     />
                     <button
                       onClick={handleAddCategory}
-                      className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-white bg-accent-sage hover:opacity-90 rounded-lg transition-colors cursor-pointer shadow-2xs"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add</span>
@@ -590,12 +590,12 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     {formState.categories.map((cat) => (
                       <div
                         key={cat}
-                        className="flex items-center justify-between p-2.5 bg-white border border-stone-200 rounded-lg text-xs"
+                        className="flex items-center justify-between p-2.5 bg-surface border border-border-hairline rounded-lg text-xs"
                       >
-                        <span className="font-medium text-stone-800">{cat}</span>
+                        <span className="font-medium text-text-primary">{cat}</span>
                         <button
                           onClick={() => handleRemoveCategory(cat)}
-                          className="p-1 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
                           title="Delete category"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -610,37 +610,37 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'notebook' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     Notebook Automation
                   </label>
-                  <p className="text-xs text-stone-500 mb-4">
+                  <p className="text-xs text-text-muted mb-4">
                     Configure how quotes and takeaways are filed into your personal notebook.
                   </p>
 
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-4">
+                  <div className="p-4 bg-surface border border-border-hairline rounded-xl space-y-4">
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formState.autoGenerateContextHint}
                         onChange={(e) => setFormState({ ...formState, autoGenerateContextHint: e.target.checked })}
-                        className="mt-0.5 rounded border-stone-300 text-emerald-800 focus:ring-emerald-700"
+                        className="mt-0.5 rounded border-border-hairline text-accent-sage focus:ring-accent-sage"
                       />
                       <div>
-                        <span className="text-xs font-semibold text-stone-800">Auto-Generate Context Hints</span>
-                        <p className="text-xs text-stone-500 mt-0.5">
+                        <span className="text-xs font-semibold text-text-primary">Auto-Generate Context Hints</span>
+                        <p className="text-xs text-text-muted mt-0.5">
                           When saving an excerpt, automatically generate a 1-sentence analytical context note.
                         </p>
                       </div>
                     </label>
 
-                    <div className="pt-3 border-t border-stone-100">
-                      <label className="block text-xs font-semibold text-stone-800 mb-1">
+                    <div className="pt-3 border-t border-border-hairline">
+                      <label className="block text-xs font-semibold text-text-primary mb-1">
                         Default Folder Naming
                       </label>
                       <select
                         value={formState.defaultFolderPattern}
                         onChange={(e) => setFormState({ ...formState, defaultFolderPattern: e.target.value as any })}
-                        className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                        className="w-full px-3 py-2 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-sage/20 focus:border-accent-sage"
                       >
                         <option value="source_title">Source Reflection Title (Default)</option>
                         <option value="category">Category Name</option>
@@ -655,24 +655,24 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'data' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     Model &amp; Data Management
                   </label>
-                  <p className="text-xs text-stone-500 mb-4">
+                  <p className="text-xs text-text-muted mb-4">
                     Export your complete journal archive or manage privacy settings.
                   </p>
 
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">
+                  <div className="p-4 bg-surface border border-border-hairline rounded-xl space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-stone-800">Export All Data (JSON)</p>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs font-semibold text-text-primary">Export All Data (JSON)</p>
+                        <p className="text-xs text-text-muted">
                           {allInteractions.length} reflections &bull; {allNotebookItems.length} saved notes
                         </p>
                       </div>
                       <button
                         onClick={handleExportData}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-800 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-primary bg-canvas hover:bg-surface border border-border-hairline rounded-lg transition-colors cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Export Archive</span>
@@ -681,17 +681,17 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   </div>
 
                   {/* 30-Day Simulation Dataset for Evaluation */}
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">
+                  <div className="p-4 bg-surface border border-border-hairline rounded-xl space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-stone-800">30-Day Simulation Dataset</p>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs font-semibold text-text-primary">30-Day Simulation Dataset</p>
+                        <p className="text-xs text-text-muted">
                           Pre-load 6 multi-turn reflections, 3 themes, and 8 observations to evaluate longitudinal tracking.
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {onLoadDemoData && (
-                          <button
+                           <button
                             id="settings-load-demo-btn"
                             type="button"
                             onClick={onLoadDemoData}
@@ -706,7 +706,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                             id="settings-clear-demo-btn"
                             type="button"
                             onClick={onClearDemoData}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg border border-rose-500/20 transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>Clear</span>
@@ -722,25 +722,25 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
             {activeTab === 'integrations' && (
               <div className="space-y-6">
                 {/* Outbound Privacy Notice */}
-                <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-950">
-                    <Shield className="w-4 h-4 text-emerald-800" />
+                <div className="p-4 bg-accent-sage-tint/20 border border-accent-sage/30 rounded-xl space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-accent-sage">
+                    <Shield className="w-4 h-4 text-accent-sage" />
                     <span>Outbound Privacy Sanitizer Active</span>
                   </div>
-                  <p className="text-xs text-emerald-900/80 leading-relaxed">
+                  <p className="text-xs text-text-primary/90 leading-relaxed">
                     Any prompt or reflection sent to external synthesis engines or webhooks is automatically scrubbed of phone numbers, emails, and street addresses before egress. Your original reflections remain intact and unredacted in your private journal.
                   </p>
                 </div>
 
                 {/* Reflection Digest Email */}
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     Reflective Email Briefings
                   </label>
-                  <p className="text-xs text-stone-500 mb-3">
+                  <p className="text-xs text-text-muted mb-3">
                     Receive calm, transactional summaries of recent realizations and evolving themes.
                   </p>
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-4">
+                  <div className="p-4 bg-surface border border-border-hairline rounded-xl space-y-4">
                     <div className="space-y-2">
                       {[
                         {
@@ -774,15 +774,15 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                             }
                             className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                               isSelected
-                                ? 'bg-white border-emerald-700/80 ring-1 ring-emerald-700/20 shadow-2xs'
-                                : 'bg-white/60 border-stone-200 hover:bg-white'
+                                ? 'bg-surface border-accent-sage ring-1 ring-accent-sage/20 shadow-2xs'
+                                : 'bg-surface/60 border-border-hairline hover:bg-surface'
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-stone-900">{opt.title}</span>
-                              {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700" />}
+                              <span className="text-xs font-semibold text-text-primary">{opt.title}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-accent-sage" />}
                             </div>
-                            <p className="text-[11px] text-stone-500 mt-0.5 leading-relaxed">{opt.desc}</p>
+                            <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">{opt.desc}</p>
                           </div>
                         );
                       })}
@@ -790,16 +790,16 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
 
                     {/* Schedule Picker for Weekly Digest */}
                     {(formState.emailCadence === 'weekly_digest' || (!formState.emailCadence && formState.emailNotifications)) && (
-                      <div className="pt-3 border-t border-stone-100 grid grid-cols-2 gap-3">
+                      <div className="pt-3 border-t border-border-hairline grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-semibold text-stone-700 mb-1">
+                          <label className="block text-[11px] font-semibold text-text-primary mb-1">
                             Delivery Day
                           </label>
                           <select
                             id="settings-weekly-digest-day"
                             value={formState.weeklyDigestDay || 'sunday'}
                             onChange={(e) => setFormState({ ...formState, weeklyDigestDay: e.target.value as any })}
-                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-700 text-stone-800"
+                            className="w-full px-2.5 py-1.5 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-sage"
                           >
                             <option value="sunday">Sunday Evening</option>
                             <option value="monday">Monday Morning</option>
@@ -807,14 +807,14 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-stone-700 mb-1">
+                          <label className="block text-[11px] font-semibold text-text-primary mb-1">
                             Preferred Time
                           </label>
                           <select
                             id="settings-weekly-digest-hour"
                             value={formState.weeklyDigestHour ?? 7}
                             onChange={(e) => setFormState({ ...formState, weeklyDigestHour: Number(e.target.value) })}
-                            className="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-700 text-stone-800"
+                            className="w-full px-2.5 py-1.5 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-1 focus:ring-accent-sage"
                           >
                             <option value={7}>7:00 AM</option>
                             <option value={8}>8:00 AM</option>
@@ -829,15 +829,15 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
 
                 {/* Webhook Dispatcher */}
                 <div>
-                  <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-text-primary uppercase tracking-wider mb-1">
                     Zapier / Custom Webhook
                   </label>
-                  <p className="text-xs text-stone-500 mb-3">
+                  <p className="text-xs text-text-muted mb-3">
                     Forward concluded reflection digests to your personal automation endpoint with strict SSRF protection.
                   </p>
-                  <div className="p-4 bg-white border border-stone-200 rounded-xl space-y-3">
+                  <div className="p-4 bg-surface border border-border-hairline rounded-xl space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-stone-800 mb-1">
+                      <label className="block text-xs font-semibold text-text-primary mb-1">
                         Endpoint URL (HTTPS Required)
                       </label>
                       <div className="flex gap-2">
@@ -850,19 +850,19 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                             setWebhookValidationStatus(null);
                           }}
                           placeholder="https://hooks.zapier.com/hooks/catch/..."
-                          className="flex-1 px-3 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                          className="flex-1 px-3 py-1.5 text-xs bg-surface text-text-primary border border-border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-sage/20 focus:border-accent-sage"
                         />
                         <button
                           id="settings-test-webhook-btn"
                           type="button"
                           onClick={handleTestWebhook}
                           disabled={isTestingWebhook || !formState.webhookUrl?.trim()}
-                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                          className="px-3 py-1.5 bg-canvas hover:bg-surface text-text-primary border border-border-hairline rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                         >
                           {isTestingWebhook ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-800" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-sage" />
                           ) : (
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" />
+                            <ShieldCheck className="w-3.5 h-3.5 text-accent-sage" />
                           )}
                           <span>Test SSRF</span>
                         </button>
@@ -874,14 +874,14 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                         id="settings-webhook-status-badge"
                         className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
                           webhookValidationStatus.isValid
-                            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
-                            : 'bg-rose-50 border border-rose-200 text-rose-900'
+                            ? 'bg-accent-sage-tint/30 border border-accent-sage/40 text-text-primary'
+                            : 'bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300'
                         }`}
                       >
                         {webhookValidationStatus.isValid ? (
-                          <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                          <Check className="w-4 h-4 text-accent-sage shrink-0" />
                         ) : (
-                          <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
+                          <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                         )}
                         <span>
                           {webhookValidationStatus.isValid

@@ -156,7 +156,10 @@ When deploying to Google Cloud Run, it's tempting to install heavy APM sidecars 
 We took advantage of Cloud Run's native primitives instead:
 1. **Zero-Dependency Structured Logging**: Cloud Run's logging agent parses single-line JSON written to `stdout` and `stderr` automatically. By outputting structured fields (`severity`, `logging.googleapis.com/trace`, `serviceContext`), we get automatic Error Reporting and trace correlation in Google Cloud Console without adding a single third-party library or background thread.
 2. **Strict Log Sanitization (Threat Zone 5)**: In an AI journaling app, log privacy is non-negotiable. Our structured logger recursively scrubs API keys, auth tokens, and all reflection prompt/turn contents before serializing to `stdout`. Cloud logs contain metadata (latencies, model names, status codes) with zero user thoughts.
-3. **Serverless Cron vs. Brittle Browser Timers**: Relying on a user's browser tab staying open for 2 hours to trigger auto-conclude is inherently flawed. Adding an authenticated `POST /api/cron/sweep-conclude` route allows Google Cloud Scheduler to trigger sweeps every 15-30 minutes with a batch ceiling (`maxBatch: 5`) that guarantees neither Gemini quotas nor Cloud Run timeouts are ever breached.
+3. **The 2-Hour Lifecycle Dilemma (Cloud Scheduler vs. Local Timer vs. Lazy Reconcile)**:
+   - *The Local Timer Flaw*: Journaling is not continuous. A user reflects for 20 minutes, closes their laptop lid, and walks away. A browser `setTimeout` dies when the tab is closed, leaving the reflection in "active" limbo for days until they return.
+   - *The Cloud Scheduler Trade-Off*: An authenticated `POST /api/cron/sweep-conclude` route allows Google Cloud Scheduler to trigger periodic sweeps in the background. While robust, it wakes up scale-to-zero containers on a schedule and incurs job configuration overhead.
+   - *The Production Gold Standard (Lazy Reconciliation)*: The most elegant solution is a hybrid. An active in-tab timer handles the countdown while the user is engaged, but on app mount or window focus (`visibilitychange`), the client immediately performs lazy reconciliation: any session with `Date.now() - lastActivity > 2 hours` seals instantly on the spot. The cloud cron remains an optional background backstop for unattended automations (such as Monday morning digest emails).
 
 ---
 
@@ -171,3 +174,4 @@ If you're interested in writing or speaking about these topics, here are the cor
 5. **"The 550KB Vector Leak: Why Your Frontend Probably Doesn't Need Embeddings"**
 6. **"From Hackathon Prompt to Google Cloud Run: Building an Evaluator-Ready AI Sanctuary"**
 7. **"Zero Secrets in the Cloud: Architecting Private Serverless LLM Pipelines on Cloud Run"**
+8. **"The 2-Hour Auto-Conclude Problem: Cloud Schedulers vs. Local Timers vs. Lazy Reconcile"**

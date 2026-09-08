@@ -2,6 +2,45 @@
 
 All notable changes, architectural decisions, schema modifications, and design system updates for **Locus (ReflectAI)** are documented in this file, grouped by date.
 
+## [2026-09-08]
+
+### Added
+- **Client-Side Lazy-Reconciliation Engine ([src/services/lazyReconcile.ts](src/services/lazyReconcile.ts), [tests/unit/lazy-reconcile.test.ts](tests/unit/lazy-reconcile.test.ts), [src/App.tsx](src/App.tsx), [src/components/SessionWorkspace.tsx](src/components/SessionWorkspace.tsx))**:
+  - Implemented client-side lifecycle safety net for reflection sessions past the 2-hour inactivity threshold.
+  - Automatically identifies expired active entries using `isEntryEligibleForAutoConclude()` and reconciles them seamlessly.
+  - Reconciles across 4 non-intrusive lifecycle hooks: initial data load (`loadUserData`), tab visibility changes (`visibilitychange`), window focus (`focus`), and a 60-second periodic heartbeat.
+  - Concurrency-safe: maintains an `inFlightReconcileRef` set to prevent double-concluding or race conditions across simultaneous events.
+  - View-preservation guarantee: `handleConcludeEntry` options (`navigateToReader: boolean`) ensure background reconciliations do not hijack the user's active view.
+  - Added in-tab workspace auto-conclude trigger when timer expires (`remainingMs <= 0`) with `hasAutoTriggered` guard.
+  - Added comprehensive unit test suite ([tests/unit/lazy-reconcile.test.ts](tests/unit/lazy-reconcile.test.ts)) covering threshold detection, error isolation, immunity of concluded entries, and empty arrays.
+- **README Executive Feature Summary Matrix ([README.md](README.md))**:
+  - Inserted a high-visibility, scannable **"At a Glance: What is Locus?"** section directly beneath the header.
+  - Summarized the 7 core pillars: Finite Pages & Sealing, Strata Margins, Longitudinal Themes & Graph, The Return, Voice Stream-of-Consciousness, Obsidian Dark Mode, and Zero-Compromise Privacy.
+- **Guided Tour Marginalia Highlighting Emphasis ([src/components/WalkthroughOverlay.tsx](src/components/WalkthroughOverlay.tsx))**:
+  - Updated Step 5 ("Strata Margins") narrative to explicitly instruct and emphasize: *"Simply highlight any part of a concluded entry to write in the margins."*
+  - Added an accented, animated callout badge within the tour card highlighting this interaction pattern.
+
+### Changed
+- **Settings Drawer Complete Semantic Dark Mode Migration ([src/components/SettingsDrawer.tsx](src/components/SettingsDrawer.tsx))**:
+  - Replaced all legacy hardcoded Tailwind stone, white, and emerald classes across Voice & Tone, Categories & Tags, Notebook, Model & Data, and Integrations & Alerts tabs with design system semantic tokens (`bg-surface`, `bg-canvas`, `border-border-hairline`, `text-text-primary`, `text-text-muted`, `accent-sage`, `accent-sage-tint`).
+  - Swapped drawer backdrop overlay from `bg-stone-900/30` to theme-adaptive `bg-black/40`.
+  - Harmonized the `integrations` tab navigation button styling with existing tabs.
+  - Sanitized form controls (`<input>`, `<select>`, `<textarea>`) to ensure high contrast in both Daylight and Obsidian dark mode.
+- **The Return ("Looking Back") CTA Repositioning ([src/components/TheReturnView.tsx](src/components/TheReturnView.tsx))**:
+  - Relocated the primary *"Write in the margin"* and *"Not today"* actions from the bottom to the top of the reading measure, directly beneath the header/provenance bar.
+  - Readers can now immediately decide whether to reflect in the margin or dismiss without having to scroll to the bottom of long entry transcripts.
+- **Walkthrough Automatic Scroll-to-Top ([src/components/WalkthroughOverlay.tsx](src/components/WalkthroughOverlay.tsx), [src/App.tsx](src/App.tsx))**:
+  - Added automated window and container scroll resets (`window.scrollTo({ top: 0 })` and `main.scrollTop = 0`) triggered on each walkthrough step transition.
+  - Prevents tall views from remaining scrolled down when navigating to steps that feature top-anchored UI components (such as margin notes).
+- **Dark Mode Hygiene Across App Components ([src/components/SessionWorkspace.tsx](src/components/SessionWorkspace.tsx), [src/components/Toast.tsx](src/components/Toast.tsx), [src/components/SaveToNotebookModal.tsx](src/components/SaveToNotebookModal.tsx), [src/components/BookmarksDrawer.tsx](src/components/BookmarksDrawer.tsx), [src/components/NotebookView.tsx](src/components/NotebookView.tsx))**:
+  - Replaced hardcoded stone/white styling in SessionWorkspace location popover and inline personal note editor with semantic tokens.
+  - Updated Toast notification action buttons and close triggers for dark mode contrast.
+  - Replaced modal backgrounds and card surfaces in SaveToNotebookModal and BookmarksDrawer.
+
+### Verified
+- Executed `npm run lint` (`tsc --noEmit`): 0 errors.
+- Executed `npm run test:unit`: 18 test files passed (119 of 119 tests passing).
+
 ## [2026-09-06]
 
 ### Added

@@ -44,7 +44,27 @@ export const TheReturnView: React.FC<TheReturnViewProps> = ({
       </header>
 
       {/* Main Single-Entry Reading Measure */}
-      <main className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-14 space-y-8 animate-fade-in">
+      <main className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10 space-y-8 animate-fade-in">
+        {/* Top Action Bar */}
+        <div className="flex items-center justify-between gap-4 pb-5 border-b border-border-hairline">
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="text-xs font-ui text-text-muted hover:text-text-primary cursor-pointer px-2 py-1.5 rounded-lg hover:bg-surface border border-transparent hover:border-border-hairline transition-colors"
+          >
+            Not today
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onWriteInMargin(entry)}
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-vermilion hover:opacity-90 text-white rounded-xl font-ui font-semibold text-xs sm:text-sm transition-all shadow-xs hover:shadow cursor-pointer"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Write in the margin</span>
+          </button>
+        </div>
+
         {/* Contradiction Callout Banner if detected */}
         {reason === 'contradiction' && contradictingEntry && (
           <div className="p-4 sm:p-5 bg-vermilion/10 border-l-3 border-vermilion rounded-r-xl space-y-2">
@@ -159,24 +179,11 @@ export const TheReturnView: React.FC<TheReturnViewProps> = ({
           </section>
         )}
 
-        {/* Bottom Sticky Action Bar */}
-        <div className="pt-8 pb-12 flex items-center justify-between gap-4 border-t border-border-hairline">
-          <button
-            type="button"
-            onClick={onDismiss}
-            className="text-xs font-ui text-text-muted hover:text-text-primary cursor-pointer"
-          >
-            Not today
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onWriteInMargin(entry)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-vermilion hover:opacity-90 text-white rounded-xl font-ui font-semibold text-sm transition-all shadow-xs hover:shadow cursor-pointer"
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Write in the margin</span>
-          </button>
+        {/* End of Sealed Entry Indicator */}
+        <div className="pt-8 pb-12 text-center border-t border-border-hairline/60">
+          <p className="font-stamp text-xs text-text-muted">
+            End of entry · Concluded {concludedTime.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+          </p>
         </div>
       </main>
     </div>

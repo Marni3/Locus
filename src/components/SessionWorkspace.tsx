@@ -157,18 +157,23 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
   // Inactivity Countdown Timer
   useEffect(() => {
+    let hasAutoTriggered = false;
     const updateCountdown = () => {
       if (interaction.status === 'active') {
         const remainingMs = getRemainingActiveMs(interaction);
         setRemainingTimeText(formatRemainingTime(remainingMs));
+        if (remainingMs <= 0 && !hasAutoTriggered) {
+          hasAutoTriggered = true;
+          onConcludeEntry(interaction);
+        }
       } else {
         setRemainingTimeText('Concluded');
       }
     };
     updateCountdown();
-    const interval = setInterval(updateCountdown, 15000);
+    const interval = setInterval(updateCountdown, 10000);
     return () => clearInterval(interval);
-  }, [interaction]);
+  }, [interaction, onConcludeEntry]);
 
   // Sync state when active interaction changes
   useEffect(() => {
@@ -611,24 +616,24 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                 <div
                   ref={locationPopoverRef}
                   id="workspace-location-popover"
-                  className="absolute left-0 mt-1.5 w-72 bg-white rounded-xl shadow-lg border border-stone-200 p-3.5 z-50 text-xs space-y-3 animate-fade-in"
+                  className="absolute left-0 mt-1.5 w-72 bg-surface rounded-xl shadow-lg border border-border-hairline p-3.5 z-50 text-xs space-y-3 animate-fade-in text-text-primary"
                 >
-                  <div className="flex items-center justify-between pb-1.5 border-b border-stone-100">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-border-hairline">
                     <div>
-                      <h4 className="font-semibold text-stone-800 text-xs">Location Context</h4>
-                      <p className="text-xs text-stone-400">Attach where you are thinking from</p>
+                      <h4 className="font-semibold text-text-primary text-xs">Location Context</h4>
+                      <p className="text-xs text-text-muted">Attach where you are thinking from</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsLocationOpen(false)}
-                      className="text-stone-400 hover:text-stone-600 p-0.5 rounded cursor-pointer"
+                      className="text-text-muted hover:text-text-primary p-0.5 rounded cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   {locationError && (
-                    <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs">
+                    <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded text-amber-700 dark:text-amber-300 text-xs">
                       {locationError}
                     </div>
                   )}
@@ -639,20 +644,20 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                     type="button"
                     onClick={handleUseGps}
                     disabled={isResolvingLocation}
-                    className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-canvas hover:bg-surface text-text-primary border border-border-hairline rounded-lg text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isResolvingLocation ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#3B7A57]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-sage" />
                     ) : (
-                      <Navigation className="w-3.5 h-3.5 text-[#3B7A57]" />
+                      <Navigation className="w-3.5 h-3.5 text-accent-sage" />
                     )}
                     <span>Use Current GPS</span>
                   </button>
 
-                  <div className="flex items-center gap-2 text-xs text-stone-400 uppercase tracking-wider">
-                    <span className="flex-1 h-px bg-stone-200"></span>
+                  <div className="flex items-center gap-2 text-xs text-text-muted uppercase tracking-wider">
+                    <span className="flex-1 h-px bg-border-hairline"></span>
                     <span>Or Search / Type</span>
-                    <span className="flex-1 h-px bg-stone-200"></span>
+                    <span className="flex-1 h-px bg-border-hairline"></span>
                   </div>
 
                   {/* Search / Custom place */}
@@ -670,9 +675,9 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
                           }
                         }}
                         placeholder="e.g. The Mill Coffee SF, Home Office..."
-                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B7A57]"
+                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-surface border border-border-hairline rounded-lg text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-sage"
                       />
-                      <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2 top-2" />
+                      <Search className="w-3.5 h-3.5 text-text-muted absolute left-2 top-2" />
                     </div>
 
                     <div className="flex items-center justify-between pt-1">
@@ -1037,25 +1042,25 @@ export const SessionWorkspace: React.FC<SessionWorkspaceProps> = ({
 
                       {/* Inline Note Editor */}
                       {editingNoteTurnId === turn.id && (
-                        <div className="mt-3 p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2 text-xs">
-                          <span className="font-semibold text-stone-700 block">Personal Note</span>
+                        <div className="mt-3 p-3 bg-canvas border border-border-hairline rounded-xl space-y-2 text-xs">
+                          <span className="font-semibold text-text-primary block">Personal Note</span>
                           <textarea
                             value={noteDraft}
                             onChange={(e) => setNoteDraft(e.target.value)}
                             placeholder="Type a reflection note on this message..."
                             rows={2}
-                            className="w-full bg-white p-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-[#3B7A57] font-sans resize-none text-stone-800"
+                            className="w-full bg-surface p-2 rounded-lg border border-border-hairline focus:outline-none focus:ring-1 focus:ring-accent-sage font-sans resize-none text-text-primary"
                           />
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => { setEditingNoteTurnId(null); setNoteDraft(''); }}
-                              className="px-2.5 py-1 text-xs text-stone-600 hover:text-stone-800 cursor-pointer"
+                              className="px-2.5 py-1 text-xs text-text-muted hover:text-text-primary cursor-pointer"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={() => handleSaveNote(turn.id, noteDraft)}
-                              className="px-3 py-1 text-xs font-semibold text-white bg-[#3B7A57] hover:bg-[#2E6145] rounded-lg shadow-2xs cursor-pointer"
+                              className="px-3 py-1 text-xs font-semibold text-white bg-accent-sage hover:opacity-90 rounded-lg shadow-2xs cursor-pointer"
                             >
                               Save Note
                             </button>

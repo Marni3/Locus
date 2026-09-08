@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { 
   auth, 
@@ -29,6 +29,7 @@ import { selectReturnCandidate } from './services/returnRouter';
 import { DEMO_USER_ID, getSampleDemoDataset } from './services/demoSimulator';
 import { ReturnCandidate } from './types';
 import { apiFetch } from './lib/api';
+import { findExpiredActiveEntries, reconcileExpiredEntries } from './services/lazyReconcile';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -196,38 +197,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Fetch User Data (Entries, Themes, Observations, Settings) from Firestore
-  const loadUserData = useCallback(async (userId: string) => {
-    try {
-      setIsLoadingData(true);
-      const [fetchedEntries, fetchedThemes, fetchedObservations, fetchedSettings] = await Promise.all([
-        fetchUserEntries(userId),
-        fetchUserThemes(userId),
-        fetchThemeObservations(userId),
-        fetchUserSettings(userId),
-      ]);
-
-      setEntries(fetchedEntries);
-      setThemes(fetchedThemes);
-      setObservations(fetchedObservations);
-      setSettings(fetchedSettings);
-
-      if (fetchedEntries.length > 0) {
-        setActiveEntryId(fetchedEntries[0].id);
-      }
-    } catch (err: any) {
-      console.error('Error loading user data:', err);
-      showToast('Could not load user data from Firestore.', 'error');
-    } finally {
-      setIsLoadingData(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentUser?.uid && currentUser.uid !== DEMO_USER_ID) {
-      loadUserData(currentUser.uid);
-    }
-  }, [currentUser?.uid, loadUserData]);
 
   // Helper: Create a fresh new reflection session
   const createNewSession = (initialPromptText?: string) => {
@@ -314,80 +283,202 @@ export default function App() {
     showToast('Reflection removed.', 'info');
   };
 
+  // In-flight tracker preventing simultaneous duplicate conclusions of the same entry
+  const inFlightReconcileRef = useRef<Set<string>>(new Set());
+
   // Conclude active entry and trigger synchronous synthesis pipeline
-  const handleConcludeEntry = async (entry: Entry) => {
-    if (!currentUser?.uid) return;
+  const handleConcludeEntry = useCallback(
+    async (
+      entry: Entry,
+      options: { navigateToReader?: boolean; notifyUser?: boolean } = {}
+    ) => {
+      const { navigateToReader = true, notifyUser = true } = options;
+      if (!currentUser?.uid) return;
+      try {
+        const res = await apiFetch(`/api/entries/${entry.id}/conclude`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entry,
+            userId: currentUser.uid,
+            userEmail: currentUser.email || undefined,
+            emailNotifications: Boolean(settings.emailNotifications),
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Failed to conclude entry (${res.status})`);
+        }
+
+        const data = await res.json();
+        const updated: Entry = {
+          ...entry,
+          status: 'concluded',
+          concludedAt: new Date().toISOString(),
+          bodySealedAt: new Date().toISOString(),
+          summary: data.result?.concludedEntry?.summary || data.summary || entry.summary,
+          tags: data.result?.concludedEntry?.tags || entry.tags,
+        };
+
+        handleUpdateEntry(updated);
+        if (navigateToReader) {
+          setActiveEntryId(entry.id);
+        }
+
+        if (currentUser.uid !== DEMO_USER_ID) {
+          // Refresh themes and observations in background from Firestore
+          const [refreshedThemes, refreshedObs] = await Promise.all([
+            fetchUserThemes(currentUser.uid),
+            fetchThemeObservations(currentUser.uid),
+          ]);
+          setThemes(refreshedThemes);
+          setObservations(refreshedObs);
+        } else if (data.result) {
+          // In demo mode, apply new/updated themes directly to state
+          if (data.result.updatedThemes) {
+            setThemes((prev) => {
+              const map = new Map(prev.map((t) => [t.id, t]));
+              data.result.updatedThemes.forEach((ut: Theme) => map.set(ut.id, ut));
+              data.result.newThemes?.forEach((nt: Theme) => map.set(nt.id, nt));
+              return Array.from(map.values());
+            });
+          }
+          if (data.result.newObservations) {
+            setObservations((prev) => [...prev, ...data.result.newObservations]);
+          }
+        }
+
+        if (navigateToReader) {
+          setActiveView('reader');
+        }
+        if (notifyUser) {
+          showToast('The page is set. You can now write in the margins.', 'success');
+        }
+      } catch (err: any) {
+        console.warn('Conclude pipeline handled with client fallback:', err.message);
+        const updated: Entry = {
+          ...entry,
+          status: 'concluded',
+          concludedAt: new Date().toISOString(),
+          bodySealedAt: new Date().toISOString(),
+          summary: entry.summary || 'Reflection concluded.',
+          tags: entry.tags && entry.tags.length > 0 ? entry.tags : ['Reflection'],
+        };
+        handleUpdateEntry(updated);
+        if (navigateToReader) {
+          setActiveEntryId(entry.id);
+          setActiveView('reader');
+        }
+        if (notifyUser) {
+          showToast('The page is set. Synthesis unavailable offline.', 'info');
+        }
+      }
+    },
+    [currentUser, settings, handleUpdateEntry]
+  );
+
+  // Lazy reconciliation for idle reflections exceeding the 2-hour window
+  const triggerLazyReconciliation = useCallback(
+    async (candidateEntries: Entry[]) => {
+      if (!currentUser?.uid) return;
+      const expired = findExpiredActiveEntries(candidateEntries).filter(
+        (e) => !inFlightReconcileRef.current.has(e.id)
+      );
+
+      if (expired.length === 0) return;
+
+      expired.forEach((e) => inFlightReconcileRef.current.add(e.id));
+
+      try {
+        const result = await reconcileExpiredEntries(
+          expired,
+          async (entryToConclude) => {
+            const isCurrentlyViewing = activeView === 'session' && activeEntryId === entryToConclude.id;
+            await handleConcludeEntry(entryToConclude, {
+              navigateToReader: isCurrentlyViewing,
+              notifyUser: isCurrentlyViewing,
+            });
+          }
+        );
+
+        if (result.reconciledCount > 0 && activeView !== 'session') {
+          showToast(
+            result.reconciledCount === 1
+              ? '1 inactive reflection sealed after 2 hours of rest.'
+              : `${result.reconciledCount} inactive reflections sealed after 2 hours of rest.`,
+            'info'
+          );
+        }
+      } finally {
+        expired.forEach((e) => inFlightReconcileRef.current.delete(e.id));
+      }
+    },
+    [currentUser?.uid, activeView, activeEntryId, handleConcludeEntry]
+  );
+
+  // 2. Fetch User Data (Entries, Themes, Observations, Settings) from Firestore
+  const loadUserData = useCallback(async (userId: string) => {
     try {
-      const res = await apiFetch(`/api/entries/${entry.id}/conclude`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entry,
-          userId: currentUser.uid,
-          userEmail: currentUser.email || undefined,
-          emailNotifications: Boolean(settings.emailNotifications),
-        }),
-      });
+      setIsLoadingData(true);
+      const [fetchedEntries, fetchedThemes, fetchedObservations, fetchedSettings] = await Promise.all([
+        fetchUserEntries(userId),
+        fetchUserThemes(userId),
+        fetchThemeObservations(userId),
+        fetchUserSettings(userId),
+      ]);
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Failed to conclude entry (${res.status})`);
+      setEntries(fetchedEntries);
+      setThemes(fetchedThemes);
+      setObservations(fetchedObservations);
+      setSettings(fetchedSettings);
+
+      if (fetchedEntries.length > 0) {
+        setActiveEntryId(fetchedEntries[0].id);
       }
 
-      const data = await res.json();
-      const updated: Entry = {
-        ...entry,
-        status: 'concluded',
-        concludedAt: new Date().toISOString(),
-        bodySealedAt: new Date().toISOString(),
-        summary: data.result?.concludedEntry?.summary || data.summary || entry.summary,
-        tags: data.result?.concludedEntry?.tags || entry.tags,
-      };
-
-      handleUpdateEntry(updated);
-      setActiveEntryId(entry.id);
-
-      if (currentUser.uid !== DEMO_USER_ID) {
-        // Refresh themes and observations in background from Firestore
-        const [refreshedThemes, refreshedObs] = await Promise.all([
-          fetchUserThemes(currentUser.uid),
-          fetchThemeObservations(currentUser.uid)
-        ]);
-        setThemes(refreshedThemes);
-        setObservations(refreshedObs);
-      } else if (data.result) {
-        // In demo mode, apply new/updated themes directly to state
-        if (data.result.updatedThemes) {
-          setThemes((prev) => {
-            const map = new Map(prev.map(t => [t.id, t]));
-            data.result.updatedThemes.forEach((ut: Theme) => map.set(ut.id, ut));
-            data.result.newThemes?.forEach((nt: Theme) => map.set(nt.id, nt));
-            return Array.from(map.values());
-          });
-        }
-        if (data.result.newObservations) {
-          setObservations((prev) => [...prev, ...data.result.newObservations]);
-        }
-      }
-
-      setActiveView('reader');
-      showToast('The page is set. You can now write in the margins.', 'success');
+      // Reconcile any past reflections exceeding the 2-hour window
+      triggerLazyReconciliation(fetchedEntries);
     } catch (err: any) {
-      console.warn('Conclude pipeline handled with client fallback:', err.message);
-      const updated: Entry = {
-        ...entry,
-        status: 'concluded',
-        concludedAt: new Date().toISOString(),
-        bodySealedAt: new Date().toISOString(),
-        summary: entry.summary || 'Reflection concluded.',
-        tags: entry.tags && entry.tags.length > 0 ? entry.tags : ['Reflection'],
-      };
-      handleUpdateEntry(updated);
-      setActiveEntryId(entry.id);
-      setActiveView('reader');
-      showToast('The page is set. Synthesis unavailable offline.', 'info');
+      console.error('Error loading user data:', err);
+      showToast('Could not load user data from Firestore.', 'error');
+    } finally {
+      setIsLoadingData(false);
     }
-  };
+  }, [triggerLazyReconciliation]);
+
+  useEffect(() => {
+    if (currentUser?.uid && currentUser.uid !== DEMO_USER_ID) {
+      loadUserData(currentUser.uid);
+    }
+  }, [currentUser?.uid, loadUserData]);
+
+  // Listen for tab return, window focus, and background heartbeat for lazy reconciliation
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        triggerLazyReconciliation(entries);
+      }
+    };
+    const handleFocus = () => {
+      triggerLazyReconciliation(entries);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    const heartbeat = setInterval(() => {
+      triggerLazyReconciliation(entries);
+    }, 60000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(heartbeat);
+    };
+  }, [currentUser?.uid, entries, triggerLazyReconciliation]);
 
   const bookmarkCount = useMemo(() => {
     let count = 0;
@@ -414,6 +505,15 @@ export default function App() {
   };
 
   const handleWalkthroughStepChange = (stepIndex: number, stepId: string) => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.querySelectorAll('main, [data-scrollable], .overflow-y-auto, html, body').forEach((el) => {
+        el.scrollTop = 0;
+      });
+    };
+    scrollToTop();
+    setTimeout(scrollToTop, 60);
+
     switch (stepId) {
       case 'canvas':
         setIsBookmarksOpen(false);

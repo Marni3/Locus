@@ -68,8 +68,8 @@ export const Toast: React.FC<ToastProps> = ({
                 }}
                 className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-all cursor-pointer shadow-2xs ${
                   type === 'success'
-                    ? 'bg-[#3B7A57] text-white hover:bg-[#2E6144]'
-                    : 'bg-white text-stone-900 hover:bg-stone-100'
+                    ? 'bg-accent-sage text-white hover:opacity-90'
+                    : 'bg-surface text-text-primary hover:bg-canvas border border-border-hairline'
                 }`}
               >
                 {actionLabel}
@@ -80,7 +80,7 @@ export const Toast: React.FC<ToastProps> = ({
               <button
                 id="toast-retry-btn"
                 onClick={onRetry}
-                className="text-xs font-semibold underline hover:opacity-80 transition-opacity cursor-pointer text-rose-700 hover:text-rose-900"
+                className="text-xs font-semibold underline hover:opacity-80 transition-opacity cursor-pointer text-rose-700 dark:text-rose-300"
               >
                 Retry Operation
               </button>
@@ -91,7 +91,7 @@ export const Toast: React.FC<ToastProps> = ({
         <button
           id="toast-close-btn"
           onClick={onClose}
-          className="text-stone-400 hover:text-stone-600 p-0.5 rounded-md hover:bg-stone-200/50 transition-colors cursor-pointer"
+          className="text-text-muted hover:text-text-primary p-0.5 rounded-md hover:bg-canvas/50 transition-colors cursor-pointer"
           aria-label="Close notification"
         >
           <X className="w-4 h-4" />

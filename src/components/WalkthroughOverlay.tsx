@@ -78,7 +78,7 @@ export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
       id: 'margins',
       title: 'The Strata Margin Layer',
       subtitle: 'Marginalia across time',
-      narrative: 'Revisit sealed reflections to write in the margins with temporal distance stamps and ink stances—without altering the original historical entry.',
+      narrative: 'Revisit sealed reflections to write in the margins with temporal distance stamps and ink stances—without altering the original historical entry. Simply highlight any part of a concluded entry to write in the margins.',
       icon: Columns,
       badge: 'Step 5 of 7 · Strata Margins',
     },
@@ -108,6 +108,20 @@ export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
       onStepChange?.(0, steps[0].id);
     }
   }, [isOpen]);
+
+  // Maintain that the screen and containers are always scrolled to the very top on step transitions
+  useEffect(() => {
+    if (!isOpen) return;
+    const resetScrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.querySelectorAll('main, [data-scrollable], .overflow-y-auto, html, body').forEach((el) => {
+        el.scrollTop = 0;
+      });
+    };
+    resetScrollToTop();
+    const timer = setTimeout(resetScrollToTop, 50);
+    return () => clearTimeout(timer);
+  }, [isOpen, currentStepIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -239,9 +253,15 @@ export const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
           </div>
         </div>
 
-        <p className="font-reading text-xs sm:text-[13px] text-text-primary/90 leading-relaxed bg-canvas p-3 rounded-xl border border-border-hairline shadow-2xs">
-          {currentStep.narrative}
-        </p>
+        <div className="font-reading text-xs sm:text-[13px] text-text-primary/90 leading-relaxed bg-canvas p-3 sm:p-3.5 rounded-xl border border-border-hairline shadow-2xs space-y-2">
+          <p>{currentStep.narrative}</p>
+          {currentStep.id === 'margins' && (
+            <div className="pt-2 border-t border-border-hairline/80 font-ui text-xs font-semibold text-accent-sage flex items-start gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-sage animate-pulse shrink-0 mt-1" />
+              <span>Tip: Highlight any part of a concluded entry to write in the margins.</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer Controls */}
