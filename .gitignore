@@ -16,4 +16,5 @@ image_docs/
 *.bak
 .vscode/
 .idea/
+session-timer/
 
